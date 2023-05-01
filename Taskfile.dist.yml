@@ -1,0 +1,46 @@
+version: '3'
+
+vars:
+  PACKAGES:
+    sh: find . -name '*.go' | grep -v -e mocks | xargs -n1 dirname | sort -u | tr '\n' ' '
+    msg: failed to find PACKAGES
+
+tasks:
+  clean:
+    cmds:
+    - rm -rvf mocks build coverprofile.txt
+    - mkdir mocks
+
+  generate:
+    deps: [clean]
+    cmds:
+    - mockery
+    - go generate {{.PACKAGES}}
+
+  lint:
+    cmds:
+    - golangci-lint --version
+    - golangci-lint run {{.PACKAGES}}
+
+  unit:
+    deps: [lint]
+    cmds:
+    - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt
+
+  integration:
+    deps: [lint]
+    cmds:
+    - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt -tags=integration
+
+  doc-install:
+    cmds:
+    - go install oss.terrastruct.com/d2@latest
+
+  doc:
+    deps: [doc-install]
+    cmds:
+    - for f in `ls doc/*.d2`; do `d2 --sketch --layout elk --theme 200 $f ${f%.d2}.svg`;done
+
+  run:
+    cmds:
+    - go run app/cmd/* server

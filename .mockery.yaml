@@ -1,0 +1,7 @@
+all: True
+exported: True
+case: snake
+inpackage: True
+testonly: False
+with-expecter: True
+keeptree: True

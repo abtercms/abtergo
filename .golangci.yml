@@ -1,0 +1,90 @@
+# Doc: https://golangci-lint.run/
+issues:
+  exclude-use-default: false
+  exclude-rules:
+  - path: _test.go
+    text: "Error return value of `resp.Body.Close` is not checked"
+    linters:
+    - errcheck
+  - path: _test.go
+    text: "Deferring unsafe method \"Close\" on type \"io.ReadCloser\""
+    linters:
+    - gosec
+  - path: _test.go
+    text: "SA5001: should check returned error before deferring resp.Body.Close()"
+    linters:
+    - staticcheck
+  - text: "TODO/BUG/FIXME: \"TODO: "
+    linters:
+    - godox
+  - path: libs/util/etag.go
+    text: "weak cryptographic"
+    linters:
+    - gosec
+  - path: _test.go
+    text: "`t` is unused"
+    linters:
+    - unparam
+  - path: mocks
+    linters:
+    - typecheck
+  - path: pkg/html
+    text: "missing type in composite literal"
+    linters:
+    - typecheck
+  - path: libs/val
+    text: "missing return"
+    linters:
+    - typecheck
+  - text: "undeclared name: `gofakeit`"
+    linters:
+    - typecheck
+  - text: "undeclared name: `validator`"
+    linters:
+    - typecheck
+  - text: "should have a package comment"
+    linters:
+    - revive
+  - text: "ST1000: at least one file in a package should have a package comment"
+    linters:
+    - stylecheck
+
+linters:
+  disable-all: true
+  enable:
+  - bodyclose
+  - cyclop
+  - errcheck
+  - goconst
+  - godot
+  - godox
+  - gofumpt
+  - gosec
+  - gosimple
+  - govet
+  - ineffassign
+  - misspell
+  - prealloc
+  - revive
+  - staticcheck
+  - stylecheck
+  - typecheck
+  - unconvert
+  - unparam
+  - unused
+  - whitespace
+
+linters-settings:
+  cyclop:
+    max-complexity: 8
+  goimports:
+    local-prefixes: github.com/abtergo/abtergo
+
+run:
+  skip-dirs:
+  - mocks/
+  - ../
+  build-tags:
+  - integration
+  timeout: 10m
+  modules-download-mode: readonly
