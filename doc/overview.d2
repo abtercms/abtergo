@@ -1,0 +1,17 @@
+frontend -> bff
+bff -> app.api gateway
+bff -> zitadel: auth
+
+app: {
+  api gateway -> redirect
+
+  api gateway -> page
+  page -> template
+
+  api gateway -> template
+  template -> block
+
+  api gateway -> block
+}
+
+app -> zitadel: auth

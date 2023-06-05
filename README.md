@@ -15,8 +15,6 @@ AbterCMS can be extended with modules. The following modules are available:
 
 ## Installation
 
-
-
 ## Usage
 
 ## License

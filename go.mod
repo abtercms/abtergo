@@ -8,7 +8,6 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/goccy/go-json v0.10.0
 	github.com/gofiber/fiber/v2 v2.42.0
-	github.com/jaevor/go-nanoid v1.3.0
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/qmuntal/stateless v1.6.2
 	github.com/stretchr/testify v1.8.1
@@ -23,8 +22,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gosimple/slug v1.13.1 // indirect
-	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect

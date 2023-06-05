@@ -1,0 +1,40 @@
+shape: sequence_diagram
+frontend: {shape: person}
+bff: {shape: oval}
+frontend.t1 -> bff.t1: GET\n/friendly-path
+app: {shape: hexagon}
+zitadel: {shape: oval}
+app.t1; redirect.t1; page.t1; template.t1; block.t1
+bff.t1 -> app.t1: GET /friendly-path\nAccept: HTML or:\nAccept: JSON\n+embed:rendered
+retrieve all page-related pieces: {
+  app.t1 -> zitadel.t1: isAllowed()
+  app.t1 -> redirect.t1: getRedirect()
+  redirect.t1 -> redirect.t1: query()
+  redirect.t1 -> app.t1: response {
+    style.stroke-dash: 5
+  }
+  app.t1 -> page.t1: getPage()
+  page.t1 -> zitadel.t2: hasAccess()
+  page.t1 -> page.t1: query()
+  page.t1 -> template.t1: getTemplate()
+  template.t1 -> template.t1: query()
+  template.t1 -> block.t1: getBlocks()
+  block.t1 -> block.t1: query()
+  block.t1 -> block.t1: updateTemplate()
+  block.t1 -> template.t1: response {
+    style.stroke-dash: 5
+  }
+  template.t1 -> template.t1: updateTemplate()
+  template.t1 -> page.t1: response {
+    style.stroke-dash: 5
+  }
+  page.t1 -> app.t1: response {
+    style.stroke-dash: 5
+  }
+}
+app.t1 -> bff.t1: response {
+  style.stroke-dash: 5
+}
+bff.t1 -> frontend.t1: response {
+  style.stroke-dash: 5
+}
