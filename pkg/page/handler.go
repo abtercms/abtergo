@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"net/http"
 
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
-	"github.com/abtergo/abtergo/libs/ablog"
 	"github.com/abtergo/abtergo/libs/arr"
-	"github.com/abtergo/abtergo/pkg/common"
+	"github.com/abtergo/abtergo/libs/fib"
 )
 
 // Handler represents a set of HTTP handlers.
 type Handler struct {
-	logger  ablog.Logger
+	logger  *zap.Logger
 	service Service
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(logger ablog.Logger, service Service) *Handler {
+func NewHandler(logger *zap.Logger, service Service) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,
@@ -41,12 +42,12 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 	payload := Page{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return fmt.Errorf("failed to parse the request payload, err: %w", arr.Wrap(arr.InvalidUserInput, err))
+		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	response, err := h.service.Create(c.Context(), payload)
 	if err != nil {
-		return fmt.Errorf("failed to create entity, err: %w", err)
+		return errors.Wrap(err, "failed to create the page")
 	}
 
 	return c.Status(http.StatusCreated).JSON(response)
@@ -89,14 +90,14 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 	payload := Page{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return fmt.Errorf("failed to parse the request payload, err: %w", arr.Wrap(arr.InvalidUserInput, err))
+		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	etag := c.Get(fiber.HeaderETag)
 
 	response, err := h.service.Update(c.Context(), id, payload, etag)
 	if err != nil {
-		return fmt.Errorf("failed to update entity, err: %w", err)
+		return errors.Wrap(err, "failed to update entity")
 	}
 
 	return c.JSON(response)
@@ -147,6 +148,6 @@ func (h *Handler) Inactivate(c *fiber.Ctx) error {
 
 func checkWiring(id string) {
 	if id == "" {
-		panic(common.ErrRouteHandleWiring)
+		panic(fib.ErrRouteHandleWiring)
 	}
 }

@@ -9,9 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/fib"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/renderer"
 	"github.com/abtergo/abtergo/pkg/renderer"
 )
@@ -31,7 +32,6 @@ func TestHandler_AddRoutes(t *testing.T) {
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
-		deps.loggerMock.EXPECT().Infow(mock.Anything, "Method", http.MethodGet, "Path", pathStub).Once()
 		deps.serviceMock.EXPECT().Get(mock.Anything, baseURLStub, pathStub).Return("", assert.AnError)
 
 		// Execute Test
@@ -45,23 +45,23 @@ func TestHandler_AddRoutes(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerMock  *mocks.Logger
+	loggerStub  *zap.Logger
 	serviceMock *mocks2.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
-	hd.loggerMock.AssertExpectations(t)
+	hd.serviceMock.AssertExpectations(t)
 }
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
-	loggerMock := &mocks.Logger{}
+	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks2.Service{}
-	handler := renderer.NewHandler(loggerMock, serviceMock)
+	handler := renderer.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: fib.ErrorHandler,
 	})
 	handler.AddRoutes(app)
 
-	return app, handlerDeps{loggerMock: loggerMock, serviceMock: serviceMock}
+	return app, handlerDeps{loggerStub: loggerStub, serviceMock: serviceMock}
 }

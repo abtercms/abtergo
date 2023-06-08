@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/cleaner"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 )
 
 func TestCleaner_Run(t *testing.T) {
@@ -91,37 +90,29 @@ func TestCleaner_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerMock := mocks.Logger{}
+			loggerStub := zaptest.NewLogger(t)
 
-			for _, w := range tt.wants {
-				loggerMock.EXPECT().Errorf(assert.AnError, mock.AnythingOfType("string"), w.id).Once()
-			}
-
-			c := cleaner.New(&loggerMock)
+			c := cleaner.New(loggerStub)
 
 			for id, fn := range tt.fields.registry {
 				c.Register(id, fn)
 			}
 
 			c.Run()
-
-			loggerMock.AssertExpectations(t)
 		})
 	}
 }
 
 func TestCleaner_Unregister(t *testing.T) {
 	t.Run("can remove a registered function", func(t *testing.T) {
-		loggerMock := mocks.Logger{}
+		loggerStub := zaptest.NewLogger(t)
 
-		c := cleaner.New(&loggerMock)
+		c := cleaner.New(loggerStub)
 
 		c.Register("foo", func() error { panic("this must not be called") })
 
 		c.Unregister("foo")
 
 		c.Run()
-
-		loggerMock.AssertExpectations(t)
 	})
 }

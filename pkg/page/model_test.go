@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/val"
-	"github.com/abtergo/abtergo/pkg/html"
+	"github.com/abtergo/abtergo/libs/html"
+	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/page"
 )
 
@@ -40,28 +40,6 @@ func TestPage_Clone(t *testing.T) {
 		assert.NotSame(t, p, c)
 		assert.Equal(t, p, c)
 	})
-
-	t.Run("random page with template can be cloned", func(t *testing.T) {
-		p := page.RandomPageWithTemplate()
-
-		c := p.Clone()
-
-		assert.NotSame(t, p.Template, c.Template)
-		assert.Equal(t, p.Template, c.Template)
-		assert.NotSame(t, p, c)
-		assert.Equal(t, p, c)
-	})
-
-	t.Run("random page with temporary template can be cloned", func(t *testing.T) {
-		p := page.RandomPageWithTempTemplate()
-
-		c := p.Clone()
-
-		assert.NotSame(t, p.Template, c.Template)
-		assert.Equal(t, p.Template, c.Template)
-		assert.NotSame(t, p, c)
-		assert.Equal(t, p, c)
-	})
 }
 
 func TestPage_AsNew(t *testing.T) {
@@ -75,7 +53,7 @@ func TestPage_AsNew(t *testing.T) {
 		require.NotEmpty(t, expected.CreatedAt)
 		require.NotEmpty(t, expected.UpdatedAt)
 
-		actual := expected.AsNew()
+		actual := expected.Clone().Reset()
 
 		expected.ID = ""
 		expected.Etag = ""
@@ -84,71 +62,6 @@ func TestPage_AsNew(t *testing.T) {
 
 		assert.NotSame(t, expected, actual)
 		assert.Equal(t, expected, actual)
-	})
-}
-
-func TestPage_WithID(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := page.RandomPage()
-
-		expected := entity.ID
-		updated := entity.WithID()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.ID)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := page.Page{}
-
-		actual := expected.WithID()
-
-		assert.NotEmpty(t, actual.ID)
-	})
-}
-
-func TestPage_WithEtag(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := page.RandomPage()
-
-		expected := entity.Etag
-		updated := entity.WithEtag()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.Etag)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := page.Page{}
-
-		actual := expected.WithEtag()
-
-		assert.NotEmpty(t, actual.Etag)
-	})
-}
-
-func TestPage_WithTime(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := page.RandomPage()
-
-		expectedCreatedAt := entity.CreatedAt
-		expectedUpdatedAt := entity.UpdatedAt
-
-		updated := entity.WithTime()
-
-		assert.NotEmpty(t, expectedCreatedAt)
-		assert.Equal(t, expectedCreatedAt, updated.CreatedAt)
-		assert.NotEmpty(t, expectedUpdatedAt)
-		assert.Equal(t, expectedUpdatedAt, updated.UpdatedAt)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := page.Page{}
-
-		actual := expected.WithTime()
-
-		assert.NotEmpty(t, actual.CreatedAt)
-		assert.NotEmpty(t, actual.UpdatedAt)
 	})
 }
 
@@ -216,13 +129,13 @@ func TestPage_Validate(t *testing.T) {
 		{
 			name:          "assets with invalid header js",
 			page:          page.RandomPageWithoutTemplate(),
-			modifier:      func(c *page.Page) { c.Assets.HeaderJs = []html.Script{{}} },
+			modifier:      func(c *page.Page) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
 			page:          page.RandomPageWithoutTemplate(),
-			modifier:      func(c *page.Page) { c.Assets.FooterJs = []html.Script{{}} },
+			modifier:      func(c *page.Page) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
@@ -236,42 +149,6 @@ func TestPage_Validate(t *testing.T) {
 			page:          page.RandomPageWithoutTemplate(),
 			modifier:      func(c *page.Page) { c.Assets.HeaderMeta = []html.Meta{{}} },
 			invalidFields: []string{"name", "property", "content"},
-		},
-		{
-			name:          "template name is required if template is not empty",
-			page:          page.RandomPageWithTemplate(),
-			modifier:      func(c *page.Page) { c.TemplateName = "" },
-			invalidFields: []string{"template_name"},
-		},
-		{
-			name:          "template is required if template name is not empty",
-			page:          page.RandomPageWithTemplate(),
-			modifier:      func(c *page.Page) { c.Template = nil },
-			invalidFields: []string{"template"},
-		},
-		{
-			name:          "template temp name and from are required if template temp until is not empty",
-			page:          page.RandomPageWithTempTemplate(),
-			modifier:      func(c *page.Page) { c.TemplateTempName = ""; c.TemplateTempFrom = nil },
-			invalidFields: []string{"template_temp_name", "template_temp_from"},
-		},
-		{
-			name:          "template temp name and until are required if template temp from is not empty",
-			page:          page.RandomPageWithTempTemplate(),
-			modifier:      func(c *page.Page) { c.TemplateTempName = ""; c.TemplateTempUntil = nil },
-			invalidFields: []string{"template_temp_name", "template_temp_until"},
-		},
-		{
-			name:          "template temp from and until are required if template temp name is not empty",
-			page:          page.RandomPageWithTempTemplate(),
-			modifier:      func(c *page.Page) { c.TemplateTempFrom = nil; c.TemplateTempUntil = nil },
-			invalidFields: []string{"template_temp_from", "template_temp_until"},
-		},
-		{
-			name:          "owner is required",
-			page:          page.RandomPage(),
-			modifier:      func(c *page.Page) { c.Owner = "" },
-			invalidFields: []string{"owner"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",
@@ -306,7 +183,7 @@ func TestPage_Validate(t *testing.T) {
 			if len(tt.invalidFields) == 0 {
 				assert.NoError(t, res)
 			} else {
-				val.AssertFieldErrorsOn(t, res, tt.invalidFields)
+				validation.AssertFieldErrorsOn(t, res, tt.invalidFields)
 			}
 		})
 	}

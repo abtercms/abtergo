@@ -7,30 +7,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 
-	"github.com/abtergo/abtergo/libs/ablog"
 	"github.com/abtergo/abtergo/libs/arr"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/block"
 	"github.com/abtergo/abtergo/pkg/block"
 )
 
 func TestService_Create(t *testing.T) {
-	mockZapLogger := &mocks.ZapLogger{}
-	loggerStub := ablog.Wrap(mockZapLogger)
+	loggerStub := zaptest.NewLogger(t)
 
 	t.Run("id provided error", func(t *testing.T) {
 		entityStub := block.RandomBlock()
 		ctxStub := context.Background()
 
-		repoMock := new(mocks2.Repo)
+		repoMock := &mocks2.Repo{}
 
 		s := block.NewService(loggerStub, repoMock)
 
 		_, err := s.Create(ctxStub, entityStub)
 		require.Error(t, err)
 
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFrom(err))
+		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
 	})
 
 	t.Run("validation error", func(t *testing.T) {
@@ -49,11 +47,11 @@ func TestService_Create(t *testing.T) {
 		_, err := s.Create(ctxStub, entityStub)
 		require.Error(t, err)
 
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFrom(err))
+		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock().AsNew()
+		entityStub := block.RandomBlock().Clone().Reset()
 		ctxStub := context.Background()
 
 		repoMock := new(mocks2.Repo)
@@ -71,8 +69,7 @@ func TestService_Create(t *testing.T) {
 }
 
 func TestService_Delete(t *testing.T) {
-	mockZapLogger := &mocks.ZapLogger{}
-	loggerStub := ablog.Wrap(mockZapLogger)
+	loggerStub := zaptest.NewLogger(t)
 
 	t.Run("success", func(t *testing.T) {
 		ctxStub := context.Background()
@@ -91,8 +88,7 @@ func TestService_Delete(t *testing.T) {
 }
 
 func TestService_Get(t *testing.T) {
-	mockZapLogger := &mocks.ZapLogger{}
-	loggerStub := ablog.Wrap(mockZapLogger)
+	loggerStub := zaptest.NewLogger(t)
 
 	t.Run("success", func(t *testing.T) {
 		ctxStub := context.Background()
@@ -113,8 +109,7 @@ func TestService_Get(t *testing.T) {
 }
 
 func TestService_List(t *testing.T) {
-	mockZapLogger := &mocks.ZapLogger{}
-	loggerStub := ablog.Wrap(mockZapLogger)
+	loggerStub := zaptest.NewLogger(t)
 
 	t.Run("success", func(t *testing.T) {
 		ctxStub := context.Background()
@@ -136,8 +131,7 @@ func TestService_List(t *testing.T) {
 }
 
 func TestService_Update(t *testing.T) {
-	mockZapLogger := &mocks.ZapLogger{}
-	loggerStub := ablog.Wrap(mockZapLogger)
+	loggerStub := zaptest.NewLogger(t)
 
 	const (
 		idStub   = "foo"
@@ -155,7 +149,7 @@ func TestService_Update(t *testing.T) {
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
 		require.Error(t, err)
 
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFrom(err))
+		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
 	})
 
 	t.Run("validation error", func(t *testing.T) {
@@ -174,11 +168,11 @@ func TestService_Update(t *testing.T) {
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
 		require.Error(t, err)
 
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFrom(err))
+		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock().AsNew()
+		entityStub := block.RandomBlock().Clone().Reset()
 		ctxStub := context.Background()
 
 		repoMock := new(mocks2.Repo)

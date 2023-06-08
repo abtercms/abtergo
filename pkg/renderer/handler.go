@@ -1,20 +1,20 @@
 package renderer
 
 import (
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 
-	"github.com/abtergo/abtergo/libs/ablog"
 	"github.com/abtergo/abtergo/libs/arr"
 )
 
 // Handler represents a set of HTTP handlers.
 type Handler struct {
-	logger  ablog.Logger
+	logger  *zap.Logger
 	service Service
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(logger ablog.Logger, service Service) *Handler {
+func NewHandler(logger *zap.Logger, service Service) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,
@@ -28,12 +28,12 @@ func (h *Handler) AddRoutes(r fiber.Router) {
 
 // CatchAll handles any requests which has not been caught by other handlers.
 func (h *Handler) CatchAll(c *fiber.Ctx) error {
-	h.logger.Infow("catch all", "Method", c.Method(), "Path", c.Path())
+	h.logger.Info("catch all", zap.String("method", c.Method()), zap.String("path", c.Path()))
 
 	statusCode := fiber.StatusOK
 	body, err := h.service.Get(c.Context(), c.BaseURL(), c.Path())
 	if err != nil {
-		statusCode = arr.HTTPStatusFrom(err)
+		statusCode = arr.HTTPStatusFromError(err)
 	}
 
 	return c.Status(statusCode).Format(body)

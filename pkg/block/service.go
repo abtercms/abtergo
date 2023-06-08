@@ -2,9 +2,9 @@ package block
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/abtergo/abtergo/libs/ablog"
+	"go.uber.org/zap"
+
 	"github.com/abtergo/abtergo/libs/arr"
 )
 
@@ -18,12 +18,12 @@ type Service interface {
 }
 
 type service struct {
-	logger ablog.Logger
+	logger *zap.Logger
 	repo   Repo
 }
 
 // NewService creates a new Service instance.
-func NewService(logger ablog.Logger, repo Repo) Service {
+func NewService(logger *zap.Logger, repo Repo) Service {
 	return &service{
 		logger: logger,
 		repo:   repo,
@@ -33,14 +33,14 @@ func NewService(logger ablog.Logger, repo Repo) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Block) (Block, error) {
 	if entity.ID != "" {
-		return Block{}, arr.New(arr.InvalidUserInput, "payload must not include an id. id in payload: '%s'", entity.ID)
+		return Block{}, arr.New(arr.InvalidUserInput, "payload must not include an id", "id in payload", entity.ID)
 	}
 
 	if err := entity.Validate(); err != nil {
-		return Block{}, arr.Wrap(arr.InvalidUserInput, err)
+		return Block{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
 	}
 
-	return s.repo.Create(ctx, entity.AsNew())
+	return s.repo.Create(ctx, entity)
 }
 
 // Get retrieves an existing entity.
@@ -56,14 +56,14 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Block, error) {
 // Update updates an existing entity.
 func (s *service) Update(ctx context.Context, id string, entity Block, etag string) (Block, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match. id in path: '%s', id in payload: '%s'", id, entity.ID)
+		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
 	}
 
 	if err := entity.Validate(); err != nil {
-		return Block{}, fmt.Errorf("payload validation failed. err: %w", arr.Wrap(arr.InvalidUserInput, err))
+		return Block{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	return s.repo.Update(ctx, id, entity.AsNew(), etag)
+	return s.repo.Update(ctx, id, entity, etag)
 }
 
 // Delete deletes an existing entity.

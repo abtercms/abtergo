@@ -9,12 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/page"
 	"github.com/abtergo/abtergo/pkg/page"
 )
@@ -22,7 +23,7 @@ import (
 func TestHandler_AddApiRoutes(t *testing.T) {
 	const baseURLStub = "https://example.com"
 
-	t.Run("Undefined route results in 404", func(t *testing.T) {
+	t.Run("undefined route results in 404", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNotFound
 
@@ -79,7 +80,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedPage := page.RandomPage()
 
 		// Stubs
-		payloadStub := expectedPage.AsNew()
+		payloadStub := expectedPage.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -89,7 +90,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, payloadStub).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -113,7 +114,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedPage := page.RandomPage()
 
 		// Stubs
-		payloadStub := expectedPage.AsNew()
+		payloadStub := expectedPage.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -140,7 +141,7 @@ func TestHandler_Post(t *testing.T) {
 
 		var actual page.Page
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedPage.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedPage, actual)
 
 		deps.AssertExpectations(t)
 	})
@@ -163,7 +164,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, page.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError))
+			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages", nil)
@@ -216,7 +217,7 @@ func TestHandler_List(t *testing.T) {
 		var actual []page.Page
 		util.ParseResponseHelper(t, resp, &actual)
 		assert.Len(t, actual, 5)
-		assert.Equal(t, expectedPages[0].AsNew(), actual[0].AsNew())
+		assert.Equal(t, expectedPages[0], actual[0])
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -240,7 +241,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedPage.ID).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages/"+expectedPage.ID, nil)
@@ -292,7 +293,7 @@ func TestHandler_Get(t *testing.T) {
 
 		var actual page.Page
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedPage.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedPage, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -341,7 +342,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedPage := page.RandomPage()
 
 		// Stubs
-		payloadStub := expectedPage.AsNew()
+		payloadStub := expectedPage.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -351,7 +352,7 @@ func TestHandler_Put(t *testing.T) {
 			EXPECT().
 			Update(mock.Anything, expectedPage.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError))
+			Return(page.Page{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -380,7 +381,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedPage := page.RandomPage()
 
 		// Stubs
-		payloadStub := expectedPage.AsNew()
+		payloadStub := expectedPage.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -408,7 +409,7 @@ func TestHandler_Put(t *testing.T) {
 
 		var actual page.Page
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedPage.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedPage, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -433,7 +434,7 @@ func TestHandler_Delete(t *testing.T) {
 			EXPECT().
 			Delete(mock.Anything, expectedPage.ID).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError))
+			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/pages/"+expectedPage.ID, nil)
@@ -502,7 +503,7 @@ func TestHandler_Activate(t *testing.T) {
 			EXPECT().
 			Transition(mock.Anything, expectedPage.ID, page.Activate, previousEtagStub).
 			Once().
-			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError))
+			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/activations", nil)
@@ -571,7 +572,7 @@ func TestHandler_Inactivate(t *testing.T) {
 			EXPECT().
 			Transition(mock.Anything, expectedPage.ID, page.Inactivate, previousEtagStub).
 			Once().
-			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError))
+			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/inactivations", nil)
@@ -622,19 +623,18 @@ func TestHandler_Inactivate(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerMock  *mocks.Logger
+	loggerStub  *zap.Logger
 	serviceMock *mocks2.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
-	hd.loggerMock.AssertExpectations(t)
 	hd.serviceMock.AssertExpectations(t)
 }
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
-	loggerMock := &mocks.Logger{}
+	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks2.Service{}
-	handler := page.NewHandler(loggerMock, serviceMock)
+	handler := page.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: fib.ErrorHandler,
@@ -644,5 +644,5 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	})
 	handler.AddAPIRoutes(app)
 
-	return app, handlerDeps{loggerMock: loggerMock, serviceMock: serviceMock}
+	return app, handlerDeps{loggerStub: loggerStub, serviceMock: serviceMock}
 }

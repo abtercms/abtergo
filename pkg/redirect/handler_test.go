@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/redirect"
 	"github.com/abtergo/abtergo/pkg/redirect"
 )
@@ -21,7 +22,7 @@ import (
 func TestHandler_AddApiRoutes(t *testing.T) {
 	const baseURLStub = "https://example.com"
 
-	t.Run("Undefined route results in 404", func(t *testing.T) {
+	t.Run("undefined route results in 404", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNotFound
 
@@ -88,7 +89,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, payloadStub).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -162,7 +163,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, redirect.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError))
+			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects", nil)
@@ -239,7 +240,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedRedirect.ID).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
@@ -349,7 +350,7 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Update(mock.Anything, expectedRedirect.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError))
+			Return(redirect.Redirect{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -429,7 +430,7 @@ func TestHandler_Delete(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Delete(mock.Anything, expectedRedirect.ID).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError))
+			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
@@ -476,24 +477,23 @@ func TestHandler_Delete(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerMock  *mocks.Logger
+	loggerStub  *zap.Logger
 	serviceMock *mocks2.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
-	hd.loggerMock.AssertExpectations(t)
 	hd.serviceMock.AssertExpectations(t)
 }
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
-	loggerMock := &mocks.Logger{}
+	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks2.Service{}
-	handler := redirect.NewHandler(loggerMock, serviceMock)
+	handler := redirect.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: fib.ErrorHandler,
 	})
 	handler.AddAPIRoutes(app)
 
-	return app, handlerDeps{loggerMock: loggerMock, serviceMock: serviceMock}
+	return app, handlerDeps{loggerStub: loggerStub, serviceMock: serviceMock}
 }

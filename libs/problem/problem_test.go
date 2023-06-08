@@ -27,7 +27,7 @@ func TestFromError(t *testing.T) {
 			},
 			want: Problem{
 				Type:   "https://example.com/problem/unknown-error",
-				Title:  string(arr.UnknownError),
+				Title:  arr.UnknownError.GetTitle(),
 				Detail: "assert.AnError general error for testing",
 				Status: http.StatusInternalServerError,
 			},
@@ -36,12 +36,12 @@ func TestFromError(t *testing.T) {
 			name: "invalid user input",
 			args: args{
 				baseURL: "https://example.com",
-				err:     arr.Wrap(arr.InvalidUserInput, assert.AnError),
+				err:     arr.Wrap(arr.InvalidUserInput, assert.AnError, "foo"),
 			},
 			want: Problem{
 				Type:   "https://example.com/problem/invalid-user-input",
-				Title:  string(arr.InvalidUserInput),
-				Detail: "assert.AnError general error for testing",
+				Title:  arr.InvalidUserInput.GetTitle(),
+				Detail: "foo: assert.AnError general error for testing.",
 				Status: http.StatusBadRequest,
 			},
 		},

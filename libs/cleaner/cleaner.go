@@ -3,7 +3,7 @@ package cleaner
 import (
 	"sync"
 
-	"github.com/abtergo/abtergo/libs/ablog"
+	"go.uber.org/zap"
 )
 
 // Fn represents a callback function which can be used for cleaning up resources on server shutdown.
@@ -13,11 +13,11 @@ type Fn func() error
 type Cleaner struct {
 	lock     sync.Mutex
 	registry map[string]Fn
-	logger   ablog.Logger
+	logger   *zap.Logger
 }
 
 // New creates a new Cleaner instance.
-func New(logger ablog.Logger) *Cleaner {
+func New(logger *zap.Logger) *Cleaner {
 	return &Cleaner{
 		registry: make(map[string]Fn),
 		logger:   logger,
@@ -56,7 +56,7 @@ func (c *Cleaner) Run() {
 			defer wg.Done()
 			err := fn()
 			if err != nil {
-				c.logger.Errorf(err, "clean up failed, id: %s", id)
+				c.logger.Error("clean up failed", zap.Error(err), zap.String("id", id))
 			}
 		}()
 	}

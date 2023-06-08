@@ -2,6 +2,19 @@ package page
 
 import "context"
 
+type Filter struct {
+	Website string `json:"website" form:"website" validate:"required,url" fake:"{website}"`
+	Path    string `json:"path" form:"path" validate:"required" fake:"{path}"`
+}
+
+func NewFilter() Filter {
+	return Filter{}
+}
+
+func (f Filter) Match(ctx context.Context, page Page) bool {
+	return true
+}
+
 // Repo is an interface for repositories.
 type Repo interface {
 	Create(ctx context.Context, entity Page) (Page, error)

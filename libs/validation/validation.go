@@ -1,4 +1,4 @@
-package val
+package validation
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	validator "github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10"
 )
 
 // NewValidator creates validator with proper configuration for json tag name extraction.
@@ -28,6 +28,21 @@ func jsonTagName(fld reflect.StructField) string {
 	return strings.SplitN(name, ",", 2)[0]
 }
 
+func AddNotBeforeValidation(v *validator.Validate) {
+	// Register custom validators here
+	err := v.RegisterValidation("not_before_date", ValidateNotBeforeDate)
+	if err != nil {
+		panic(fmt.Errorf("failed to register 'not before date' validator. err: %w", err))
+	}
+}
+
+func AddEtagValidation(v *validator.Validate) {
+	err := v.RegisterValidation("etag", ValidateEtag)
+	if err != nil {
+		panic(fmt.Errorf("failed to register 'etag' validator. err: %w", err))
+	}
+}
+
 // ValidateNotBeforeDate validates that a date is not before a reference date.
 func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 	field := fl.Field()
@@ -38,7 +53,7 @@ func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 		timeType := reflect.TypeOf(time.Time{})
 
 		if field.Type().ConvertibleTo(timeType) {
-			p, err := time.Parse("2006-01-02", param)
+			p, err := time.Parse(time.DateOnly, param)
 			if err != nil {
 				panic(fmt.Sprintf("Invalid date: %s", param))
 			}

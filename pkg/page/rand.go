@@ -6,15 +6,14 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/pkg/html"
-	"github.com/abtergo/abtergo/pkg/template"
+	"github.com/abtergo/abtergo/libs/html"
 )
 
 func init() {
 	fakeit.AddPathFaker()
 	fakeit.AddWebsiteFaker()
 	fakeit.AddCSSURLFaker()
-	fakeit.AddJsURLFaker()
+	fakeit.AddJSURLFaker()
 	fakeit.AddDateRangeFaker()
 	fakeit.AddEtagFaker()
 }
@@ -36,11 +35,6 @@ func RandomPageWithoutTemplate() Page {
 	p := mustCreatePage()
 
 	p.Assets = html.FixAssets(p.Assets)
-	p.Template = nil
-	p.TemplateName = ""
-	p.TemplateTempName = ""
-	p.TemplateTempFrom = nil
-	p.TemplateTempUntil = nil
 
 	return p
 }
@@ -50,12 +44,6 @@ func RandomPageWithTemplate() Page {
 	p := mustCreatePage()
 
 	p.Assets = html.FixAssets(p.Assets)
-	p.Template = template.FixTemplate(p.Template)
-
-	p.TemplateName = p.Template.Name
-	p.TemplateTempName = ""
-	p.TemplateTempFrom = nil
-	p.TemplateTempUntil = nil
 
 	return p
 }
@@ -65,9 +53,6 @@ func RandomPageWithTempTemplate() Page {
 	p := mustCreatePage()
 
 	p.Assets = html.FixAssets(p.Assets)
-	p.Template = template.FixTemplate(p.Template)
-
-	p.TemplateTempName = p.Template.Name
 
 	return p
 }

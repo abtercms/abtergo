@@ -4,9 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 
-	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/problem"
 )
 
@@ -18,7 +17,7 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 		// Retrieve the custom status code if it's a *fiber.Error
 		var e *fiber.Error
 		if errors.As(err, &e) && e.Code != fiber.StatusInternalServerError {
-			p = problem.FromError(ctx.BaseURL(), arr.FromCode(e.Code, err))
+			p = problem.FromError(ctx.BaseURL(), err)
 		}
 	}
 
@@ -33,7 +32,7 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 	err = ctx.Status(p.Status).SendFile(fmt.Sprintf("./%d.html", p.Status))
 	if err != nil {
 		// In case the SendFile fails
-		return ctx.Status(fiber.StatusInternalServerError).SendString(string(arr.UnknownError))
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
 	// Return from handler

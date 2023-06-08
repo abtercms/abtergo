@@ -22,55 +22,55 @@ func TestUpdater_Transition(t *testing.T) {
 		{
 			name: "draft -> active: OK",
 			args: args{
-				status:  page.Draft,
+				status:  page.StatusDraft,
 				trigger: page.Activate,
 			},
-			want:    page.Active,
+			want:    page.StatusActive,
 			wantErr: false,
 		},
 		{
 			name: "draft -> inactive: OK",
 			args: args{
-				status:  page.Draft,
+				status:  page.StatusDraft,
 				trigger: page.Inactivate,
 			},
-			want:    page.Inactive,
+			want:    page.StatusInactive,
 			wantErr: false,
 		},
 		{
 			name: "active -> inactive: OK",
 			args: args{
-				status:  page.Active,
+				status:  page.StatusActive,
 				trigger: page.Inactivate,
 			},
-			want:    page.Inactive,
+			want:    page.StatusInactive,
 			wantErr: false,
 		},
 		{
 			name: "inactive -> active: OK",
 			args: args{
-				status:  page.Inactive,
+				status:  page.StatusInactive,
 				trigger: page.Activate,
 			},
-			want:    page.Active,
+			want:    page.StatusActive,
 			wantErr: false,
 		},
 		{
 			name: "inactive -> inactive: NOT OK",
 			args: args{
-				status:  page.Inactive,
+				status:  page.StatusInactive,
 				trigger: page.Inactivate,
 			},
-			want:    page.Inactive,
+			want:    page.StatusInactive,
 			wantErr: true,
 		},
 		{
 			name: "active -> active: NOT OK",
 			args: args{
-				status:  page.Active,
+				status:  page.StatusActive,
 				trigger: page.Activate,
 			},
-			want:    page.Active,
+			want:    page.StatusActive,
 			wantErr: true,
 		},
 	}

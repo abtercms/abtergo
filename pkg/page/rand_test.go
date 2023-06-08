@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/abtergo/abtergo/pkg/page"
 )
@@ -12,36 +11,6 @@ import (
 func TestRandomPage(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		p := page.RandomPage()
-
-		err := p.Validate()
-		assert.NoError(t, err)
-	})
-}
-
-func TestRandomPageWithoutTemplate(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
-		p := page.RandomPageWithoutTemplate()
-		require.Nil(t, p.Template)
-
-		err := p.Validate()
-		assert.NoError(t, err)
-	})
-}
-
-func TestRandomPageWithTemplate(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
-		p := page.RandomPageWithTemplate()
-		require.NotNil(t, p.Template)
-
-		err := p.Validate()
-		assert.NoError(t, err)
-	})
-}
-
-func TestRandomPageWithTempTemplate(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
-		p := page.RandomPageWithTempTemplate()
-		require.NotNil(t, p.Template)
 
 		err := p.Validate()
 		assert.NoError(t, err)

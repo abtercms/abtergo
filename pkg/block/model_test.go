@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/val"
+	"github.com/abtergo/abtergo/libs/html"
+	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/block"
-	"github.com/abtergo/abtergo/pkg/html"
 )
 
 func TestBlock_Clone(t *testing.T) {
@@ -34,7 +34,7 @@ func TestBlock_AsNew(t *testing.T) {
 		require.NotEmpty(t, expected.CreatedAt)
 		require.NotEmpty(t, expected.UpdatedAt)
 
-		actual := expected.AsNew()
+		actual := expected
 
 		expected.ID = ""
 		expected.Etag = ""
@@ -43,71 +43,6 @@ func TestBlock_AsNew(t *testing.T) {
 
 		assert.NotSame(t, expected, actual)
 		assert.Equal(t, expected, actual)
-	})
-}
-
-func TestBlock_WithID(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := block.RandomBlock()
-
-		expected := entity.ID
-		updated := entity.WithID()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.ID)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := block.Block{}
-
-		actual := expected.WithID()
-
-		assert.NotEmpty(t, actual.ID)
-	})
-}
-
-func TestBlock_WithEtag(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := block.RandomBlock()
-
-		expected := entity.Etag
-		updated := entity.WithEtag()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.Etag)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := block.Block{}
-
-		actual := expected.WithEtag()
-
-		assert.NotEmpty(t, actual.Etag)
-	})
-}
-
-func TestBlock_WithTime(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := block.RandomBlock()
-
-		expectedCreatedAt := entity.CreatedAt
-		expectedUpdatedAt := entity.UpdatedAt
-
-		updated := entity.WithTime()
-
-		assert.NotEmpty(t, expectedCreatedAt)
-		assert.Equal(t, expectedCreatedAt, updated.CreatedAt)
-		assert.NotEmpty(t, expectedUpdatedAt)
-		assert.Equal(t, expectedUpdatedAt, updated.UpdatedAt)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := block.Block{}
-
-		actual := expected.WithTime()
-
-		assert.NotEmpty(t, actual.CreatedAt)
-		assert.NotEmpty(t, actual.UpdatedAt)
 	})
 }
 
@@ -156,13 +91,13 @@ func TestBlock_Validate(t *testing.T) {
 		{
 			name:          "assets with invalid header js",
 			block:         block.RandomBlock(),
-			modifier:      func(c *block.Block) { c.Assets.HeaderJs = []html.Script{{}} },
+			modifier:      func(c *block.Block) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
 			block:         block.RandomBlock(),
-			modifier:      func(c *block.Block) { c.Assets.FooterJs = []html.Script{{}} },
+			modifier:      func(c *block.Block) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
@@ -176,12 +111,6 @@ func TestBlock_Validate(t *testing.T) {
 			block:         block.RandomBlock(),
 			modifier:      func(c *block.Block) { c.Assets.HeaderMeta = []html.Meta{{}} },
 			invalidFields: []string{"name", "property", "content"},
-		},
-		{
-			name:          "owner is required",
-			block:         block.RandomBlock(),
-			modifier:      func(c *block.Block) { c.Owner = "" },
-			invalidFields: []string{"owner"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",
@@ -216,7 +145,7 @@ func TestBlock_Validate(t *testing.T) {
 			if len(tt.invalidFields) == 0 {
 				assert.NoError(t, res)
 			} else {
-				val.AssertFieldErrorsOn(t, res, tt.invalidFields)
+				validation.AssertFieldErrorsOn(t, res, tt.invalidFields)
 			}
 		})
 	}

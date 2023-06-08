@@ -13,6 +13,10 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
+tags:
+  - name: cms
+    description: New, language-independent CMS
+
 servers:
 - url: https://abtercms.do/api
 
@@ -38,6 +42,9 @@ paths:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:redirects'
 
     post:
       description: Creates a new redirect
@@ -50,20 +57,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RedirectRequest'
+              $ref: '#/components/schemas/Redirect'
       responses:
         '204':
           description: Redirect create success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RedirectResponse'
+                $ref: '#/components/schemas/Redirect'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:redirects'
+            - 'write:redirects'
 
   /redirects/{id}:
     get:
@@ -78,13 +89,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RedirectResponse'
+                $ref: '#/components/schemas/Redirect'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:redirects'
 
     put:
       description: Update an existing redirect
@@ -98,20 +112,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RedirectRequest'
+              $ref: '#/components/schemas/Redirect'
       responses:
         '200':
           description: Redirect update success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RedirectResponse'
+                $ref: '#/components/schemas/Redirect'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:redirects'
+            - 'write:redirects'
 
     delete:
       description: Delete an existing redirect
@@ -128,6 +146,10 @@ paths:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:redirects'
+            - 'write:redirects'
 
 
   /templates:
@@ -151,6 +173,9 @@ paths:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:templates'
 
     post:
       description: Creates a new template
@@ -163,20 +188,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TemplateRequest'
+              $ref: '#/components/schemas/Template'
       responses:
         '204':
           description: Template create success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateResponse'
+                $ref: '#/components/schemas/Template'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:templates'
+            - 'write:templates'
 
   /templates/{id}:
     get:
@@ -191,13 +220,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateResponse'
+                $ref: '#/components/schemas/Template'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:templates'
 
     put:
       description: Update an existing template
@@ -211,20 +243,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TemplateRequest'
+              $ref: '#/components/schemas/Template'
       responses:
         '200':
           description: Template update success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateResponse'
+                $ref: '#/components/schemas/Template'
         default:
           description: Unexpected error
           content:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:templates'
+            - 'write:templates'
 
     delete:
       description: Delete an existing template
@@ -241,6 +277,10 @@ paths:
             application/json+problem:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:templates'
+            - 'write:templates'
 
 
   /pages:
@@ -264,6 +304,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'write:pages'
 
     post:
       description: Creates a new page
@@ -276,20 +319,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/Page'
       responses:
         '204':
           description: Page create success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResponse'
+                $ref: '#/components/schemas/Page'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
+            - 'write:pages'
 
   /pages/{id}:
     get:
@@ -310,13 +357,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResponse'
+                $ref: '#/components/schemas/Page'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
 
     put:
       description: Update an existing page
@@ -330,20 +380,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/Page'
       responses:
         '200':
           description: Page update success response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResponse'
+                $ref: '#/components/schemas/Page'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
+            - 'write:pages'
 
     delete:
       description: Delete an existing page
@@ -360,6 +414,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
+            - 'write:pages'
 
   /pages/{id}/activations:
     post:
@@ -369,18 +427,18 @@ paths:
       - $ref: '#/components/parameters/tokenHeader'
       - $ref: '#/components/parameters/idPath'
       responses:
-        '200':
-          description: Page update success response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageResponse'
+        '204':
+          description: Page activation success response
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
+            - 'write:pages'
 
   /pages/{id}/inactivations:
     post:
@@ -390,20 +448,38 @@ paths:
       - $ref: '#/components/parameters/tokenHeader'
       - $ref: '#/components/parameters/idPath'
       responses:
-        '200':
-          description: Page update success response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageResponse'
+        '204':
+          description: Page inactivation success response
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      security:
+        - abtercms_auth:
+            - 'read:pages'
+            - 'write:pages'
 
 components:
+  securitySchemes:
+    abtercms_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://petstore.swagger.io/api/oauth/dialog'
+          scopes:
+            'write:redirects': modify redirects
+            'read:redirects': read redirects
+            'write:templates': modify templates
+            'read:templates': read templates
+            'write:pages': modify pages
+            'read:pages': read pages
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+
   parameters:
     tokenHeader:
       name: token
@@ -475,6 +551,7 @@ components:
           readOnly: true
 
     RedirectListResponse:
+      title: Redirect List Response
       description: A wrapper object containing a paginated list of redirects.
       type: object
       properties:
@@ -500,11 +577,10 @@ components:
           format: uri
         items:
           type: array
-          required: false
           items:
             $ref: '#/components/schemas/Redirect'
       required:
-      - items
+        - items
 
     Link:
       required:
@@ -600,6 +676,7 @@ components:
           readOnly: true
 
     TemplateListResponse:
+      title: Template List Response
       description: A wrapper object containing a paginated list of templates.
       type: object
       properties:
@@ -625,7 +702,6 @@ components:
           format: uri
         items:
           type: array
-          required: false
           items:
             $ref: '#/components/schemas/Template'
       required:
@@ -687,6 +763,7 @@ components:
           readOnly: true
 
     PageListResponse:
+      title: Page List Response
       description: A wrapper object containing a paginated list of pages.
       type: object
       properties:
@@ -712,7 +789,6 @@ components:
           format: uri
         items:
           type: array
-          required: false
           items:
             $ref: '#/components/schemas/Page'
       required:

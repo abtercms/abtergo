@@ -20,8 +20,8 @@ type Problem struct {
 
 // FromError creates a new Problem instance from an error.
 func FromError(baseURL string, err error) Problem {
-	et := arr.ErrorTypeFrom(err)
-	status := arr.HTTPStatusFrom(err)
+	et := arr.TypeFromError(err)
+	status := arr.HTTPStatusFromError(err)
 
 	cleanedBaseURL := strings.TrimRight(baseURL, "/") + "/"
 	cleanedPath := path.Join("problem", et.GetSlug())
@@ -29,7 +29,7 @@ func FromError(baseURL string, err error) Problem {
 
 	return Problem{
 		Type:   t,
-		Title:  string(et),
+		Title:  et.GetTitle(),
 		Status: status,
 		Detail: err.Error(),
 	}

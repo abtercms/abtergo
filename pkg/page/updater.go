@@ -38,15 +38,15 @@ func (u *updater) Transition(status Status, trigger Trigger) (Status, error) {
 func (u *updater) getStateMachine(state Status) *stateless.StateMachine {
 	sm := stateless.NewStateMachine(state)
 
-	sm.Configure(Draft).
-		Permit(Inactivate, Inactive).
-		Permit(Activate, Active)
+	sm.Configure(StatusDraft).
+		Permit(Inactivate, StatusInactive).
+		Permit(Activate, StatusActive)
 
-	sm.Configure(Active).
-		Permit(Inactivate, Inactive)
+	sm.Configure(StatusActive).
+		Permit(Inactivate, StatusInactive)
 
-	sm.Configure(Inactive).
-		Permit(Activate, Active)
+	sm.Configure(StatusInactive).
+		Permit(Activate, StatusActive)
 
 	return sm
 }

@@ -5,17 +5,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/abtergo/abtergo/pkg/html"
+	html2 "github.com/abtergo/abtergo/libs/html"
 )
 
 func TestFixAssets(t *testing.T) {
-	a := html.Meta{
+	a := html2.Meta{
 		Name:     "foo",
 		Property: "foo",
 	}
 
 	type args struct {
-		assets html.Assets
+		assets html2.Assets
 	}
 	tests := []struct {
 		name string
@@ -24,8 +24,8 @@ func TestFixAssets(t *testing.T) {
 		{
 			name: "only one of name or property attribute is set for all meta entries",
 			args: args{
-				assets: html.Assets{
-					HeaderMeta: html.MetaList{
+				assets: html2.Assets{
+					HeaderMeta: html2.MetaList{
 						a, a, a, a, a,
 						a, a, a, a, a,
 						a, a, a, a, a,
@@ -43,7 +43,7 @@ func TestFixAssets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := html.FixAssets(tt.args.assets)
+			got := html2.FixAssets(tt.args.assets)
 
 			for _, meta := range got.HeaderMeta {
 				assert.NotEqual(t, meta.Name, meta.Property)

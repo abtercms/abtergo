@@ -5,11 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
-	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/val"
-	"github.com/abtergo/abtergo/pkg/html"
+	"github.com/abtergo/abtergo/libs/html"
+	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/template"
 )
 
@@ -21,93 +19,6 @@ func TestTemplate_Clone(t *testing.T) {
 
 		assert.NotSame(t, tt, c)
 		assert.Equal(t, tt, c)
-	})
-}
-
-func TestTemplate_AsNew(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		fakeit.AddEtagFaker()
-		expected := template.RandomTemplate()
-
-		require.NotEmpty(t, expected.ID)
-		require.NotEmpty(t, expected.Etag)
-		require.NotEmpty(t, expected.CreatedAt)
-		require.NotEmpty(t, expected.UpdatedAt)
-
-		actual := expected.AsNew()
-
-		expected.ID = ""
-		expected.Etag = ""
-		expected.CreatedAt = time.Time{}
-		expected.UpdatedAt = time.Time{}
-
-		assert.NotSame(t, expected, actual)
-		assert.Equal(t, expected, actual)
-	})
-}
-
-func TestTemplate_WithID(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := template.RandomTemplate()
-
-		expected := entity.ID
-		updated := entity.WithID()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.ID)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := template.Template{}
-
-		actual := expected.WithID()
-
-		assert.NotEmpty(t, actual.ID)
-	})
-}
-
-func TestTemplate_WithEtag(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := template.RandomTemplate()
-
-		expected := entity.Etag
-		updated := entity.WithEtag()
-
-		assert.NotEmpty(t, expected)
-		assert.Equal(t, expected, updated.Etag)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := template.Template{}
-
-		actual := expected.WithEtag()
-
-		assert.NotEmpty(t, actual.Etag)
-	})
-}
-
-func TestTemplate_WithTime(t *testing.T) {
-	t.Run("skip", func(t *testing.T) {
-		entity := template.RandomTemplate()
-
-		expectedCreatedAt := entity.CreatedAt
-		expectedUpdatedAt := entity.UpdatedAt
-
-		updated := entity.WithTime()
-
-		assert.NotEmpty(t, expectedCreatedAt)
-		assert.Equal(t, expectedCreatedAt, updated.CreatedAt)
-		assert.NotEmpty(t, expectedUpdatedAt)
-		assert.Equal(t, expectedUpdatedAt, updated.UpdatedAt)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		expected := template.Template{}
-
-		actual := expected.WithTime()
-
-		assert.NotEmpty(t, actual.CreatedAt)
-		assert.NotEmpty(t, actual.UpdatedAt)
 	})
 }
 
@@ -156,13 +67,13 @@ func TestTemplate_Validate(t *testing.T) {
 		{
 			name:          "assets with invalid header js",
 			template:      template.RandomTemplate(),
-			modifier:      func(c *template.Template) { c.Assets.HeaderJs = []html.Script{{}} },
+			modifier:      func(c *template.Template) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
 			template:      template.RandomTemplate(),
-			modifier:      func(c *template.Template) { c.Assets.FooterJs = []html.Script{{}} },
+			modifier:      func(c *template.Template) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
@@ -176,12 +87,6 @@ func TestTemplate_Validate(t *testing.T) {
 			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.HeaderMeta = []html.Meta{{}} },
 			invalidFields: []string{"name", "property", "content"},
-		},
-		{
-			name:          "owner is required",
-			template:      template.RandomTemplate(),
-			modifier:      func(c *template.Template) { c.Owner = "" },
-			invalidFields: []string{"owner"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",
@@ -216,7 +121,7 @@ func TestTemplate_Validate(t *testing.T) {
 			if len(tt.invalidFields) == 0 {
 				assert.NoError(t, res)
 			} else {
-				val.AssertFieldErrorsOn(t, res, tt.invalidFields)
+				validation.AssertFieldErrorsOn(t, res, tt.invalidFields)
 			}
 		})
 	}

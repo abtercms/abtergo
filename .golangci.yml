@@ -14,6 +14,9 @@ issues:
     text: "SA5001: should check returned error before deferring resp.Body.Close()"
     linters:
     - staticcheck
+  - text: "should have comment"
+    linters:
+    - revive
   - text: "TODO/BUG/FIXME: \"TODO: "
     linters:
     - godox
@@ -32,7 +35,7 @@ issues:
     text: "missing type in composite literal"
     linters:
     - typecheck
-  - path: libs/val
+  - path: libs/validation
     text: "missing return"
     linters:
     - typecheck

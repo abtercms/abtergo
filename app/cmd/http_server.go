@@ -9,16 +9,17 @@ import (
 	"syscall"
 	"time"
 
-	json "github.com/goccy/go-json"
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/goccy/go-json"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	cli "github.com/urfave/cli/v2"
+	"github.com/pkg/errors"
+	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 
-	"github.com/abtergo/abtergo/libs/ablog"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/pkg/block"
 	"github.com/abtergo/abtergo/pkg/page"
@@ -33,13 +34,13 @@ type cleaner interface {
 
 // HTTPServer represents an HTTP server and contains all dependencies necessary.
 type HTTPServer struct {
-	logger  ablog.Logger
+	logger  *zap.Logger
 	cleaner cleaner
 	fiber   *fiber.App
 }
 
 // NewHTTPServer creates a new HTTPServer instance.
-func NewHTTPServer(logger ablog.Logger, cleaner cleaner) *HTTPServer {
+func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 	f := fiber.New(fiber.Config{
 		CaseSensitive:      true,
 		EnableIPValidation: true,
@@ -99,7 +100,9 @@ func (s *HTTPServer) Start(cCtx *cli.Context) error {
 	s.logger.Info("server shutting down gracefully...")
 	err := s.fiber.Shutdown()
 	if err != nil {
-		s.logger.Errorf(err, "shutting down the HTTP server failed")
+		s.logger.Error(errors.Wrap(err, "shutting down the HTTP server failed").Error())
+
+		return err
 	}
 
 	s.logger.Info("running cleanup tasks...")
@@ -110,6 +113,18 @@ func (s *HTTPServer) Start(cCtx *cli.Context) error {
 
 	return nil
 }
+
+const (
+	limiterMaxRequestsFlag = "max-requests"
+	limiterTimeframeFlag   = "timeframe"
+	usePprofFlag           = "pprof"
+	pprofPrefixFlag        = "pprof-prefix"
+	compressionLevelFlag   = "compress-level"
+)
+
+const (
+	localhost = "127.0.0.1"
+)
 
 func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context, router fiber.Router) {
 	if !cCtx.Bool("use-pprof") {
@@ -166,7 +181,7 @@ func (s *HTTPServer) useRecoverMiddleware(r fiber.Router) {
 	r.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
-			s.logger.Error(fmt.Errorf("panic: %v\n%s", e, debug.Stack()))
+			s.logger.Error(fmt.Sprintf("%v", e), zap.String("stack", string(debug.Stack())))
 		},
 	}))
 }

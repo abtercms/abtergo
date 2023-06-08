@@ -8,3 +8,12 @@ func CloneDate(d time.Time) time.Time {
 
 	return time.Date(year, month, day, d.Hour(), d.Minute(), d.Second(), d.Nanosecond(), d.Location())
 }
+
+func MustParseDate(value, layout string) time.Time {
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		panic(err)
+	}
+
+	return t
+}

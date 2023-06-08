@@ -48,23 +48,14 @@ func (s *service) Get(ctx context.Context, website, path string) (string, error)
 
 	if t != nil {
 		s.renderer.AddContext("content", p.Body)
-		s.renderer.Render()
+		// s.renderer.Render()
 	}
 
 	return s.renderer.Render(p.Body)
 }
 
 func (s *service) getTemplate(ctx context.Context, p page.Page) (*template.Template, error) {
-	if p.Template != nil {
-		return p.Template, nil
-	}
-
-	if p.TemplateTempName != "" {
-		t, err := s.templateRepo.Retrieve(ctx, p.TemplateName)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// TODO: create logic to retrieve template according to custom logic
 
 	return nil, nil
 }

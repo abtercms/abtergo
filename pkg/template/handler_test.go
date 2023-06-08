@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks "github.com/abtergo/abtergo/mocks/libs/ablog"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/template"
 	"github.com/abtergo/abtergo/pkg/template"
 )
@@ -21,7 +22,7 @@ import (
 func TestHandler_AddApiRoutes(t *testing.T) {
 	const baseURLStub = "https://example.com"
 
-	t.Run("Undefined route results in 404", func(t *testing.T) {
+	t.Run("undefined route results in 404", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNotFound
 
@@ -78,7 +79,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
-		payloadStub := expectedTemplate.AsNew()
+		payloadStub := expectedTemplate.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -88,7 +89,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, payloadStub).
 			Once().
-			Return(template.Template{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(template.Template{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -112,7 +113,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
-		payloadStub := expectedTemplate.AsNew()
+		payloadStub := expectedTemplate.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -139,7 +140,7 @@ func TestHandler_Post(t *testing.T) {
 
 		var actual template.Template
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedTemplate.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedTemplate.Clone(), actual.Clone())
 
 		deps.AssertExpectations(t)
 	})
@@ -162,7 +163,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, template.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError))
+			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/templates", nil)
@@ -215,7 +216,7 @@ func TestHandler_List(t *testing.T) {
 		var actual []template.Template
 		util.ParseResponseHelper(t, resp, &actual)
 		assert.Len(t, actual, 5)
-		assert.Equal(t, expectedTemplates[0].AsNew(), actual[0].AsNew())
+		assert.Equal(t, expectedTemplates[0].Clone().Reset(), actual[0].Clone().Reset())
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -239,7 +240,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedTemplate.ID).
 			Once().
-			Return(template.Template{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError))
+			Return(template.Template{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
@@ -291,7 +292,7 @@ func TestHandler_Get(t *testing.T) {
 
 		var actual template.Template
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedTemplate.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedTemplate.Reset(), actual.Clone().Reset())
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -340,7 +341,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
-		payloadStub := expectedTemplate.AsNew()
+		payloadStub := expectedTemplate.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -349,7 +350,7 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(template.Template{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError))
+			Return(template.Template{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -378,7 +379,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
-		payloadStub := expectedTemplate.AsNew()
+		payloadStub := expectedTemplate.Clone().Reset()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -405,7 +406,7 @@ func TestHandler_Put(t *testing.T) {
 
 		var actual template.Template
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedTemplate.AsNew(), actual.AsNew())
+		assert.Equal(t, expectedTemplate.Clone().Reset(), actual.Clone().Reset())
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -429,7 +430,7 @@ func TestHandler_Delete(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Delete(mock.Anything, expectedTemplate.ID).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError))
+			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
@@ -476,17 +477,16 @@ func TestHandler_Delete(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerMock  *mocks.Logger
+	loggerStub  *zap.Logger
 	serviceMock *mocks2.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
-	hd.loggerMock.AssertExpectations(t)
 	hd.serviceMock.AssertExpectations(t)
 }
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
-	loggerMock := &mocks.Logger{}
+	loggerMock := zaptest.NewLogger(t)
 	serviceMock := &mocks2.Service{}
 	handler := template.NewHandler(loggerMock, serviceMock)
 
@@ -495,5 +495,5 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	})
 	handler.AddAPIRoutes(app)
 
-	return app, handlerDeps{loggerMock: loggerMock, serviceMock: serviceMock}
+	return app, handlerDeps{loggerStub: loggerMock, serviceMock: serviceMock}
 }

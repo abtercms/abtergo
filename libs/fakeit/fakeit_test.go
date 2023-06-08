@@ -7,19 +7,21 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/util"
 )
 
 func TestAddDateRangeFaker(t *testing.T) {
+	fakeit.AddDateRangeFaker()
+
 	t.Run("success", func(t *testing.T) {
 		type foo struct {
-			Bar time.Time `fake:"{daterange2:[2023-01-01],[2023-12-31]}"`
+			Bar time.Time `fake:"{daterange2:[2023-01-01],[2023-12-31],[2006-01-02]}"`
 		}
-
-		fakeit.AddDateRangeFaker()
 
 		f := foo{}
 
@@ -27,22 +29,52 @@ func TestAddDateRangeFaker(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotEmpty(t, f.Bar)
-		assert.GreaterOrEqual(t, f.Bar, time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.GreaterOrEqual(t, f.Bar, util.MustParseDate("2023-01-01", time.DateOnly))
+		assert.LessOrEqual(t, f.Bar, util.MustParseDate("2023-12-31", time.DateOnly))
 	})
 
-	t.Run("missing start date", func(t *testing.T) {
+	t.Run("success with custom format", func(t *testing.T) {
 		type foo struct {
-			Bar time.Time `fake:"{daterange2}"`
+			Bar time.Time `fake:"{daterange2:[2023.01.01],[2023.12.31],[2006.01.02]}"`
 		}
-
-		fakeit.AddDateRangeFaker()
 
 		f := foo{}
 
 		err := gofakeit.Struct(&f)
-		require.Error(t, err)
+		require.NoError(t, err)
 
-		assert.Regexp(t, regexp.MustCompile("failed retreiving the start param."), err.Error())
+		assert.NotEmpty(t, f.Bar)
+		assert.GreaterOrEqual(t, f.Bar, util.MustParseDate("2023-01-01", time.DateOnly))
+		assert.LessOrEqual(t, f.Bar, util.MustParseDate("2023-12-31", time.DateOnly))
+	})
+
+	t.Run("success with default format", func(t *testing.T) {
+		type foo struct {
+			Bar time.Time `fake:"{daterange2:[2023-01-01],[2023-12-31]}"`
+		}
+
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.GreaterOrEqual(t, f.Bar, util.MustParseDate("2023-01-01", time.DateOnly))
+		assert.LessOrEqual(t, f.Bar, util.MustParseDate("2023-12-31", time.DateOnly))
+	})
+
+	t.Run("success with default end date and format", func(t *testing.T) {
+		type foo struct {
+			Bar time.Time `fake:"{daterange2:[2023-01-01]}"`
+		}
+
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.GreaterOrEqual(t, f.Bar, util.MustParseDate("2023-01-01", time.DateOnly))
 	})
 
 	t.Run("invalid start date", func(t *testing.T) {
@@ -50,29 +82,12 @@ func TestAddDateRangeFaker(t *testing.T) {
 			Bar time.Time `fake:"{daterange2:[foo]}"`
 		}
 
-		fakeit.AddDateRangeFaker()
-
 		f := foo{}
 
 		err := gofakeit.Struct(&f)
 		require.Error(t, err)
 
-		assert.Regexp(t, regexp.MustCompile("failed parsing the start date."), err.Error())
-	})
-
-	t.Run("missing end date", func(t *testing.T) {
-		type foo struct {
-			Bar time.Time `fake:"{daterange2:[2023-01-01]}"`
-		}
-
-		fakeit.AddDateRangeFaker()
-
-		f := foo{}
-
-		err := gofakeit.Struct(&f)
-		require.Error(t, err)
-
-		assert.Regexp(t, regexp.MustCompile("failed retreiving the end param."), err.Error())
+		assert.Regexp(t, regexp.MustCompile("failed to parse start date."), err.Error())
 	})
 
 	t.Run("invalid end date", func(t *testing.T) {
@@ -80,14 +95,12 @@ func TestAddDateRangeFaker(t *testing.T) {
 			Bar time.Time `fake:"{daterange2:[2023-01-01],[foo]}"`
 		}
 
-		fakeit.AddDateRangeFaker()
-
 		f := foo{}
 
 		err := gofakeit.Struct(&f)
 		require.Error(t, err)
 
-		assert.Regexp(t, regexp.MustCompile("failed parsing the end date."), err.Error())
+		assert.Regexp(t, regexp.MustCompile("failed to parse end date."), err.Error())
 	})
 
 	t.Run("start date after end date", func(t *testing.T) {
@@ -95,95 +108,121 @@ func TestAddDateRangeFaker(t *testing.T) {
 			Bar time.Time `fake:"{daterange2:[2023-01-02],[2023-01-01]}"`
 		}
 
-		fakeit.AddDateRangeFaker()
-
 		f := foo{}
 
 		err := gofakeit.Struct(&f)
 		require.Error(t, err)
 
-		assert.Regexp(t, regexp.MustCompile("start date after end date."), err.Error())
+		assert.Regexp(t, regexp.MustCompile("end date is before start date."), err.Error())
 	})
 }
 
-func TestAddCssURLFaker(t *testing.T) {
-	type foo struct {
-		Bar string `fake:"{url_css}"`
-	}
-
+func TestAddCSSURLFaker(t *testing.T) {
 	fakeit.AddCSSURLFaker()
 
-	f := foo{}
+	validate := validator.New()
 
-	err := gofakeit.Struct(&f)
-	require.NoError(t, err)
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	assert.NotEmpty(t, f.Bar)
-	assert.Regexp(t, regexp.MustCompile("^https?://[a-zA-Z0-9_/.-]+.css$"), f.Bar)
+		type foo struct {
+			Bar string `fake:"{url_css}"`
+		}
+
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.NoError(t, validate.Var(f.Bar, "required,url"))
+		assert.Equal(t, ".css", path.Ext(f.Bar))
+	})
 }
 
 func TestAddJsURLFaker(t *testing.T) {
-	type foo struct {
-		Bar string `fake:"{url_js}"`
-	}
+	fakeit.AddJSURLFaker()
 
-	fakeit.AddJsURLFaker()
+	validate := validator.New()
 
-	f := foo{}
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	err := gofakeit.Struct(&f)
-	require.NoError(t, err)
+		type foo struct {
+			Bar string `fake:"{url_js}"`
+		}
 
-	assert.NotEmpty(t, f.Bar)
-	assert.Regexp(t, regexp.MustCompile("^https?://[a-zA-Z0-9_/.-]+.js$"), f.Bar)
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.NoError(t, validate.Var(f.Bar, "required,url"))
+		assert.Equal(t, ".js", path.Ext(f.Bar))
+	})
 }
 
 func TestAddPathFaker(t *testing.T) {
-	type foo struct {
-		Bar string `fake:"{path}"`
-	}
-
 	fakeit.AddPathFaker()
 
-	f := foo{}
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	err := gofakeit.Struct(&f)
-	require.NoError(t, err)
+		type foo struct {
+			Bar string `fake:"{path}"`
+		}
 
-	assert.NotEmpty(t, f.Bar)
-	assert.Equal(t, path.Clean(f.Bar), f.Bar)
-	assert.Regexp(t, regexp.MustCompile("^/[a-zA-Z0-9_/-]+$"), f.Bar)
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.Equal(t, path.Clean(f.Bar), f.Bar)
+		assert.Regexp(t, regexp.MustCompile("^/[a-zA-Z0-9_/.-]+$"), f.Bar)
+	})
 }
 
 func TestAddWebsiteFaker(t *testing.T) {
-	type foo struct {
-		Bar string `fake:"{website}"`
-	}
-
 	fakeit.AddWebsiteFaker()
 
-	f := foo{}
+	validate := validator.New()
 
-	err := gofakeit.Struct(&f)
-	require.NoError(t, err)
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	assert.NotEmpty(t, f.Bar)
-	assert.Regexp(t, regexp.MustCompile("^https://[a-zA-Z0-9_/.-]+$"), f.Bar)
+		type foo struct {
+			Bar string `fake:"{website}"`
+		}
+
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.NoError(t, validate.Var(f.Bar, "required,url"))
+	})
 }
 
 func TestAddEtagFaker(t *testing.T) {
-	type foo struct {
-		Bar string `fake:"{etag}"`
-	}
-
 	fakeit.AddEtagFaker()
 
-	f := foo{}
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	err := gofakeit.Struct(&f)
-	require.NoError(t, err)
+		type foo struct {
+			Foo string `fake:"{word}"`
+			Bar string `fake:"{etag}"`
+		}
 
-	assert.NotEmpty(t, f.Bar)
-	const pattern = "^[a-z0-9]{5}$"
-	assert.Regexp(t, regexp.MustCompile(pattern), f.Bar)
+		f := foo{}
+
+		err := gofakeit.Struct(&f)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, f.Bar)
+		assert.Regexp(t, regexp.MustCompile("^[a-z0-9]{5}$"), f.Bar)
+	})
 }

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/abtergo/abtergo/pkg/html"
+	"github.com/abtergo/abtergo/libs/html"
 )
 
 func TestAttributes_Clone(t *testing.T) {
@@ -340,9 +340,9 @@ func TestAssets_Clone(t *testing.T) {
 			},
 			want: html.Assets{
 				HeaderCSS:  html.Links{},
-				HeaderJs:   html.Scripts{},
+				HeaderJS:   html.Scripts{},
 				HeaderMeta: html.MetaList{},
-				FooterJs:   html.Scripts{},
+				FooterJS:   html.Scripts{},
 			},
 		},
 	}
@@ -350,9 +350,9 @@ func TestAssets_Clone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := html.Assets{
 				HeaderCSS:  tt.fields.HeaderCSS,
-				HeaderJs:   tt.fields.HeaderJs,
+				HeaderJS:   tt.fields.HeaderJs,
 				HeaderMeta: tt.fields.HeaderMeta,
-				FooterJs:   tt.fields.FooterJs,
+				FooterJS:   tt.fields.FooterJs,
 			}
 			if got := a.Clone(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Clone() = %v, want %v", got, tt.want)
