@@ -16,10 +16,12 @@ func TestValidate(t *testing.T) {
 
 	validation.AddNotBeforeValidation(v)
 	validation.AddEtagValidation(v)
+	validation.AddPathValidation(v)
 
 	type obj struct {
 		Etag      string    `json:"etag" validate:"etag"`
 		CreatedAt time.Time `json:"created_at,omitempty" validate:"not_before_date=2023-01-01"`
+		Path      string    `json:"path,omitempty" validate:"path"`
 	}
 
 	tests := []struct {
@@ -32,6 +34,7 @@ func TestValidate(t *testing.T) {
 			obj: obj{
 				Etag:      "abc23",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
+				Path:      "/path",
 			},
 			wantErr: nil,
 		},
@@ -66,6 +69,15 @@ func TestValidate(t *testing.T) {
 				CreatedAt: util.MustParseDate("2021-01-01", time.DateOnly),
 			},
 			wantErr: errors.New("Key: 'obj.created_at' Error:Field validation for 'created_at' failed on the 'not_before_date' tag"),
+		},
+		{
+			name: "invalid path",
+			obj: obj{
+				Etag:      "ASBDJSI",
+				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
+				Path:      "https://example.com/path",
+			},
+			wantErr: errors.New("Key: 'obj.etag' Error:Field validation for 'etag' failed on the 'etag' tag"),
 		},
 	}
 	for _, tt := range tests {

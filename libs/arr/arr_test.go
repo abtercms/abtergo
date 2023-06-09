@@ -5,11 +5,20 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/abtergo/abtergo/libs/arr"
 )
+
+func TestNew(t *testing.T) {
+	t.Run("invalid argument count", func(t *testing.T) {
+		t.Parallel()
+
+		assert.Panics(t, func() { _ = arr.New(arr.UnknownError, "foo", "bar") })
+	})
+}
 
 func TestErrorType_HTTPStatus(t *testing.T) {
 	tests := []struct {
@@ -40,7 +49,7 @@ func TestErrorType_HTTPStatus(t *testing.T) {
 		{
 			name: "invalid etag",
 			et:   arr.InvalidEtag,
-			want: http.StatusConflict,
+			want: http.StatusPreconditionFailed,
 		},
 		{
 			name: "invalid user input",
@@ -50,7 +59,7 @@ func TestErrorType_HTTPStatus(t *testing.T) {
 		{
 			name: "upstream service unavailable",
 			et:   arr.UpstreamServiceUnavailable,
-			want: http.StatusServiceUnavailable,
+			want: http.StatusBadGateway,
 		},
 		{
 			name: "upstream service busy",
@@ -159,6 +168,45 @@ func Test_arr_HttpStatus(t *testing.T) {
 			if got := a.HTTPStatus(); got != tt.want {
 				t.Errorf("HTTPStatus() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_arr_GetSlug(t *testing.T) {
+	type fields struct {
+		t    arr.ErrorType
+		msg  string
+		args []interface{}
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "unknown error",
+			fields: fields{
+				t: arr.UnknownError,
+			},
+			want: "unknown-error",
+		},
+		{
+			name: "not found",
+			fields: fields{
+				t:   arr.ResourceNotFound,
+				msg: "foo",
+				args: []interface{}{
+					"bar",
+					"quix",
+				},
+			},
+			want: "resource-not-found",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := arr.New(tt.fields.t, tt.fields.msg, tt.fields.args...)
+			assert.Equalf(t, tt.want, a.GetSlug(), "GetSlug()")
 		})
 	}
 }
@@ -272,12 +320,78 @@ func TestHttpStatusFromError(t *testing.T) {
 			},
 			want: http.StatusNotFound,
 		},
+		{
+			name: "fiber error",
+			args: args{
+				e: fiber.ErrConflict,
+			},
+			want: http.StatusConflict,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := arr.HTTPStatusFromError(tt.args.e); got != tt.want {
 				t.Errorf("HTTPStatusFromError() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestTypeFromError(t *testing.T) {
+	type args struct {
+		e error
+	}
+	tests := []struct {
+		name string
+		args args
+		want arr.ErrorType
+	}{
+		{
+			name: "no error",
+			args: args{
+				e: nil,
+			},
+			want: arr.UnknownError,
+		},
+		{
+			name: "an assert error",
+			args: args{
+				e: assert.AnError,
+			},
+			want: arr.UnknownError,
+		},
+		{
+			name: "new error",
+			args: args{
+				e: arr.New(arr.ResourceIsOutdated, "foo"),
+			},
+			want: arr.ResourceIsOutdated,
+		},
+		{
+			name: "wrapped error",
+			args: args{
+				e: arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"),
+			},
+			want: arr.InvalidEtag,
+		},
+		{
+			name: "double wrapped error",
+			args: args{
+				e: errors.Wrap(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"), "bar"),
+			},
+			want: arr.UpstreamServiceBusy,
+		},
+		{
+			name: "fmt wrapped error",
+			args: args{
+				e: fmt.Errorf("quix. err: %w", arr.Wrap(arr.ResourceNotModified, assert.AnError, "foo")),
+			},
+			want: arr.ResourceNotModified,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, arr.TypeFromError(tt.args.e), "TypeFromError(%v)", tt.args.e)
 		})
 	}
 }

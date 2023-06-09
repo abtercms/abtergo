@@ -1,6 +1,7 @@
 package util_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,6 +50,82 @@ func TestClone(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, util.Clone(tt.args.list), "Clone(%v)", tt.args.list)
+		})
+	}
+}
+
+func TestCloneStrings(t *testing.T) {
+	type args struct {
+		list []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "nil",
+			args: args{
+				list: nil,
+			},
+			want: nil,
+		},
+		{
+			name: "empty list",
+			args: args{
+				list: []string{},
+			},
+			want: []string{},
+		},
+		{
+			name: "non-empty list",
+			args: args{
+				list: []string{"1", "2", "3"},
+			},
+			want: []string{"1", "2", "3"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, util.CloneStrings(tt.args.list), "CloneStrings(%v)", tt.args.list)
+		})
+	}
+}
+
+func TestCloneHttpHeader(t *testing.T) {
+	type args struct {
+		header http.Header
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.Header
+	}{
+		{
+			name: "nil",
+			args: args{
+				header: nil,
+			},
+			want: nil,
+		},
+		{
+			name: "empty list",
+			args: args{
+				header: make(http.Header),
+			},
+			want: make(http.Header),
+		},
+		{
+			name: "non-empty list",
+			args: args{
+				header: http.Header{"foo": []string{"bar"}},
+			},
+			want: http.Header{"foo": []string{"bar"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, util.CloneHttpHeader(tt.args.header), "CloneHttpHeader(%v)", tt.args.header)
 		})
 	}
 }

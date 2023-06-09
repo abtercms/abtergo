@@ -20,7 +20,7 @@ func init() {
 
 // Block represents a resource ready which can be used as wrapper for page content.
 type Block struct {
-	model.Entity
+	model.Entity `validate:"dive"`
 
 	Website string      `json:"website" validate:"required,url" fake:"{website}"`
 	Name    string      `json:"name" validate:"required" fake:"{sentence:1}"`

@@ -11,7 +11,8 @@ import (
 
 // ErrorHandler is used as the default ErrorHandler that process return error from fiber.Handler.
 func ErrorHandler(ctx *fiber.Ctx, err error) error {
-	p := problem.FromError(ctx.BaseURL(), err)
+	baseUrl := ctx.BaseURL()
+	p := problem.FromError(baseUrl, err)
 
 	if p.Status == fiber.StatusInternalServerError {
 		// Retrieve the custom status code if it's a *fiber.Error

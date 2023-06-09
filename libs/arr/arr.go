@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
 	"github.com/pkg/errors"
 )
@@ -35,13 +36,13 @@ func (et ErrorType) HTTPStatus() int {
 		return http.StatusConflict
 	case InvalidEtag:
 		// 409
-		return http.StatusConflict
+		return http.StatusPreconditionFailed
 	case InvalidUserInput:
 		// 400
 		return http.StatusBadRequest
 	case UpstreamServiceUnavailable:
 		// 503
-		return http.StatusServiceUnavailable
+		return http.StatusBadGateway
 	case UpstreamServiceBusy:
 		// 429
 		return http.StatusTooManyRequests
@@ -62,6 +63,7 @@ func (et ErrorType) GetSlug() string {
 type Arr interface {
 	error
 
+	GetSlug() string
 	HTTPStatus() int
 }
 
@@ -76,7 +78,7 @@ func (a arr) HTTPStatus() int {
 }
 
 func (a arr) GetSlug() string {
-	return "tbd"
+	return a.t.GetSlug()
 }
 
 func (a arr) Error() string {
@@ -89,27 +91,18 @@ func (a arr) Error() string {
 }
 
 func Wrap(t ErrorType, e error, msg string, args ...interface{}) Arr {
-	if len(args)%2 != 0 {
-		panic("invalid args")
-	}
-
-	a := make([]string, 0, len(args)/2)
-	for i := 0; i < len(args); i += 2 {
-		a = append(a, fmt.Sprintf("%s: %v", args[i], args[i+1]))
-	}
-
 	if msg != "" {
 		e = errors.Wrap(e, msg)
 	}
 
-	return &arr{
-		e:    e,
-		t:    t,
-		args: a,
-	}
+	return newArr(t, e, args...)
 }
 
 func New(t ErrorType, msg string, args ...interface{}) Arr {
+	return newArr(t, errors.New(msg), args...)
+}
+
+func newArr(t ErrorType, e error, args ...interface{}) Arr {
 	if len(args)%2 != 0 {
 		panic("invalid args")
 	}
@@ -120,7 +113,7 @@ func New(t ErrorType, msg string, args ...interface{}) Arr {
 	}
 
 	return &arr{
-		e:    errors.New(msg),
+		e:    e,
 		t:    t,
 		args: a,
 	}
@@ -132,9 +125,13 @@ func HTTPStatusFromError(e error) int {
 	}
 
 	var a *arr
-
 	if errors.As(e, &a) {
 		return a.HTTPStatus()
+	}
+
+	var fe *fiber.Error
+	if errors.As(e, &fe) {
+		return fe.Code
 	}
 
 	return http.StatusInternalServerError
@@ -146,7 +143,6 @@ func TypeFromError(e error) ErrorType {
 	}
 
 	var a *arr
-
 	if errors.As(e, &a) {
 		return a.t
 	}

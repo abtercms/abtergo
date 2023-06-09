@@ -10,7 +10,7 @@ import (
 
 func TestRandomBlock(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		tt := block.RandomBlock()
+		tt := block.RandomBlock(false)
 
 		err := tt.Validate()
 		assert.NoError(t, err)

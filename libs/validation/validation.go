@@ -2,18 +2,23 @@ package validation
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 )
 
 // NewValidator creates validator with proper configuration for json tag name extraction.
 func NewValidator() *validator.Validate {
 	v := validator.New()
 	v.RegisterTagNameFunc(jsonTagName)
+
+	AddNotBeforeValidation(v)
+	AddEtagValidation(v)
+	AddPathValidation(v)
 
 	return v
 }
@@ -43,6 +48,13 @@ func AddEtagValidation(v *validator.Validate) {
 	}
 }
 
+func AddPathValidation(v *validator.Validate) {
+	err := v.RegisterValidation("path", ValidatePath)
+	if err != nil {
+		panic(fmt.Errorf("failed to register 'path' validator. err: %w", err))
+	}
+}
+
 // ValidateNotBeforeDate validates that a date is not before a reference date.
 func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 	field := fl.Field()
@@ -67,7 +79,7 @@ func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// ValidateEtag validates and etag.
+// ValidateEtag validates an e-tag.
 func ValidateEtag(fl validator.FieldLevel) bool {
 	val := fl.Field().String()
 
@@ -83,4 +95,17 @@ func ValidateEtag(fl validator.FieldLevel) bool {
 	}
 
 	return match
+}
+
+// ValidatePath validates a path.
+func ValidatePath(fl validator.FieldLevel) bool {
+	val := fl.Field().String()
+
+	if val == "" {
+		return true
+	}
+
+	u, err := url.Parse(val)
+
+	return err == nil && u.Scheme == "" && u.Host == ""
 }

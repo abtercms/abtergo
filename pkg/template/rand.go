@@ -6,7 +6,6 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/html"
 )
 
 func init() {
@@ -47,8 +46,6 @@ func FixTemplate(t *Template) *Template {
 	if t == nil {
 		return t
 	}
-
-	t.Assets = html.FixAssets(t.Assets)
 
 	if len(t.HTTPHeader) == 0 {
 		t.HTTPHeader = nil

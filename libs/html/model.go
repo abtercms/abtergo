@@ -15,9 +15,9 @@ func (a Attributes) Clone() Attributes {
 }
 
 type Link struct {
-	Rel        string
-	Href       string
-	Attributes Attributes
+	Rel        string     `json:"rel" validate:"required" fake:"{randomstring:[stylesheet,stylesheet,stylesheet,author]}"`
+	Href       string     `json:"href" validate:"required" fake:"{url}"`
+	Attributes Attributes `json:"attributes" validate:"dive"`
 }
 
 func (l Link) Clone() Link {
@@ -43,17 +43,15 @@ func (l Links) Clone() Links {
 }
 
 type Meta struct {
-	Name       string
-	Content    string
-	Property   string
-	Attributes Attributes
+	Name       string     `json:"name" validate:"required,oneof=author description" fake:"{randomstring:[author,description]}"`
+	Content    string     `json:"content" validate:"required" fake:"{name}"`
+	Attributes Attributes `json:"attributes" validate:"dive"`
 }
 
 func (l Meta) Clone() Meta {
 	return Meta{
 		Name:       l.Name,
 		Content:    l.Content,
-		Property:   l.Property,
 		Attributes: l.Attributes.Clone(),
 	}
 }
@@ -73,8 +71,8 @@ func (m MetaList) Clone() MetaList {
 }
 
 type Script struct {
-	Src        string
-	Attributes Attributes
+	Src        string     `json:"src" validate:"required" fake:"{url}"`
+	Attributes Attributes `json:"attributes" validate:"dive"`
 }
 
 func (s Script) Clone() Script {
@@ -99,10 +97,10 @@ func (s Scripts) Clone() Scripts {
 }
 
 type Assets struct {
-	HeaderCSS  Links
-	HeaderJS   Scripts
-	HeaderMeta MetaList
-	FooterJS   Scripts
+	HeaderCSS  Links    `json:"header_css" validate:"dive"`
+	HeaderJS   Scripts  `json:"header_js" validate:"dive"`
+	HeaderMeta MetaList `json:"header_meta" validate:"dive"`
+	FooterJS   Scripts  `json:"footer_js" validate:"dive"`
 }
 
 func (a Assets) Clone() Assets {

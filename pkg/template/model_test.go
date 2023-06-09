@@ -86,7 +86,7 @@ func TestTemplate_Validate(t *testing.T) {
 			name:          "assets with invalid meta",
 			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.HeaderMeta = []html.Meta{{}} },
-			invalidFields: []string{"name", "property", "content"},
+			invalidFields: []string{"name", "content"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",

@@ -11,12 +11,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/block"
-
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
+	mocks2 "github.com/abtergo/abtergo/mocks/pkg/block"
 	"github.com/abtergo/abtergo/pkg/block"
 )
 
@@ -77,7 +76,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(true)
 
 		// Stubs
 		payloadStub := expectedBlock.Clone().Reset()
@@ -111,7 +110,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(true)
 
 		// Stubs
 		payloadStub := expectedBlock.Clone().Reset()
@@ -217,7 +216,7 @@ func TestHandler_List(t *testing.T) {
 		var actual []block.Block
 		util.ParseResponseHelper(t, resp, &actual)
 		assert.Len(t, actual, 5)
-		assert.Equal(t, expectedBlocks[0].Clone().Reset(), actual[0].Clone().Reset())
+		assert.Equal(t, expectedBlocks[0], actual[0])
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -229,7 +228,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
 
@@ -265,7 +264,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
 
@@ -293,7 +292,7 @@ func TestHandler_Get(t *testing.T) {
 
 		var actual block.Block
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedBlock.Clone().Reset(), actual.Clone().Reset())
+		assert.Equal(t, expectedBlock, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -310,7 +309,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -341,7 +340,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
 		payloadStub := expectedBlock.Clone().Reset()
@@ -379,7 +378,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
 		payloadStub := expectedBlock.Clone().Reset()
@@ -409,7 +408,7 @@ func TestHandler_Put(t *testing.T) {
 
 		var actual block.Block
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedBlock.Clone().Reset(), actual.Clone().Reset())
+		assert.Equal(t, expectedBlock, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -424,7 +423,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -454,7 +453,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedBlock := block.RandomBlock()
+		expectedBlock := block.RandomBlock(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

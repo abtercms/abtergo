@@ -34,7 +34,7 @@ func TestHandler_AddApiRoutes(t *testing.T) {
 		app, _ := setupHandlerMocks(t)
 
 		// Execute Test
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, 10000000)
 		defer resp.Body.Close()
 
 		// Asserts
@@ -216,7 +216,7 @@ func TestHandler_List(t *testing.T) {
 		var actual []template.Template
 		util.ParseResponseHelper(t, resp, &actual)
 		assert.Len(t, actual, 5)
-		assert.Equal(t, expectedTemplates[0].Clone().Reset(), actual[0].Clone().Reset())
+		assert.Equal(t, expectedTemplates[0], actual[0])
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -292,7 +292,7 @@ func TestHandler_Get(t *testing.T) {
 
 		var actual template.Template
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedTemplate.Reset(), actual.Clone().Reset())
+		assert.Equal(t, expectedTemplate, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -406,7 +406,7 @@ func TestHandler_Put(t *testing.T) {
 
 		var actual template.Template
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedTemplate.Clone().Reset(), actual.Clone().Reset())
+		assert.Equal(t, expectedTemplate, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})

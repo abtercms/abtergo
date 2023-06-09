@@ -151,8 +151,7 @@ func TestMetaList_Clone(t *testing.T) {
 					},
 				},
 				{
-					Property: "bar",
-					Content:  "bar",
+					Content: "bar",
 					Attributes: html.Attributes{
 						"baz":  "Baz",
 						"quix": "Quix",
@@ -169,8 +168,7 @@ func TestMetaList_Clone(t *testing.T) {
 					},
 				},
 				{
-					Property: "bar",
-					Content:  "bar",
+					Content: "bar",
 					Attributes: html.Attributes{
 						"baz":  "Baz",
 						"quix": "Quix",
@@ -224,7 +222,6 @@ func TestMeta_Clone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := html.Meta{
 				Name:       tt.fields.Name,
-				Property:   tt.fields.Property,
 				Content:    tt.fields.Content,
 				Attributes: tt.fields.Attributes,
 			}

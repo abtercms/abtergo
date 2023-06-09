@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
-	"github.com/abtergo/abtergo/libs/fakeit"
 	"github.com/abtergo/abtergo/libs/html"
 	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/block"
@@ -15,34 +13,12 @@ import (
 
 func TestBlock_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		tt := block.RandomBlock()
+		tt := block.RandomBlock(false)
 
 		c := tt.Clone()
 
 		assert.NotSame(t, tt, c)
 		assert.Equal(t, tt, c)
-	})
-}
-
-func TestBlock_AsNew(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		fakeit.AddEtagFaker()
-		expected := block.RandomBlock()
-
-		require.NotEmpty(t, expected.ID)
-		require.NotEmpty(t, expected.Etag)
-		require.NotEmpty(t, expected.CreatedAt)
-		require.NotEmpty(t, expected.UpdatedAt)
-
-		actual := expected
-
-		expected.ID = ""
-		expected.Etag = ""
-		expected.CreatedAt = time.Time{}
-		expected.UpdatedAt = time.Time{}
-
-		assert.NotSame(t, expected, actual)
-		assert.Equal(t, expected, actual)
 	})
 }
 
@@ -55,13 +31,13 @@ func TestBlock_Validate(t *testing.T) {
 	}{
 		{
 			name:          "id is required if etag, updated at or created at are present",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.ID = "" },
 			invalidFields: []string{"id"},
 		},
 		{
 			name:  "id, etag, created at and updated at are not required if all are empty",
-			block: block.RandomBlock(),
+			block: block.RandomBlock(false),
 			modifier: func(c *block.Block) {
 				c.ID = ""
 				c.Etag = ""
@@ -72,67 +48,67 @@ func TestBlock_Validate(t *testing.T) {
 		},
 		{
 			name:          "website is required",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Website = "" },
 			invalidFields: []string{"website"},
 		},
 		{
 			name:          "name is required",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Name = "" },
 			invalidFields: []string{"name"},
 		},
 		{
 			name:          "body is required",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Body = "" },
 			invalidFields: []string{"body"},
 		},
 		{
 			name:          "assets with invalid header js",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid header css",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Assets.HeaderCSS = []html.Link{{}} },
 			invalidFields: []string{"rel", "href"},
 		},
 		{
 			name:          "assets with invalid meta",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Assets.HeaderMeta = []html.Meta{{}} },
-			invalidFields: []string{"name", "property", "content"},
+			invalidFields: []string{"name", "content"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.Etag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{
 			name:          "created at is required if id, etag, or updated at are present",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.CreatedAt = time.Time{} },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "created at must be after 2023-01-01",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.CreatedAt = time.Date(2022, 10, 10, 10, 10, 10, 10, time.UTC) },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "update at must not be before created at",
-			block:         block.RandomBlock(),
+			block:         block.RandomBlock(false),
 			modifier:      func(c *block.Block) { c.UpdatedAt = c.CreatedAt.Add(-1) },
 			invalidFields: []string{"updated_at"},
 		},

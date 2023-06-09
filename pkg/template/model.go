@@ -37,10 +37,13 @@ func NewTemplate() Template {
 
 func (t Template) Clone() Template {
 	return Template{
-		Entity:  t.Entity.Clone().(model.Entity),
-		Website: t.Website,
-		Name:    t.Name,
-		Version: t.Version,
+		Entity:     t.Entity.Clone().(model.Entity),
+		Website:    t.Website,
+		Name:       t.Name,
+		Body:       t.Body,
+		Assets:     t.Assets.Clone(),
+		HTTPHeader: t.HTTPHeader.Clone(),
+		Version:    t.Version,
 	}
 }
 

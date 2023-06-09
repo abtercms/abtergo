@@ -37,7 +37,7 @@ type Page struct {
 	Body       string      `json:"body" validate:"required" fake:"{paragraph:10}"`
 	Assets     html.Assets `json:"assets" validate:"dive"`
 	HTTPHeader http.Header `json:"http_header" validate:"dive,required"`
-	Status     Status      `json:"status" validate:"required" fake:"{sentence:2}"`
+	Status     Status      `json:"status" validate:"required,oneof=active inactive draft" fake:"{randomstring:[active,inactive,draft]}"`
 	Version    int64       `json:"version" validate:"required" fake:"{number:1}"`
 }
 

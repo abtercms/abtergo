@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
-	"github.com/abtergo/abtergo/libs/fakeit"
 	"github.com/abtergo/abtergo/libs/html"
 	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/page"
@@ -21,47 +19,6 @@ func TestPage_Clone(t *testing.T) {
 
 		assert.NotSame(t, p, c)
 		assert.Equal(t, p, c)
-	})
-
-	t.Run("cloning works without temporary template data", func(t *testing.T) {
-		p := page.RandomPageWithoutTemplate()
-
-		c := p.Clone()
-
-		assert.NotSame(t, p, c)
-		assert.Equal(t, p, c)
-	})
-
-	t.Run("random page without template can be cloned", func(t *testing.T) {
-		p := page.RandomPageWithoutTemplate()
-
-		c := p.Clone()
-
-		assert.NotSame(t, p, c)
-		assert.Equal(t, p, c)
-	})
-}
-
-func TestPage_AsNew(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		fakeit.AddPathFaker()
-		fakeit.AddEtagFaker()
-		expected := page.RandomPage()
-
-		require.NotEmpty(t, expected.ID)
-		require.NotEmpty(t, expected.Etag)
-		require.NotEmpty(t, expected.CreatedAt)
-		require.NotEmpty(t, expected.UpdatedAt)
-
-		actual := expected.Clone().Reset()
-
-		expected.ID = ""
-		expected.Etag = ""
-		expected.CreatedAt = time.Time{}
-		expected.UpdatedAt = time.Time{}
-
-		assert.NotSame(t, expected, actual)
-		assert.Equal(t, expected, actual)
 	})
 }
 
@@ -110,7 +67,7 @@ func TestPage_Validate(t *testing.T) {
 		},
 		{
 			name:          "title is required",
-			page:          page.RandomPageWithoutTemplate(),
+			page:          page.RandomPage(),
 			modifier:      func(c *page.Page) { c.Title = "" },
 			invalidFields: []string{"title"},
 		},
@@ -128,27 +85,27 @@ func TestPage_Validate(t *testing.T) {
 		},
 		{
 			name:          "assets with invalid header js",
-			page:          page.RandomPageWithoutTemplate(),
+			page:          page.RandomPage(),
 			modifier:      func(c *page.Page) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
-			page:          page.RandomPageWithoutTemplate(),
+			page:          page.RandomPage(),
 			modifier:      func(c *page.Page) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid header css",
-			page:          page.RandomPageWithoutTemplate(),
+			page:          page.RandomPage(),
 			modifier:      func(c *page.Page) { c.Assets.HeaderCSS = []html.Link{{}} },
 			invalidFields: []string{"rel", "href"},
 		},
 		{
 			name:          "assets with invalid meta",
-			page:          page.RandomPageWithoutTemplate(),
+			page:          page.RandomPage(),
 			modifier:      func(c *page.Page) { c.Assets.HeaderMeta = []html.Meta{{}} },
-			invalidFields: []string{"name", "property", "content"},
+			invalidFields: []string{"name", "content"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",

@@ -18,7 +18,7 @@ func TestService_Create(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 
 	t.Run("id provided error", func(t *testing.T) {
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(false)
 		ctxStub := context.Background()
 
 		repoMock := &mocks2.Repo{}
@@ -32,7 +32,7 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(true)
 		entityStub.ID = ""
 		entityStub.Website = ""
 		ctxStub := context.Background()
@@ -51,7 +51,7 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock().Clone().Reset()
+		entityStub := block.RandomBlock(true)
 		ctxStub := context.Background()
 
 		repoMock := new(mocks2.Repo)
@@ -73,7 +73,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		ctxStub := context.Background()
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(false)
 
 		repoMock := new(mocks2.Repo)
 		repoMock.EXPECT().
@@ -92,7 +92,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		ctxStub := context.Background()
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(false)
 
 		repoMock := new(mocks2.Repo)
 		repoMock.EXPECT().
@@ -139,7 +139,7 @@ func TestService_Update(t *testing.T) {
 	)
 
 	t.Run("id mismatch error", func(t *testing.T) {
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(false)
 		ctxStub := context.Background()
 
 		repoMock := new(mocks2.Repo)
@@ -153,7 +153,7 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := block.RandomBlock()
+		entityStub := block.RandomBlock(true)
 		entityStub.Website = ""
 		entityStub.ID = ""
 		ctxStub := context.Background()
@@ -172,7 +172,8 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock().Clone().Reset()
+		entityStub := block.RandomBlock(false)
+		entityStub.ID = idStub
 		ctxStub := context.Background()
 
 		repoMock := new(mocks2.Repo)

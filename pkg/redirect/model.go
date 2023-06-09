@@ -15,6 +15,7 @@ var redirectValidator *validator.Validate
 
 func init() {
 	v := validation.NewValidator()
+
 	redirectValidator = v
 }
 
