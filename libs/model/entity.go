@@ -83,12 +83,6 @@ func (e Entity) Clone() EntityInterface {
 	}
 }
 
-func (e Entity) Reset() EntityInterface {
-	e.ID = id()
-
-	return e
-}
-
 // SetID returns the entity but also sets the provided ID.
 func (e Entity) SetID(id string) EntityInterface {
 	e.ID = id
@@ -100,9 +94,5 @@ func (e Entity) SetID(id string) EntityInterface {
 func (e Entity) SetEtag(etag string) EntityInterface {
 	e.Etag = etag
 
-	return e
-}
-
-func FixEntity(e Entity) Entity {
 	return e
 }

@@ -18,8 +18,12 @@ func init() {
 }
 
 // RandomPage generates a random Page instance.
-func RandomPage() Page {
+func RandomPage(asNew bool) Page {
 	p := mustCreatePage()
+
+	if asNew {
+		return p.AsNew()
+	}
 
 	return p
 }
@@ -44,7 +48,7 @@ func RandomPageList(min, max int) []Page {
 	pages := []Page{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		pages = append(pages, RandomPage())
+		pages = append(pages, RandomPage(false))
 	}
 
 	return pages

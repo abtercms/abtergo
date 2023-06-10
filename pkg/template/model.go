@@ -36,8 +36,15 @@ func NewTemplate() Template {
 }
 
 func (t Template) Clone() Template {
+	c := t.AsNew()
+	c.Entity = t.Entity.Clone().(model.Entity)
+
+	return c
+}
+
+func (t Template) AsNew() Template {
 	return Template{
-		Entity:     t.Entity.Clone().(model.Entity),
+		Entity:     model.Entity{},
 		Website:    t.Website,
 		Name:       t.Name,
 		Body:       t.Body,
@@ -45,12 +52,6 @@ func (t Template) Clone() Template {
 		HTTPHeader: t.HTTPHeader.Clone(),
 		Version:    t.Version,
 	}
-}
-
-func (t Template) Reset() Template {
-	t.Entity = model.NewEntity()
-
-	return t
 }
 
 func (t Template) Validate() error {

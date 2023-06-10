@@ -17,7 +17,7 @@ func init() {
 }
 
 // RandomTemplate generates a random Template instance.
-func RandomTemplate() Template {
+func RandomTemplate(asNew bool) Template {
 	t := Template{}
 
 	err := gofakeit.Struct(&t)
@@ -25,7 +25,13 @@ func RandomTemplate() Template {
 		panic(fmt.Errorf("failed to generate random redirect. err: %w", err))
 	}
 
-	FixTemplate(&t)
+	if len(t.HTTPHeader) == 0 {
+		t.HTTPHeader = nil
+	}
+
+	if asNew {
+		return t.AsNew()
+	}
 
 	return t
 }
@@ -35,21 +41,8 @@ func RandomTemplateList(min, max int) []Template {
 	templates := []Template{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		templates = append(templates, RandomTemplate())
+		templates = append(templates, RandomTemplate(false))
 	}
 
 	return templates
-}
-
-// FixTemplate ensures that randomly generated templates pass validation.
-func FixTemplate(t *Template) *Template {
-	if t == nil {
-		return t
-	}
-
-	if len(t.HTTPHeader) == 0 {
-		t.HTTPHeader = nil
-	}
-
-	return t
 }

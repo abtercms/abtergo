@@ -3,15 +3,19 @@ package page
 import "context"
 
 type Filter struct {
-	Website string `json:"website" form:"website" validate:"required,url" fake:"{website}"`
-	Path    string `json:"path" form:"path" validate:"required" fake:"{path}"`
-}
-
-func NewFilter() Filter {
-	return Filter{}
+	Website string `json:"website" validate:"url"`
+	Path    string `json:"path" validate:"required"`
 }
 
 func (f Filter) Match(ctx context.Context, page Page) bool {
+	if f.Website != "" && f.Website != page.Website {
+		return false
+	}
+
+	if f.Path != "" && f.Path != page.Path {
+		return false
+	}
+
 	return true
 }
 

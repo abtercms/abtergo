@@ -16,12 +16,16 @@ func init() {
 }
 
 // RandomRedirect generates a random Redirect instance.
-func RandomRedirect() Redirect {
+func RandomRedirect(asNew bool) Redirect {
 	r := Redirect{}
 
 	err := gofakeit.Struct(&r)
 	if err != nil {
 		panic(fmt.Errorf("failed to generate random redirect. err: %w", err))
+	}
+
+	if asNew {
+		return r.AsNew()
 	}
 
 	return r
@@ -32,7 +36,7 @@ func RandomRedirectList(min, max int) []Redirect {
 	redirects := []Redirect{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		redirects = append(redirects, RandomRedirect())
+		redirects = append(redirects, RandomRedirect(false))
 	}
 
 	return redirects

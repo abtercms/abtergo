@@ -3,12 +3,9 @@ package block
 import "context"
 
 type Filter struct {
-	Website string `json:"website" validate:"required,url" fake:"{website}"`
-	Name    string `json:"name" validate:"required" fake:"{sentence:1}"`
-}
-
-func NewFilter() Filter {
-	return Filter{}
+	// TODO: Use nullable types
+	Website string `json:"website" validate:"url"`
+	Name    string `json:"name" validate:""`
 }
 
 func (f Filter) Match(ctx context.Context, block Block) bool {

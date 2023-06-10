@@ -10,7 +10,7 @@ import (
 
 func TestRandomPage(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		p := page.RandomPage()
+		p := page.RandomPage(false)
 
 		err := p.Validate()
 		assert.NoError(t, err)

@@ -79,7 +79,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedBlock := block.RandomBlock(true)
 
 		// Stubs
-		payloadStub := expectedBlock.Clone().Reset()
+		payloadStub := expectedBlock.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -113,7 +113,7 @@ func TestHandler_Post(t *testing.T) {
 		expectedBlock := block.RandomBlock(true)
 
 		// Stubs
-		payloadStub := expectedBlock.Clone().Reset()
+		payloadStub := expectedBlock.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -343,7 +343,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
-		payloadStub := expectedBlock.Clone().Reset()
+		payloadStub := expectedBlock.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -381,7 +381,7 @@ func TestHandler_Put(t *testing.T) {
 		expectedBlock := block.RandomBlock(false)
 
 		// Stubs
-		payloadStub := expectedBlock.Clone().Reset()
+		payloadStub := expectedBlock.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

@@ -23,7 +23,7 @@ func TestService_Get(t *testing.T) {
 	t.Run("error retrieving page", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		entity := page.RandomPage()
+		entity := page.RandomPage(false)
 
 		deps.pageRepoMock.
 			EXPECT().
@@ -44,7 +44,7 @@ func TestService_Get(t *testing.T) {
 
 		s, deps := setupServiceMocks(t)
 
-		entity := page.RandomPage()
+		entity := page.RandomPage(false)
 
 		deps.pageRepoMock.
 			EXPECT().

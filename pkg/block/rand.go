@@ -1,12 +1,10 @@
 package block
 
 import (
-	"fmt"
-
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -23,13 +21,11 @@ func RandomBlock(asNew bool) Block {
 
 	err := gofakeit.Struct(&b)
 	if err != nil {
-		panic(fmt.Errorf("failed to generate random redirect. err: %w", err))
+		panic(errors.Wrap(err, "failed to generate random redirect"))
 	}
 
 	if asNew {
-		b.Entity = model.Entity{}
-	} else {
-		b.Entity = model.FixEntity(b.Entity)
+		return b.AsNew()
 	}
 
 	return b

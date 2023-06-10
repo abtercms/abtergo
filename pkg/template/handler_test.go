@@ -76,7 +76,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -110,7 +110,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -228,7 +228,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
 
@@ -264,7 +264,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
 
@@ -307,7 +307,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -338,19 +338,20 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
-		payloadStub := expectedTemplate.Clone().Reset()
+		payloadStub := expectedTemplate.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
+		errStub := arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo")
 		deps.serviceMock.EXPECT().
 			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(template.Template{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
+			Return(template.Template{}, errStub)
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -376,10 +377,10 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Stubs
-		payloadStub := expectedTemplate.Clone().Reset()
+		payloadStub := expectedTemplate.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -421,7 +422,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -451,7 +452,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedTemplate := template.RandomTemplate()
+		expectedTemplate := template.RandomTemplate(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

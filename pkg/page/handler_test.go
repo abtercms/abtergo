@@ -77,10 +77,10 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(true)
 
 		// Stubs
-		payloadStub := expectedPage.Clone().Reset()
+		payloadStub := expectedPage.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -111,10 +111,10 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(true)
 
 		// Stubs
-		payloadStub := expectedPage.Clone().Reset()
+		payloadStub := expectedPage.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -229,7 +229,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Stubs
 
@@ -265,7 +265,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Stubs
 
@@ -308,7 +308,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -339,10 +339,10 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Stubs
-		payloadStub := expectedPage.Clone().Reset()
+		payloadStub := expectedPage.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -378,10 +378,10 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Stubs
-		payloadStub := expectedPage.Clone().Reset()
+		payloadStub := expectedPage.Clone()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -424,7 +424,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -455,7 +455,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -493,7 +493,7 @@ func TestHandler_Activate(t *testing.T) {
 	t.Run("error activating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -524,7 +524,7 @@ func TestHandler_Activate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -562,7 +562,7 @@ func TestHandler_Inactivate(t *testing.T) {
 	t.Run("error inactivating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -593,7 +593,7 @@ func TestHandler_Inactivate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage()
+		expectedPage := page.RandomPage(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

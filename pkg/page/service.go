@@ -2,7 +2,6 @@ package page
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -38,7 +37,7 @@ func NewService(logger *zap.Logger, repo Repo, updater Updater) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 	if entity.ID != "" {
-		return Page{}, arr.Wrap(arr.InvalidUserInput, errors.New("payload must not include an id"), "id", entity.ID)
+		return Page{}, arr.New(arr.InvalidUserInput, "payload must not include an id", "id", entity.ID)
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -61,7 +60,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Page, error) {
 // Update updates an existing entity.
 func (s *service) Update(ctx context.Context, id string, entity Page, etag string) (Page, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Page{}, arr.Wrap(arr.InvalidUserInput, errors.New("path and payload ids do not match"), "id in path", id, "id in payload", entity.ID)
+		return Page{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
 	}
 
 	if err := entity.Validate(); err != nil {

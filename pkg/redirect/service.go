@@ -63,7 +63,7 @@ func (s *service) Update(ctx context.Context, id string, entity Redirect, etag s
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	return s.repo.Update(ctx, id, entity.AsNew(), etag)
+	return s.repo.Update(ctx, id, entity, etag)
 }
 
 // Delete deletes an existing entity.

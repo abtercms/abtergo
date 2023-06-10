@@ -76,7 +76,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 		payloadStub := expectedRedirect.AsNew()
@@ -110,7 +110,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 		payloadStub := expectedRedirect.AsNew()
@@ -228,7 +228,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 
@@ -264,7 +264,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 
@@ -307,7 +307,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -338,7 +338,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 		payloadStub := expectedRedirect.AsNew()
@@ -376,7 +376,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
 		payloadStub := expectedRedirect.AsNew()
@@ -421,7 +421,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -451,7 +451,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

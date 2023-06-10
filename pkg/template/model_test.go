@@ -7,18 +7,46 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/abtergo/abtergo/libs/html"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/template"
 )
 
+func TestNewTemplate(t *testing.T) {
+	t2 := template.NewTemplate()
+
+	assert.NotEmpty(t, t2.Entity)
+	assert.NotEmpty(t, t2.Entity.ID)
+	assert.NotEmpty(t, t2.Entity.CreatedAt)
+	assert.NotEmpty(t, t2.Entity.UpdatedAt)
+	assert.Empty(t, t2.Entity.DeletedAt)
+
+	// TODO: fix etag issue
+	// assert.NotEmpty(t, t2.Entity.Etag)
+}
 func TestTemplate_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		tt := template.RandomTemplate()
+		tt := template.RandomTemplate(false)
 
 		c := tt.Clone()
 
 		assert.NotSame(t, tt, c)
 		assert.Equal(t, tt, c)
+	})
+}
+
+func TestTemplate_AsNew(t *testing.T) {
+	t.Run("clone with empty entity", func(t *testing.T) {
+		t.Parallel()
+
+		sut := template.RandomTemplate(false)
+		clone := sut.AsNew()
+
+		assert.NotSame(t, sut, clone)
+		assert.NotEqual(t, sut, clone)
+
+		clone.Entity = sut.Entity.Clone().(model.Entity)
+		assert.Equal(t, sut, clone)
 	})
 }
 
@@ -31,13 +59,13 @@ func TestTemplate_Validate(t *testing.T) {
 	}{
 		{
 			name:          "id is required if etag, updated at or created at are present",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.ID = "" },
 			invalidFields: []string{"id"},
 		},
 		{
 			name:     "id, etag, created at and updated at are not required if all are empty",
-			template: template.RandomTemplate(),
+			template: template.RandomTemplate(false),
 			modifier: func(c *template.Template) {
 				c.ID = ""
 				c.Etag = ""
@@ -48,67 +76,67 @@ func TestTemplate_Validate(t *testing.T) {
 		},
 		{
 			name:          "website is required",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Website = "" },
 			invalidFields: []string{"website"},
 		},
 		{
 			name:          "name is required",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Name = "" },
 			invalidFields: []string{"name"},
 		},
 		{
 			name:          "body is required",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Body = "" },
 			invalidFields: []string{"body"},
 		},
 		{
 			name:          "assets with invalid header js",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid header css",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Assets.HeaderCSS = []html.Link{{}} },
 			invalidFields: []string{"rel", "href"},
 		},
 		{
 			name:          "assets with invalid meta",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Assets.HeaderMeta = []html.Meta{{}} },
 			invalidFields: []string{"name", "content"},
 		},
 		{
 			name:          "etag is required if id, updated at or created at are present",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.Etag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{
 			name:          "created at is required if id, etag, or updated at are present",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.CreatedAt = time.Time{} },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "created at must be after 2023-01-01",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.CreatedAt = time.Date(2022, 10, 10, 10, 10, 10, 10, time.UTC) },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "update at must not be before created at",
-			template:      template.RandomTemplate(),
+			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.UpdatedAt = c.CreatedAt.Add(-1) },
 			invalidFields: []string{"updated_at"},
 		},

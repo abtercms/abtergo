@@ -7,10 +7,6 @@ type Filter struct {
 	Path    string `json:"path" form:"path" validate:"required" fake:"{path}"`
 }
 
-func NewFilter() Filter {
-	return Filter{}
-}
-
 func (f Filter) Match(ctx context.Context, redirect Redirect) bool {
 	if f.Website != "" && redirect.Website != f.Website {
 		return false

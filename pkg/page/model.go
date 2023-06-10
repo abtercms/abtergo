@@ -48,8 +48,15 @@ func NewPage() Page {
 }
 
 func (p Page) Clone() Page {
+	c := p.AsNew()
+	c.Entity = p.Entity.Clone().(model.Entity)
+
+	return c
+}
+
+func (p Page) AsNew() Page {
 	return Page{
-		Entity:     p.Entity.Clone().(model.Entity),
+		Entity:     model.Entity{},
 		Website:    p.Website,
 		Path:       p.Path,
 		Lead:       p.Lead,
@@ -60,12 +67,6 @@ func (p Page) Clone() Page {
 		Status:     p.Status,
 		Version:    p.Version,
 	}
-}
-
-func (p Page) Reset() Page {
-	p.Entity = model.NewEntity()
-
-	return p
 }
 
 func (p *Page) Validate() error {

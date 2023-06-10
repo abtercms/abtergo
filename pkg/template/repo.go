@@ -7,11 +7,15 @@ type Filter struct {
 	Name    string `json:"name" form:"name" validate:"required" fake:"{sentence}"`
 }
 
-func NewFilter() Filter {
-	return Filter{}
-}
-
 func (f Filter) Match(ctx context.Context, template Template) bool {
+	if f.Website != "" && f.Website != template.Website {
+		return false
+	}
+
+	if f.Name != "" && f.Name != template.Name {
+		return false
+	}
+
 	return true
 }
 
