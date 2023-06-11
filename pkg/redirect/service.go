@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/repo"
 )
 
 // Service provides basic service functionality for Handler.
@@ -13,9 +14,11 @@ type Service interface {
 	Get(ctx context.Context, id string) (Redirect, error)
 	List(ctx context.Context, filter Filter) ([]Redirect, error)
 	Create(ctx context.Context, redirect Redirect) (Redirect, error)
-	Update(ctx context.Context, id string, redirect Redirect, etag string) (Redirect, error)
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, redirect Redirect, oldETag string) (Redirect, error)
+	Delete(ctx context.Context, id, oldETag string) error
 }
+
+type Repo = repo.Repository[Redirect]
 
 type service struct {
 	logger *zap.Logger
@@ -40,7 +43,7 @@ func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error)
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
 	}
 
-	return s.repo.Create(ctx, entity.AsNew())
+	return s.repo.Create(ctx, entity.AsNew().(Redirect))
 }
 
 // Get retrieves an existing entity.
@@ -54,7 +57,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Redirect, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id string, entity Redirect, etag string) (Redirect, error) {
+func (s *service) Update(ctx context.Context, id string, entity Redirect, oldETag string) (Redirect, error) {
 	if entity.ID != "" && entity.ID != id {
 		return Redirect{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
 	}
@@ -63,10 +66,10 @@ func (s *service) Update(ctx context.Context, id string, entity Redirect, etag s
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	return s.repo.Update(ctx, id, entity, etag)
+	return s.repo.Update(ctx, entity, oldETag)
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, id, oldETag string) error {
+	return s.repo.Delete(ctx, id, oldETag)
 }

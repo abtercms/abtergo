@@ -106,7 +106,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	checkWiring(id)
 
-	err := h.service.Delete(c.Context(), id)
+	err := h.service.Delete(c.Context(), id, c.Get(fiber.HeaderETag))
 	if err != nil {
 		return fmt.Errorf("failed to delete entity, err: %w", err)
 	}

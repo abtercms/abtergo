@@ -7,7 +7,7 @@ import (
 )
 
 func TestUpdater_Transition(t *testing.T) {
-	updater, _ := setupTestUpdater()
+	updater := page.NewUpdater()
 
 	type args struct {
 		status  page.Status
@@ -86,15 +86,4 @@ func TestUpdater_Transition(t *testing.T) {
 			}
 		})
 	}
-}
-
-type testUpdaterDeps struct{}
-
-func (tud *testUpdaterDeps) AssertExpectations(t *testing.T) {
-}
-
-func setupTestUpdater() (page.Updater, testUpdaterDeps) {
-	testUpdater := page.NewUpdater()
-
-	return testUpdater, testUpdaterDeps{}
 }

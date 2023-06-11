@@ -25,7 +25,7 @@ func RandomBlock(asNew bool) Block {
 	}
 
 	if asNew {
-		return b.AsNew()
+		return b.AsNew().(Block)
 	}
 
 	return b

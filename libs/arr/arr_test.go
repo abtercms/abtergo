@@ -48,7 +48,7 @@ func TestErrorType_HTTPStatus(t *testing.T) {
 		},
 		{
 			name: "invalid etag",
-			et:   arr.InvalidEtag,
+			et:   arr.ETagMismatch,
 			want: http.StatusPreconditionFailed,
 		},
 		{
@@ -107,8 +107,8 @@ func TestErrorType_GetSlug(t *testing.T) {
 		},
 		{
 			name: "invalid etag",
-			et:   arr.InvalidEtag,
-			want: "invalid-etag",
+			et:   arr.ETagMismatch,
+			want: "e-tag-mismatch",
 		},
 		{
 			name: "invalid user input",
@@ -370,9 +370,9 @@ func TestTypeFromError(t *testing.T) {
 		{
 			name: "wrapped error",
 			args: args{
-				e: arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"),
+				e: arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"),
 			},
-			want: arr.InvalidEtag,
+			want: arr.ETagMismatch,
 		},
 		{
 			name: "double wrapped error",

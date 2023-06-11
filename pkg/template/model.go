@@ -35,14 +35,14 @@ func NewTemplate() Template {
 	}
 }
 
-func (t Template) Clone() Template {
-	c := t.AsNew()
+func (t Template) Clone() model.EntityInterface {
+	c := t.AsNew().(Template)
 	c.Entity = t.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-func (t Template) AsNew() Template {
+func (t Template) AsNew() model.EntityInterface {
 	return Template{
 		Entity:     model.Entity{},
 		Website:    t.Website,

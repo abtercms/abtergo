@@ -1,4 +1,4 @@
-package renderer
+package website
 
 import (
 	"github.com/gofiber/fiber/v2"

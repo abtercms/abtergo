@@ -93,9 +93,10 @@ func TestFilter_Match(t *testing.T) {
 				Path:    tt.fields.Path,
 			}
 
-			result := f.Match(context.Background(), tt.args.page)
+			match, err := f.Match(context.Background(), tt.args.page)
 
-			assert.Equalf(t, tt.want, result, "Match(%v, %v)", context.Background(), tt.args.page)
+			assert.NoError(t, err)
+			assert.Equalf(t, tt.want, match, "Match(%v, %v)", context.Background(), tt.args.page)
 		})
 	}
 }

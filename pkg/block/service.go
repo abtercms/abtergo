@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/repo"
 )
 
 // Service provides basic service functionality for Handler.
@@ -13,9 +14,11 @@ type Service interface {
 	Get(ctx context.Context, id string) (Block, error)
 	List(ctx context.Context, filter Filter) ([]Block, error)
 	Create(ctx context.Context, block Block) (Block, error)
-	Update(ctx context.Context, id string, block Block, etag string) (Block, error)
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, block Block, oldETag string) (Block, error)
+	Delete(ctx context.Context, id, oldETag string) error
 }
+
+type Repo = repo.Repository[Block]
 
 type service struct {
 	logger *zap.Logger
@@ -63,10 +66,10 @@ func (s *service) Update(ctx context.Context, id string, entity Block, etag stri
 		return Block{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	return s.repo.Update(ctx, id, entity, etag)
+	return s.repo.Update(ctx, entity, etag)
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, id, oldETag string) error {
+	return s.repo.Delete(ctx, id, oldETag)
 }

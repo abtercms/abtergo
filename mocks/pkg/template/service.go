@@ -75,13 +75,13 @@ func (_c *Service_Create_Call) RunAndReturn(run func(context.Context, pkgtemplat
 	return _c
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *Service) Delete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// Delete provides a mock function with given fields: ctx, id, oldETag
+func (_m *Service) Delete(ctx context.Context, id string, oldETag string) error {
+	ret := _m.Called(ctx, id, oldETag)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, oldETag)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -97,13 +97,14 @@ type Service_Delete_Call struct {
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *Service_Expecter) Delete(ctx interface{}, id interface{}) *Service_Delete_Call {
-	return &Service_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+//   - oldETag string
+func (_e *Service_Expecter) Delete(ctx interface{}, id interface{}, oldETag interface{}) *Service_Delete_Call {
+	return &Service_Delete_Call{Call: _e.mock.On("Delete", ctx, id, oldETag)}
 }
 
-func (_c *Service_Delete_Call) Run(run func(ctx context.Context, id string)) *Service_Delete_Call {
+func (_c *Service_Delete_Call) Run(run func(ctx context.Context, id string, oldETag string)) *Service_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
@@ -113,7 +114,7 @@ func (_c *Service_Delete_Call) Return(_a0 error) *Service_Delete_Call {
 	return _c
 }
 
-func (_c *Service_Delete_Call) RunAndReturn(run func(context.Context, string) error) *Service_Delete_Call {
+func (_c *Service_Delete_Call) RunAndReturn(run func(context.Context, string, string) error) *Service_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -226,23 +227,23 @@ func (_c *Service_List_Call) RunAndReturn(run func(context.Context, pkgtemplate.
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, id, template, etag
-func (_m *Service) Update(ctx context.Context, id string, template pkgtemplate.Template, etag string) (pkgtemplate.Template, error) {
-	ret := _m.Called(ctx, id, template, etag)
+// Update provides a mock function with given fields: ctx, id, template, oldETag
+func (_m *Service) Update(ctx context.Context, id string, template pkgtemplate.Template, oldETag string) (pkgtemplate.Template, error) {
+	ret := _m.Called(ctx, id, template, oldETag)
 
 	var r0 pkgtemplate.Template
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, pkgtemplate.Template, string) (pkgtemplate.Template, error)); ok {
-		return rf(ctx, id, template, etag)
+		return rf(ctx, id, template, oldETag)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, pkgtemplate.Template, string) pkgtemplate.Template); ok {
-		r0 = rf(ctx, id, template, etag)
+		r0 = rf(ctx, id, template, oldETag)
 	} else {
 		r0 = ret.Get(0).(pkgtemplate.Template)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, pkgtemplate.Template, string) error); ok {
-		r1 = rf(ctx, id, template, etag)
+		r1 = rf(ctx, id, template, oldETag)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -259,12 +260,12 @@ type Service_Update_Call struct {
 //   - ctx context.Context
 //   - id string
 //   - template pkgtemplate.Template
-//   - etag string
-func (_e *Service_Expecter) Update(ctx interface{}, id interface{}, template interface{}, etag interface{}) *Service_Update_Call {
-	return &Service_Update_Call{Call: _e.mock.On("Update", ctx, id, template, etag)}
+//   - oldETag string
+func (_e *Service_Expecter) Update(ctx interface{}, id interface{}, template interface{}, oldETag interface{}) *Service_Update_Call {
+	return &Service_Update_Call{Call: _e.mock.On("Update", ctx, id, template, oldETag)}
 }
 
-func (_c *Service_Update_Call) Run(run func(ctx context.Context, id string, template pkgtemplate.Template, etag string)) *Service_Update_Call {
+func (_c *Service_Update_Call) Run(run func(ctx context.Context, id string, template pkgtemplate.Template, oldETag string)) *Service_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(pkgtemplate.Template), args[3].(string))
 	})

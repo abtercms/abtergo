@@ -30,15 +30,12 @@ func CloneStrings(list []string) []string {
 	}
 
 	c := make([]string, 0, len(list))
-
-	for key := range list {
-		c = append(c, list[key])
-	}
+	c = append(c, list...)
 
 	return c
 }
 
-func CloneHttpHeader(header http.Header) http.Header {
+func CloneHTTPHeader(header http.Header) http.Header {
 	if header == nil {
 		return nil
 	}

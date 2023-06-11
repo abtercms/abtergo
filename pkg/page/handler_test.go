@@ -164,7 +164,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, page.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"))
+			Return(nil, arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages", nil)
@@ -432,7 +432,7 @@ func TestHandler_Delete(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Delete(mock.Anything, expectedPage.ID).
+			Delete(mock.Anything, expectedPage.ID, previousEtagStub).
 			Once().
 			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
@@ -463,7 +463,7 @@ func TestHandler_Delete(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Delete(mock.Anything, expectedPage.ID).
+			Delete(mock.Anything, expectedPage.ID, previousEtagStub).
 			Once().
 			Return(nil)
 

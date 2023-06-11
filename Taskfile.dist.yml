@@ -43,8 +43,13 @@ tasks:
 
   install:
     cmds:
+    # documentation via d2: https://github.com/terrastruct/d2/releases
     - go install oss.terrastruct.com/d2@latest
+    # mocking via mockery: https://github.com/vektra/mockery/releases
     - go install github.com/vektra/mockery/v2@v2.20.0
+    # formatting via gofumpt: https://github.com/mvdan/gofumpt/releases
+    - go install mvdan.cc/gofumpt@latest
+    # linting via golangci-lint: https://github.com/golangci/golangci-lint/releases
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.1
 
   update:

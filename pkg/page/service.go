@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/repo"
 )
 
 // Service provides basic service functionality for Handler.
@@ -14,10 +15,12 @@ type Service interface {
 	Get(ctx context.Context, id string) (Page, error)
 	List(ctx context.Context, filter Filter) ([]Page, error)
 	Create(ctx context.Context, page Page) (Page, error)
-	Update(ctx context.Context, id string, page Page, etag string) (Page, error)
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, page Page, oldETag string) (Page, error)
+	Delete(ctx context.Context, id, oldETag string) error
 	Transition(ctx context.Context, id string, trigger Trigger, oldEtag string) (Page, error)
 }
+
+type Repo = repo.Repository[Page]
 
 type service struct {
 	logger  *zap.Logger
@@ -58,7 +61,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Page, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id string, entity Page, etag string) (Page, error) {
+func (s *service) Update(ctx context.Context, id string, entity Page, oldETag string) (Page, error) {
 	if entity.ID != "" && entity.ID != id {
 		return Page{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
 	}
@@ -67,12 +70,12 @@ func (s *service) Update(ctx context.Context, id string, entity Page, etag strin
 		return Page{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	return s.repo.Update(ctx, id, entity, etag)
+	return s.repo.Update(ctx, entity, oldETag)
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, id, oldETag string) error {
+	return s.repo.Delete(ctx, id, oldETag)
 }
 
 // Transition changes the status of an existing entity.
@@ -82,8 +85,8 @@ func (s *service) Transition(ctx context.Context, id string, trigger Trigger, ol
 		return Page{}, fmt.Errorf("failed to get page. id: %s, err: %w", id, err)
 	}
 
-	if page.Etag != oldEtag {
-		return Page{}, arr.New(arr.InvalidEtag, "invalid etag found", "id", id, "request etag", oldEtag, "found etag", page.Etag)
+	if page.ETag != oldEtag {
+		return Page{}, arr.New(arr.ETagMismatch, "invalid etag found", "id", id, "request etag", oldEtag, "found etag", page.ETag)
 	}
 
 	newStatus, err := s.updater.Transition(page.Status, trigger)
@@ -93,7 +96,7 @@ func (s *service) Transition(ctx context.Context, id string, trigger Trigger, ol
 
 	page.Status = newStatus
 
-	newPage, err := s.repo.Update(ctx, id, page, oldEtag)
+	newPage, err := s.repo.Update(ctx, page, oldEtag)
 	if err != nil {
 		return Page{}, fmt.Errorf("failed to update page. id: %s, website: %s, path: %s, err: %w", newPage.ID, newPage.Website, newPage.Path, err)
 	}

@@ -1,4 +1,4 @@
-package renderer_test
+package website_test
 
 import (
 	"net/http"
@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/fib"
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/renderer"
-	"github.com/abtergo/abtergo/pkg/renderer"
+	mocks "github.com/abtergo/abtergo/mocks/pkg/website"
+	"github.com/abtergo/abtergo/pkg/website"
 )
 
 func TestHandler_AddRoutes(t *testing.T) {
@@ -46,7 +46,7 @@ func TestHandler_AddRoutes(t *testing.T) {
 
 type handlerDeps struct {
 	loggerStub  *zap.Logger
-	serviceMock *mocks2.Service
+	serviceMock *mocks.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
@@ -55,8 +55,8 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerStub := zaptest.NewLogger(t)
-	serviceMock := &mocks2.Service{}
-	handler := renderer.NewHandler(loggerStub, serviceMock)
+	serviceMock := &mocks.Service{}
+	handler := website.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: fib.ErrorHandler,

@@ -163,7 +163,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, redirect.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.InvalidEtag, assert.AnError, "foo"))
+			Return(nil, arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects", nil)
@@ -428,7 +428,7 @@ func TestHandler_Delete(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Delete(mock.Anything, expectedRedirect.ID).
+			Delete(mock.Anything, expectedRedirect.ID, previousEtagStub).
 			Once().
 			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
@@ -457,7 +457,10 @@ func TestHandler_Delete(t *testing.T) {
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
-		deps.serviceMock.EXPECT().Delete(mock.Anything, expectedRedirect.ID).Once().Return(nil)
+		deps.serviceMock.EXPECT().
+			Delete(mock.Anything, expectedRedirect.ID, previousEtagStub).
+			Once().
+			Return(nil)
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)

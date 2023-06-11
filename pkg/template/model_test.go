@@ -22,8 +22,9 @@ func TestNewTemplate(t *testing.T) {
 	assert.Empty(t, t2.Entity.DeletedAt)
 
 	// TODO: fix etag issue
-	// assert.NotEmpty(t, t2.Entity.Etag)
+	// assert.NotEmpty(t, t2.Entity.ETag)
 }
+
 func TestTemplate_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tt := template.RandomTemplate(false)
@@ -40,7 +41,7 @@ func TestTemplate_AsNew(t *testing.T) {
 		t.Parallel()
 
 		sut := template.RandomTemplate(false)
-		clone := sut.AsNew()
+		clone := sut.AsNew().(template.Template)
 
 		assert.NotSame(t, sut, clone)
 		assert.NotEqual(t, sut, clone)
@@ -68,7 +69,7 @@ func TestTemplate_Validate(t *testing.T) {
 			template: template.RandomTemplate(false),
 			modifier: func(c *template.Template) {
 				c.ID = ""
-				c.Etag = ""
+				c.ETag = ""
 				c.CreatedAt = time.Time{}
 				c.UpdatedAt = time.Time{}
 			},
@@ -119,7 +120,7 @@ func TestTemplate_Validate(t *testing.T) {
 		{
 			name:          "etag is required if id, updated at or created at are present",
 			template:      template.RandomTemplate(false),
-			modifier:      func(c *template.Template) { c.Etag = "" },
+			modifier:      func(c *template.Template) { c.ETag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{

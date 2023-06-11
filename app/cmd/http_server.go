@@ -21,11 +21,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/fib"
-	"github.com/abtergo/abtergo/pkg/block"
-	"github.com/abtergo/abtergo/pkg/page"
-	"github.com/abtergo/abtergo/pkg/redirect"
-	"github.com/abtergo/abtergo/pkg/renderer"
-	"github.com/abtergo/abtergo/pkg/template"
 )
 
 type cleaner interface {
@@ -71,15 +66,16 @@ func (s *HTTPServer) SetupMiddleware(cCtx *cli.Context) *HTTPServer {
 }
 
 // SetupHandlers sets up handlers for each module.
-func (s *HTTPServer) SetupHandlers() *HTTPServer {
+func (s *HTTPServer) SetupHandlers(logger *zap.Logger) *HTTPServer {
 	// Add API handlers
 	api := s.fiber.Group("/api")
-	s.addRedirectRoutes(api)
-	s.addTemplateRoutes(api)
-	s.addPageRoutes(api)
-	s.addBlockRoutes(api)
 
-	s.addCatchAll()
+	createRedirectHandler(logger).AddAPIRoutes(api)
+	createTemplateHandler(logger).AddAPIRoutes(api)
+	createPageHandler(logger).AddAPIRoutes(api)
+	createBlockHandler(logger).AddAPIRoutes(api)
+
+	createRendererHandler(logger).AddRoutes(api)
 
 	return s
 }
@@ -184,50 +180,4 @@ func (s *HTTPServer) useRecoverMiddleware(r fiber.Router) {
 			s.logger.Error(fmt.Sprintf("%v", e), zap.String("stack", string(debug.Stack())))
 		},
 	}))
-}
-
-func (s *HTTPServer) addRedirectRoutes(r fiber.Router) {
-	repo := redirect.NewInMemoryRepo()
-	service := redirect.NewService(s.logger, repo)
-	handler := redirect.NewHandler(s.logger, service)
-
-	handler.AddAPIRoutes(r)
-}
-
-func (s *HTTPServer) addTemplateRoutes(r fiber.Router) {
-	repo := template.NewInMemoryRepo()
-	service := template.NewService(s.logger, repo)
-	handler := template.NewHandler(s.logger, service)
-
-	handler.AddAPIRoutes(r)
-}
-
-func (s *HTTPServer) addPageRoutes(r fiber.Router) {
-	repo := page.NewInMemoryRepo()
-	updater := page.NewUpdater()
-	service := page.NewService(s.logger, repo, updater)
-	handler := page.NewHandler(s.logger, service)
-
-	handler.AddAPIRoutes(r)
-}
-
-func (s *HTTPServer) addBlockRoutes(r fiber.Router) {
-	repo := block.NewInMemoryRepo()
-	service := block.NewService(s.logger, repo)
-	handler := block.NewHandler(s.logger, service)
-
-	handler.AddAPIRoutes(r)
-}
-
-func (s *HTTPServer) addCatchAll() {
-	pageRepo := page.NewInMemoryRepo()
-	templateRepo := template.NewInMemoryRepo()
-	blockRepo := block.NewInMemoryRepo()
-	redirectRepo := redirect.NewInMemoryRepo()
-
-	r := renderer.NewRenderer()
-	service := renderer.NewService(r, pageRepo, templateRepo, blockRepo, redirectRepo)
-	handler := renderer.NewHandler(s.logger, service)
-
-	handler.AddRoutes(s.fiber)
 }

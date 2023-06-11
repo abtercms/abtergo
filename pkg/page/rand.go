@@ -22,7 +22,7 @@ func RandomPage(asNew bool) Page {
 	p := mustCreatePage()
 
 	if asNew {
-		return p.AsNew()
+		return p.AsNew().(Page)
 	}
 
 	return p

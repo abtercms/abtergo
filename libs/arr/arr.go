@@ -13,11 +13,12 @@ import (
 type ErrorType string
 
 const (
+	ApplicationError           ErrorType = "application error"
 	UnknownError               ErrorType = "unknown error"
 	ResourceNotFound           ErrorType = "resource not found"
 	ResourceNotModified        ErrorType = "resource not modified"
 	ResourceIsOutdated         ErrorType = "resource is outdated"
-	InvalidEtag                ErrorType = "invalid etag"
+	ETagMismatch               ErrorType = "e-tag mismatch"
 	InvalidUserInput           ErrorType = "invalid user input"
 	UpstreamServiceUnavailable ErrorType = "upstream service unavailable"
 	UpstreamServiceBusy        ErrorType = "upstream service busy"
@@ -34,7 +35,7 @@ func (et ErrorType) HTTPStatus() int {
 	case ResourceIsOutdated:
 		// 409
 		return http.StatusConflict
-	case InvalidEtag:
+	case ETagMismatch:
 		// 409
 		return http.StatusPreconditionFailed
 	case InvalidUserInput:
@@ -88,6 +89,10 @@ func (a arr) Error() string {
 	}
 
 	return res
+}
+
+func (a arr) Unwrap() error {
+	return a.e
 }
 
 func Wrap(t ErrorType, e error, msg string, args ...interface{}) Arr {

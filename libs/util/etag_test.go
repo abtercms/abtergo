@@ -34,7 +34,7 @@ func TestEtag(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, util.Etag(tt.args.input), "Etag(%v)", tt.args.input)
+			assert.Equalf(t, tt.want, util.Etag(tt.args.input), "ETag(%v)", tt.args.input)
 		})
 	}
 }

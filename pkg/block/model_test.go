@@ -40,7 +40,7 @@ func TestBlock_Validate(t *testing.T) {
 			block: block.RandomBlock(false),
 			modifier: func(c *block.Block) {
 				c.ID = ""
-				c.Etag = ""
+				c.ETag = ""
 				c.CreatedAt = time.Time{}
 				c.UpdatedAt = time.Time{}
 			},
@@ -91,7 +91,7 @@ func TestBlock_Validate(t *testing.T) {
 		{
 			name:          "etag is required if id, updated at or created at are present",
 			block:         block.RandomBlock(false),
-			modifier:      func(c *block.Block) { c.Etag = "" },
+			modifier:      func(c *block.Block) { c.ETag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{

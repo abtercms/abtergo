@@ -16,7 +16,7 @@ func main() {
 		Name:  "server",
 		Usage: "start an HTTP server",
 		Action: func(cCtx *cli.Context) error {
-			return NewHTTPServer(logger, cleaner2.New(logger)).SetupHandlers().Start(cCtx)
+			return NewHTTPServer(logger, cleaner2.New(logger)).SetupHandlers(logger).Start(cCtx)
 		},
 	}
 

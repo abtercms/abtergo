@@ -7,23 +7,16 @@ type Filter struct {
 	Path    string `json:"path" form:"path" validate:"required" fake:"{path}"`
 }
 
-func (f Filter) Match(ctx context.Context, redirect Redirect) bool {
+func (f Filter) Match(ctx context.Context, redirect Redirect) (bool, error) {
+	_ = ctx
+
 	if f.Website != "" && redirect.Website != f.Website {
-		return false
+		return false, nil
 	}
 
 	if f.Path != "" && redirect.Path != f.Path {
-		return false
+		return false, nil
 	}
 
-	return true
-}
-
-// Repo is an interface for repositories.
-type Repo interface {
-	Create(ctx context.Context, entity Redirect) (Redirect, error)
-	Retrieve(ctx context.Context, id string) (Redirect, error)
-	Update(ctx context.Context, id string, entity Redirect, etag string) (Redirect, error)
-	Delete(ctx context.Context, id string) error
-	List(ctx context.Context, filter Filter) ([]Redirect, error)
+	return true, nil
 }

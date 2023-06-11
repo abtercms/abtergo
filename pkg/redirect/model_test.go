@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/redirect"
 )
@@ -20,7 +19,7 @@ func TestNewRedirect(t *testing.T) {
 	assert.Empty(t, r.Entity.DeletedAt)
 
 	// TODO: fix etag issue
-	// assert.NotEmpty(t, r.Entity.Etag)
+	// assert.NotEmpty(t, r.Entity.ETag)
 }
 
 func TestRedirect_Clone(t *testing.T) {
@@ -31,21 +30,6 @@ func TestRedirect_Clone(t *testing.T) {
 
 		assert.NotSame(t, r, c)
 		assert.Equal(t, r, c)
-	})
-}
-
-func TestRedirect_AsNew(t *testing.T) {
-	t.Run("clone with empty entity", func(t *testing.T) {
-		t.Parallel()
-
-		sut := redirect.RandomRedirect(false)
-		clone := sut.AsNew()
-
-		assert.NotSame(t, sut, clone)
-		assert.NotEqual(t, sut, clone)
-
-		clone.Entity = sut.Entity.Clone().(model.Entity)
-		assert.Equal(t, sut, clone)
 	})
 }
 

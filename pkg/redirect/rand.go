@@ -25,7 +25,7 @@ func RandomRedirect(asNew bool) Redirect {
 	}
 
 	if asNew {
-		return r.AsNew()
+		return r.AsNew().(Redirect)
 	}
 
 	return r

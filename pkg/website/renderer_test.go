@@ -1,4 +1,4 @@
-package renderer_test
+package website_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/cbroglie/mustache"
 
-	"github.com/abtergo/abtergo/pkg/renderer"
+	"github.com/abtergo/abtergo/pkg/website"
 )
 
 func TestRenderer_Render(t *testing.T) {
@@ -133,7 +133,7 @@ Foobar`,
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := renderer.NewRenderer()
+			r := website.NewRenderer()
 			got, err := r.Render(tt.args.template, tt.args.context...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Render() error = %v, wantErr %v", err, tt.wantErr)
@@ -145,7 +145,7 @@ Foobar`,
 		})
 
 		t.Run(tt.name+" - with AddContext", func(t *testing.T) {
-			r := renderer.NewRenderer()
+			r := website.NewRenderer()
 			r.AddContext(tt.args.context...)
 			got, err := r.Render(tt.args.template)
 			if (err != nil) != tt.wantErr {

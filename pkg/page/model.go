@@ -47,14 +47,14 @@ func NewPage() Page {
 	}
 }
 
-func (p Page) Clone() Page {
-	c := p.AsNew()
+func (p Page) Clone() model.EntityInterface {
+	c := p.AsNew().(Page)
 	c.Entity = p.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-func (p Page) AsNew() Page {
+func (p Page) AsNew() model.EntityInterface {
 	return Page{
 		Entity:     model.Entity{},
 		Website:    p.Website,
@@ -63,7 +63,7 @@ func (p Page) AsNew() Page {
 		Title:      p.Title,
 		Body:       p.Body,
 		Assets:     p.Assets.Clone(),
-		HTTPHeader: util.CloneHttpHeader(p.HTTPHeader),
+		HTTPHeader: util.CloneHTTPHeader(p.HTTPHeader),
 		Status:     p.Status,
 		Version:    p.Version,
 	}

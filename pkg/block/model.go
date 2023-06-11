@@ -34,14 +34,14 @@ func NewBlock() Block {
 }
 
 // Clone clones (duplicates) a Block resource.
-func (b Block) Clone() Block {
-	c := b.AsNew()
+func (b Block) Clone() model.EntityInterface {
+	c := b.AsNew().(Block)
 	c.Entity = b.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-func (b Block) AsNew() Block {
+func (b Block) AsNew() model.EntityInterface {
 	return Block{
 		Entity:  model.Entity{},
 		Website: b.Website,

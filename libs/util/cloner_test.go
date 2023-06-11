@@ -125,7 +125,7 @@ func TestCloneHttpHeader(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, util.CloneHttpHeader(tt.args.header), "CloneHttpHeader(%v)", tt.args.header)
+			assert.Equalf(t, tt.want, util.CloneHTTPHeader(tt.args.header), "CloneHTTPHeader(%v)", tt.args.header)
 		})
 	}
 }

@@ -1,10 +1,12 @@
-package block
+package block_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/abtergo/abtergo/pkg/block"
 )
 
 func TestFilter_Match(t *testing.T) {
@@ -15,7 +17,7 @@ func TestFilter_Match(t *testing.T) {
 		Name    string
 	}
 	type args struct {
-		block Block
+		block block.Block
 	}
 	tests := []struct {
 		name   string
@@ -29,7 +31,7 @@ func TestFilter_Match(t *testing.T) {
 				Website: "www.example.com",
 			},
 			args: args{
-				block: Block{
+				block: block.Block{
 					Website: "www.example.com",
 					Name:    "test",
 				},
@@ -42,7 +44,7 @@ func TestFilter_Match(t *testing.T) {
 				Name: "test",
 			},
 			args: args{
-				block: Block{
+				block: block.Block{
 					Website: "www.example.com",
 					Name:    "test",
 				},
@@ -56,7 +58,7 @@ func TestFilter_Match(t *testing.T) {
 				Name:    "test",
 			},
 			args: args{
-				block: Block{
+				block: block.Block{
 					Website: "www.example.com",
 					Name:    "test",
 				},
@@ -70,7 +72,7 @@ func TestFilter_Match(t *testing.T) {
 				Name:    "test",
 			},
 			args: args{
-				block: Block{
+				block: block.Block{
 					Website: "www.example.com",
 					Name:    "test2",
 				},
@@ -84,7 +86,7 @@ func TestFilter_Match(t *testing.T) {
 				Name:    "test",
 			},
 			args: args{
-				block: Block{
+				block: block.Block{
 					Website: "www.example.com2",
 					Name:    "test",
 				},
@@ -94,11 +96,13 @@ func TestFilter_Match(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := Filter{
+			f := block.Filter{
 				Website: tt.fields.Website,
 				Name:    tt.fields.Name,
 			}
-			assert.Equalf(t, tt.want, f.Match(ctx, tt.args.block), "Match(%v, %v)", ctx, tt.args.block)
+			match, err := f.Match(ctx, tt.args.block)
+			assert.NoError(t, err)
+			assert.Equalf(t, tt.want, match, "Match(%v, %v)", ctx, tt.args.block)
 		})
 	}
 }

@@ -31,15 +31,15 @@ func NewRedirect() Redirect {
 }
 
 // Clone clones (duplicates) a Redirect resource.
-func (r Redirect) Clone() Redirect {
-	c := r.AsNew()
+func (r Redirect) Clone() model.EntityInterface {
+	c := r.AsNew().(Redirect)
 	c.Entity = r.Entity.Clone().(model.Entity)
 
 	return c
 }
 
 // AsNew returns a clone of the entity but with calculated fields reset to their default.
-func (r Redirect) AsNew() Redirect {
+func (r Redirect) AsNew() model.EntityInterface {
 	return Redirect{
 		Entity:  model.Entity{},
 		Website: r.Website,

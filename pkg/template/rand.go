@@ -30,7 +30,7 @@ func RandomTemplate(asNew bool) Template {
 	}
 
 	if asNew {
-		return t.AsNew()
+		return t.AsNew().(Template)
 	}
 
 	return t

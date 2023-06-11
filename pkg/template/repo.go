@@ -7,23 +7,16 @@ type Filter struct {
 	Name    string `json:"name" form:"name" validate:"required" fake:"{sentence}"`
 }
 
-func (f Filter) Match(ctx context.Context, template Template) bool {
+func (f Filter) Match(ctx context.Context, template Template) (bool, error) {
+	_ = ctx
+
 	if f.Website != "" && f.Website != template.Website {
-		return false
+		return false, nil
 	}
 
 	if f.Name != "" && f.Name != template.Name {
-		return false
+		return false, nil
 	}
 
-	return true
-}
-
-// Repo is an interface for repositories.
-type Repo interface {
-	Create(ctx context.Context, entity Template) (Template, error)
-	Retrieve(ctx context.Context, id string) (Template, error)
-	Update(ctx context.Context, id string, entity Template, etag string) (Template, error)
-	Delete(ctx context.Context, id string) error
-	List(ctx context.Context, filter Filter) ([]Template, error)
+	return true, nil
 }

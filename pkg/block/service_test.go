@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/block"
+	repoMocks "github.com/abtergo/abtergo/mocks/libs/repo"
 	"github.com/abtergo/abtergo/pkg/block"
 )
 
@@ -21,7 +21,7 @@ func TestService_Create(t *testing.T) {
 	t.Run("id provided error", func(t *testing.T) {
 		entityStub := block.RandomBlock(false)
 
-		repoMock := &mocks2.Repo{}
+		repoMock := new(repoMocks.Repository[block.Block])
 
 		s := block.NewService(loggerStub, repoMock)
 
@@ -36,7 +36,7 @@ func TestService_Create(t *testing.T) {
 		entityStub.ID = ""
 		entityStub.Website = ""
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Create(ctxStub, entityStub).
 			Return(entityStub, nil)
@@ -52,7 +52,7 @@ func TestService_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		entityStub := block.RandomBlock(true)
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Create(ctxStub, entityStub).
 			Return(entityStub, nil)
@@ -73,14 +73,14 @@ func TestService_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		entityStub := block.RandomBlock(false)
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Delete(ctxStub, entityStub.ID).
+			Delete(ctxStub, entityStub.ID, entityStub.ETag).
 			Return(nil)
 
 		s := block.NewService(loggerStub, repoMock)
 
-		err := s.Delete(ctxStub, entityStub.ID)
+		err := s.Delete(ctxStub, entityStub.ID, entityStub.ETag)
 		require.NoError(t, err)
 	})
 }
@@ -92,7 +92,7 @@ func TestService_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		entityStub := block.RandomBlock(false)
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Retrieve(ctxStub, entityStub.ID).
 			Return(entityStub, nil)
@@ -114,7 +114,7 @@ func TestService_List(t *testing.T) {
 		filterStub := block.Filter{}
 		stubCollection := block.RandomBlockList(1, 3)
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			List(ctxStub, filterStub).
 			Return(stubCollection, nil)
@@ -140,7 +140,7 @@ func TestService_Update(t *testing.T) {
 	t.Run("id mismatch error", func(t *testing.T) {
 		entityStub := block.RandomBlock(false)
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 
 		s := block.NewService(loggerStub, repoMock)
 
@@ -155,9 +155,9 @@ func TestService_Update(t *testing.T) {
 		entityStub.Website = ""
 		entityStub.ID = ""
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Update(ctxStub, idStub, entityStub, etagStub).
+			Update(ctxStub, entityStub, etagStub).
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -172,9 +172,9 @@ func TestService_Update(t *testing.T) {
 		entityStub := block.RandomBlock(false)
 		entityStub.ID = idStub
 
-		repoMock := new(mocks2.Repo)
+		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Update(ctxStub, idStub, entityStub, etagStub).
+			Update(ctxStub, entityStub, etagStub).
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)

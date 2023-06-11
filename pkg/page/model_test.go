@@ -20,7 +20,7 @@ func TestNewPage(t *testing.T) {
 	assert.Empty(t, p.Entity.DeletedAt)
 
 	// TODO: fix etag issue
-	// assert.NotEmpty(t, p.Entity.Etag)
+	// assert.NotEmpty(t, p.Entity.ETag)
 }
 
 func TestPage_Clone(t *testing.T) {
@@ -50,7 +50,7 @@ func TestPage_Validate(t *testing.T) {
 		{
 			name:          "id, etag, created at and updated at are not required if all are empty",
 			page:          page.RandomPage(false),
-			modifier:      func(c *page.Page) { c.ID = ""; c.Etag = ""; c.CreatedAt = time.Time{}; c.UpdatedAt = time.Time{} },
+			modifier:      func(c *page.Page) { c.ID = ""; c.ETag = ""; c.CreatedAt = time.Time{}; c.UpdatedAt = time.Time{} },
 			invalidFields: []string{},
 		},
 		{
@@ -122,7 +122,7 @@ func TestPage_Validate(t *testing.T) {
 		{
 			name:          "etag is required if id, updated at or created at are present",
 			page:          page.RandomPage(false),
-			modifier:      func(c *page.Page) { c.Etag = "" },
+			modifier:      func(c *page.Page) { c.ETag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{

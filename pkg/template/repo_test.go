@@ -93,8 +93,9 @@ func TestFilter_Match(t *testing.T) {
 				Name:    tt.fields.Name,
 			}
 
-			result := f.Match(context.Background(), tt.args.template)
+			result, err := f.Match(context.Background(), tt.args.template)
 
+			assert.NoError(t, err)
 			assert.Equalf(t, tt.want, result, "Match(%v, %v)", context.Background(), tt.args.template)
 		})
 	}
