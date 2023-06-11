@@ -1,6 +1,8 @@
 package block
 
 import (
+	"sync"
+
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/pkg/errors"
 
@@ -16,8 +18,13 @@ func init() {
 	fakeit.AddEtagFaker()
 }
 
+var lock sync.Mutex
+
 // RandomBlock generates a random Block instance.
 func RandomBlock(asNew bool) Block {
+	lock.Lock()
+	defer lock.Unlock()
+
 	b := Block{}
 
 	err := gofakeit.Struct(&b)

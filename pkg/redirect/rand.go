@@ -2,6 +2,7 @@ package redirect
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/brianvoe/gofakeit/v6"
 
@@ -16,8 +17,13 @@ func init() {
 	fakeit.AddEtagFaker()
 }
 
+var lock sync.Mutex
+
 // RandomRedirect generates a random Redirect instance.
 func RandomRedirect(asNew bool) Redirect {
+	lock.Lock()
+	defer lock.Unlock()
+
 	r := Redirect{}
 
 	err := gofakeit.Struct(&r)

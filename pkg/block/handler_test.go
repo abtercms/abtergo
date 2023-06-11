@@ -487,10 +487,14 @@ type handlerDeps struct {
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
+	t.Helper()
+
 	hd.serviceMock.AssertExpectations(t)
 }
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
+	t.Helper()
+
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
 	handler := block.NewHandler(loggerStub, serviceMock)

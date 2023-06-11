@@ -2,6 +2,7 @@ package template
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/brianvoe/gofakeit/v6"
 
@@ -17,8 +18,13 @@ func init() {
 	fakeit.AddEtagFaker()
 }
 
+var lock sync.Mutex
+
 // RandomTemplate generates a random Template instance.
 func RandomTemplate(asNew bool) Template {
+	lock.Lock()
+	defer lock.Unlock()
+
 	t := Template{}
 
 	err := gofakeit.Struct(&t)
