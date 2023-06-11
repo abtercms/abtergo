@@ -13,6 +13,7 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
 	mocks2 "github.com/abtergo/abtergo/mocks/pkg/redirect"
@@ -78,21 +79,18 @@ func TestHandler_Post(t *testing.T) {
 		expectedStatusCode := fiber.StatusConflict
 		expectedRedirect := redirect.RandomRedirect(false)
 
-		// Stubs
-		payloadStub := expectedRedirect.AsNew()
-
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Create(mock.Anything, payloadStub).
+			Create(mock.Anything, expectedRedirect).
 			Once().
 			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
-		reqBody := util.DataToReaderHelper(t, payloadStub)
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/redirects", reqBody)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
@@ -113,7 +111,6 @@ func TestHandler_Post(t *testing.T) {
 		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
-		payloadStub := expectedRedirect.AsNew()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -121,12 +118,12 @@ func TestHandler_Post(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Create(mock.Anything, payloadStub).
+			Create(mock.Anything, expectedRedirect).
 			Once().
 			Return(expectedRedirect, nil)
 
 		// Request
-		reqBody := util.DataToReaderHelper(t, payloadStub)
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/redirects", reqBody)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
@@ -140,7 +137,8 @@ func TestHandler_Post(t *testing.T) {
 
 		var actual redirect.Redirect
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedRedirect.AsNew(), actual.AsNew())
+		actual.Entity = expectedRedirect.Entity
+		assert.Equal(t, expectedRedirect, actual)
 
 		deps.AssertExpectations(t)
 	})
@@ -216,7 +214,10 @@ func TestHandler_List(t *testing.T) {
 		var actual []redirect.Redirect
 		util.ParseResponseHelper(t, resp, &actual)
 		assert.Len(t, actual, 5)
-		assert.Equal(t, expectedRedirects[0].AsNew(), actual[0].AsNew())
+
+		actual[0].Entity = model.Entity{}
+		expectedRedirects[0].Entity = model.Entity{}
+		assert.Equal(t, expectedRedirects[0], actual[0])
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -292,7 +293,8 @@ func TestHandler_Get(t *testing.T) {
 
 		var actual redirect.Redirect
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedRedirect.AsNew(), actual.AsNew())
+		actual.Entity = expectedRedirect.Entity
+		assert.Equal(t, expectedRedirect, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})
@@ -341,19 +343,18 @@ func TestHandler_Put(t *testing.T) {
 		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
-		payloadStub := expectedRedirect.AsNew()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousEtagStub).
 			Once().
 			Return(redirect.Redirect{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
-		reqBody := util.DataToReaderHelper(t, payloadStub)
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
 		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/redirects/"+expectedRedirect.ID, reqBody)
 		req.Header.Set(fiber.HeaderETag, previousEtagStub)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
@@ -379,19 +380,18 @@ func TestHandler_Put(t *testing.T) {
 		expectedRedirect := redirect.RandomRedirect(false)
 
 		// Stubs
-		payloadStub := expectedRedirect.AsNew()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousEtagStub).
 			Once().
 			Return(expectedRedirect, nil)
 
 		// Request
-		reqBody := util.DataToReaderHelper(t, payloadStub)
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
 		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/redirects/"+expectedRedirect.ID, reqBody)
 		req.Header.Set(fiber.HeaderETag, previousEtagStub)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
@@ -406,7 +406,8 @@ func TestHandler_Put(t *testing.T) {
 
 		var actual redirect.Redirect
 		util.ParseResponseHelper(t, resp, &actual)
-		assert.Equal(t, expectedRedirect.AsNew(), actual.AsNew())
+		actual.Entity = expectedRedirect.Entity
+		assert.Equal(t, expectedRedirect, actual)
 
 		deps.serviceMock.AssertExpectations(t)
 	})

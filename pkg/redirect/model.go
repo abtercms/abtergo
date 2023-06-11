@@ -15,7 +15,6 @@ func init() {
 	redirectValidator = v
 }
 
-// Redirect represents a resource which can be used to redirect traffic from web one resource to another.
 type Redirect struct {
 	model.Entity
 
@@ -30,25 +29,21 @@ func NewRedirect() Redirect {
 	}
 }
 
-// Clone clones (duplicates) a Redirect resource.
 func (r Redirect) Clone() model.EntityInterface {
-	c := r.AsNew().(Redirect)
+	c := r.c()
 	c.Entity = r.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-// AsNew returns a clone of the entity but with calculated fields reset to their default.
-func (r Redirect) AsNew() model.EntityInterface {
+func (r Redirect) c() Redirect {
 	return Redirect{
-		Entity:  model.Entity{},
 		Website: r.Website,
 		Path:    r.Path,
 		Target:  r.Target,
 	}
 }
 
-// Validate validates the entity.
 func (r Redirect) Validate() error {
 	return redirectValidator.Struct(&r)
 }

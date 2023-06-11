@@ -3,6 +3,7 @@ package repo_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,9 +146,10 @@ func TestInMemoryRepo_List(t *testing.T) {
 			Foo:    "bar",
 		}
 		_, err := sut.Create(ctxStub, entityStub)
+		require.NoError(t, err)
 
 		filterMock := new(mocks.Filter[testEntity])
-		filterMock.EXPECT().Match(ctxStub, entityStub.AsNew().(testEntity)).Return(false, assert.AnError)
+		filterMock.EXPECT().Match(ctxStub, entityStub).Return(false, assert.AnError)
 
 		_, err = sut.List(ctxStub, filterMock)
 
@@ -161,6 +163,32 @@ func TestInMemoryRepo_List(t *testing.T) {
 
 		ctx := context.Background()
 		repo := repo.NewInMemoryRepo[testEntity]()
+
+		list, err := repo.List(ctx, testFilter{})
+
+		assert.NoError(t, err)
+		assert.Empty(t, list)
+	})
+
+	t.Run("deleted are filtered", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		repo := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "bar",
+		}
+
+		storedEntity, err := repo.Create(ctx, stubEntity)
+		require.NoError(t, err)
+
+		now := time.Now()
+		storedEntity.Entity.DeletedAt = &now
+
+		_, err = repo.Update(ctx, storedEntity, storedEntity.GetETag())
+		require.NoError(t, err)
 
 		list, err := repo.List(ctx, testFilter{})
 

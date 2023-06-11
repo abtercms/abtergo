@@ -27,23 +27,21 @@ type Block struct {
 	Version int64       `json:"version" validate:"required" fake:"{number:1}"`
 }
 
-func NewBlock() Block {
+func NewBlock(entity model.Entity) Block {
 	return Block{
-		Entity: model.NewEntity(),
+		Entity: entity,
 	}
 }
 
-// Clone clones (duplicates) a Block resource.
 func (b Block) Clone() model.EntityInterface {
-	c := b.AsNew().(Block)
+	c := b.c()
 	c.Entity = b.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-func (b Block) AsNew() model.EntityInterface {
+func (b Block) c() Block {
 	return Block{
-		Entity:  model.Entity{},
 		Website: b.Website,
 		Name:    b.Name,
 		Body:    b.Body,

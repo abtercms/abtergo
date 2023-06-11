@@ -52,7 +52,6 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 
 // List handles requests to retrieve a collection of Block instances.
 func (h *Handler) List(c *fiber.Ctx) error {
-	// TODO: Smarter filter parsing
 	filter := Filter{
 		Website: c.Get("website"),
 		Name:    c.Get("name"),

@@ -60,6 +60,7 @@ func TestService_Create(t *testing.T) {
 		got, err := s.Create(ctxStub, entityStub)
 
 		assert.NoError(t, err)
+		got.Entity = entityStub.Entity
 		assert.Equal(t, entityStub, got)
 		repoMock.AssertExpectations(t)
 	})

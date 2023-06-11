@@ -26,11 +26,9 @@ func (r *InMemoryRepo[T]) Create(ctx context.Context, entity T) (T, error) {
 
 	_ = ctx
 
-	e2 := entity.AsNew().(T)
+	r.entities[entity.GetID()] = entity
 
-	r.entities[e2.GetID()] = e2
-
-	return e2, nil
+	return entity, nil
 }
 
 func (r *InMemoryRepo[T]) Retrieve(ctx context.Context, id string) (T, error) {
@@ -93,6 +91,10 @@ func (r *InMemoryRepo[T]) List(ctx context.Context, filter Filter[T]) ([]T, erro
 
 	templates := make([]T, 0)
 	for _, entity := range r.entities {
+		if entity.GetDeletedAt() != nil {
+			continue
+		}
+
 		match, err := filter.Match(ctx, entity)
 		if err != nil {
 			return nil, arr.Wrap(arr.ApplicationError, err, "failed to match entity", "id", entity.GetID())

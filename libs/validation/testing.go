@@ -13,6 +13,8 @@ import (
 // AssertFieldErrorsOn asserts that the ValidationErrors given are in the list of expected fields given
 // and that all the fields expected to have an error do.
 func AssertFieldErrorsOn(t *testing.T, err error, fields []string) {
+	t.Helper()
+
 	require.Error(t, err)
 	fieldErrors, ok := err.(validator.ValidationErrors)
 

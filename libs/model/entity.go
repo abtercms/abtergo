@@ -3,29 +3,46 @@ package model
 import (
 	"time"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
+	"github.com/pkg/errors"
 
+	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/util"
 	"github.com/abtergo/abtergo/libs/validation"
 )
 
 var entityValidator *validator.Validate
 
 func init() {
+	fakeit.AddDateRangeFaker()
+	fakeit.AddEtagFaker()
+
 	v := validation.NewValidator()
 
 	entityValidator = v
 }
 
 type EntityInterface interface {
+	GetCreatedAt() time.Time
 	SetCreatedAt(t2 time.Time) EntityInterface
+	GetUpdatedAt() time.Time
 	SetUpdatedAt(t2 time.Time) EntityInterface
-	SetETag(id string) EntityInterface
+	GetDeletedAt() *time.Time
+	SetDeletedAt(t2 *time.Time) EntityInterface
 	GetETag() string
-	SetID(id string) EntityInterface
+	SetETag(id string) EntityInterface
+	CalculateETag(payload any) EntityInterface
 	GetID() string
+	SetID(id string) EntityInterface
 	Clone() EntityInterface
-	AsNew() EntityInterface
+	IsModified(payload any) bool
+	Validate() error
+}
+
+func id() string {
+	return ulid.MustNew(ulid.Timestamp(time.Now()), nil).String()
 }
 
 type Entity struct {
@@ -37,22 +54,6 @@ type Entity struct {
 }
 
 func NewEntity() Entity {
-	// time.Now() returns an extra monotonic clock which we usually don't need.
-	now := time.Now()
-	t := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second(), now.Nanosecond(), now.Location())
-
-	return Entity{
-		ID:        id(),
-		CreatedAt: t,
-		UpdatedAt: t,
-	}
-}
-
-func id() string {
-	return ulid.MustNew(ulid.Timestamp(time.Now()), nil).String()
-}
-
-func (e Entity) AsNew() EntityInterface {
 	n := time.Now()
 	n2 := time.Date(n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond(), n.Location())
 
@@ -63,24 +64,44 @@ func (e Entity) AsNew() EntityInterface {
 	}
 }
 
-func (e Entity) Validate() error {
-	return entityValidator.Struct(&e)
+func (e Entity) GetCreatedAt() time.Time {
+	return e.CreatedAt
 }
 
 func (e Entity) SetCreatedAt(t2 time.Time) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
 	e.CreatedAt = t2
 
 	return e
 }
 
+func (e Entity) GetUpdatedAt() time.Time {
+	return e.UpdatedAt
+}
+
 func (e Entity) SetUpdatedAt(t2 time.Time) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
 	e.UpdatedAt = t2
 
 	return e
 }
 
-func (e Entity) SetDeletedAt(t2 time.Time) EntityInterface {
-	e.DeletedAt = &t2
+func (e Entity) GetDeletedAt() *time.Time {
+	return e.DeletedAt
+}
+
+func (e Entity) SetDeletedAt(t2 *time.Time) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
+	e.DeletedAt = t2
 
 	return e
 }
@@ -96,6 +117,10 @@ func (e Entity) Clone() EntityInterface {
 }
 
 func (e Entity) SetID(id string) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
 	e.ID = id
 
 	return e
@@ -106,6 +131,10 @@ func (e Entity) GetID() string {
 }
 
 func (e Entity) SetETag(etag string) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
 	e.ETag = etag
 
 	return e
@@ -113,4 +142,34 @@ func (e Entity) SetETag(etag string) EntityInterface {
 
 func (e Entity) GetETag() string {
 	return e.ETag
+}
+
+func (e Entity) CalculateETag(payload any) EntityInterface {
+	if e.ETag != "" {
+		panic("entity is sealed.")
+	}
+
+	e.ETag = util.EtagAny(payload)
+
+	return e
+}
+
+func (e Entity) IsModified(payload any) bool {
+	newETag := util.EtagAny(payload)
+
+	return newETag != e.ETag
+}
+
+func (e Entity) Validate() error {
+	return entityValidator.Struct(&e)
+}
+
+func RandomEntity() Entity {
+	b := Entity{}
+	err := gofakeit.Struct(&b)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to generate random entity"))
+	}
+
+	return b
 }

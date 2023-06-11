@@ -6,6 +6,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -22,7 +23,9 @@ func RandomPage(asNew bool) Page {
 	p := mustCreatePage()
 
 	if asNew {
-		return p.AsNew().(Page)
+		p.Entity = model.Entity{}
+
+		return p
 	}
 
 	return p

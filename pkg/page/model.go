@@ -48,15 +48,14 @@ func NewPage() Page {
 }
 
 func (p Page) Clone() model.EntityInterface {
-	c := p.AsNew().(Page)
+	c := p.c()
 	c.Entity = p.Entity.Clone().(model.Entity)
 
 	return c
 }
 
-func (p Page) AsNew() model.EntityInterface {
+func (p Page) c() Page {
 	return Page{
-		Entity:     model.Entity{},
 		Website:    p.Website,
 		Path:       p.Path,
 		Lead:       p.Lead,
@@ -69,6 +68,6 @@ func (p Page) AsNew() model.EntityInterface {
 	}
 }
 
-func (p *Page) Validate() error {
+func (p Page) Validate() error {
 	return pageValidator.Struct(p)
 }

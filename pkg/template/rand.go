@@ -6,6 +6,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -30,7 +31,9 @@ func RandomTemplate(asNew bool) Template {
 	}
 
 	if asNew {
-		return t.AsNew().(Template)
+		t.Entity = model.Entity{}
+
+		return t
 	}
 
 	return t

@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/abtergo/abtergo/libs/html"
-	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/validation"
 	"github.com/abtergo/abtergo/pkg/template"
 )
@@ -33,21 +32,6 @@ func TestTemplate_Clone(t *testing.T) {
 
 		assert.NotSame(t, tt, c)
 		assert.Equal(t, tt, c)
-	})
-}
-
-func TestTemplate_AsNew(t *testing.T) {
-	t.Run("clone with empty entity", func(t *testing.T) {
-		t.Parallel()
-
-		sut := template.RandomTemplate(false)
-		clone := sut.AsNew().(template.Template)
-
-		assert.NotSame(t, sut, clone)
-		assert.NotEqual(t, sut, clone)
-
-		clone.Entity = sut.Entity.Clone().(model.Entity)
-		assert.Equal(t, sut, clone)
 	})
 }
 

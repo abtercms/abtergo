@@ -43,7 +43,7 @@ func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error)
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
 	}
 
-	return s.repo.Create(ctx, entity.AsNew().(Redirect))
+	return s.repo.Create(ctx, entity)
 }
 
 // Get retrieves an existing entity.

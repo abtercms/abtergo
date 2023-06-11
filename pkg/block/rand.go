@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -17,7 +18,7 @@ func init() {
 
 // RandomBlock generates a random Block instance.
 func RandomBlock(asNew bool) Block {
-	b := NewBlock()
+	b := Block{}
 
 	err := gofakeit.Struct(&b)
 	if err != nil {
@@ -25,7 +26,9 @@ func RandomBlock(asNew bool) Block {
 	}
 
 	if asNew {
-		return b.AsNew().(Block)
+		b.Entity = model.Entity{}
+
+		return b
 	}
 
 	return b

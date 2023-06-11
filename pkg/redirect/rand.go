@@ -6,6 +6,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -25,7 +26,7 @@ func RandomRedirect(asNew bool) Redirect {
 	}
 
 	if asNew {
-		return r.AsNew().(Redirect)
+		r.Entity = model.Entity{}
 	}
 
 	return r

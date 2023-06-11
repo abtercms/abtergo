@@ -60,8 +60,9 @@ func TestService_Create(t *testing.T) {
 		s := block.NewService(loggerStub, repoMock)
 
 		got, err := s.Create(ctxStub, entityStub)
-		require.NoError(t, err)
 
+		assert.NoError(t, err)
+		got.Entity = entityStub.Entity
 		assert.Equal(t, entityStub, got)
 	})
 }
