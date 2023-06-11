@@ -15,7 +15,7 @@ import (
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/template"
+	mocks "github.com/abtergo/abtergo/mocks/pkg/template"
 	"github.com/abtergo/abtergo/pkg/template"
 )
 
@@ -458,7 +458,8 @@ func TestHandler_Delete(t *testing.T) {
 		app, deps := setupHandlerMocks(t)
 
 		// Mocks
-		deps.serviceMock.EXPECT().Delete(mock.Anything, expectedTemplate.ID, previousEtagStub).
+		deps.serviceMock.EXPECT().
+			Delete(mock.Anything, expectedTemplate.ID, previousEtagStub).
 			Once().
 			Return(nil)
 
@@ -481,7 +482,7 @@ func TestHandler_Delete(t *testing.T) {
 
 type handlerDeps struct {
 	loggerStub  *zap.Logger
-	serviceMock *mocks2.Service
+	serviceMock *mocks.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
@@ -490,7 +491,7 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerMock := zaptest.NewLogger(t)
-	serviceMock := &mocks2.Service{}
+	serviceMock := &mocks.Service{}
 	handler := template.NewHandler(loggerMock, serviceMock)
 
 	app := fiber.New(fiber.Config{

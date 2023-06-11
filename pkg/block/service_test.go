@@ -39,6 +39,7 @@ func TestService_Create(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Create(ctxStub, entityStub).
+			Once().
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -55,6 +56,7 @@ func TestService_Create(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Create(ctxStub, entityStub).
+			Once().
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -77,6 +79,7 @@ func TestService_Delete(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Delete(ctxStub, entityStub.ID, entityStub.ETag).
+			Once().
 			Return(nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -96,6 +99,7 @@ func TestService_Get(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Retrieve(ctxStub, entityStub.ID).
+			Once().
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -118,6 +122,7 @@ func TestService_List(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			List(ctxStub, filterStub).
+			Once().
 			Return(stubCollection, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -159,6 +164,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Update(ctxStub, entityStub, etagStub).
+			Once().
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)
@@ -176,6 +182,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Update(ctxStub, entityStub, etagStub).
+			Once().
 			Return(entityStub, nil)
 
 		s := block.NewService(loggerStub, repoMock)

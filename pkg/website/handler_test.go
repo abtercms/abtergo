@@ -32,7 +32,10 @@ func TestHandler_AddRoutes(t *testing.T) {
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
-		deps.serviceMock.EXPECT().Get(mock.Anything, baseURLStub, pathStub).Return("", assert.AnError)
+		deps.serviceMock.EXPECT().
+			Get(mock.Anything, baseURLStub, pathStub).
+			Once().
+			Return("", assert.AnError)
 
 		// Execute Test
 		resp, err := app.Test(req)

@@ -2,8 +2,8 @@ package page
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
@@ -82,23 +82,24 @@ func (s *service) Delete(ctx context.Context, id, oldETag string) error {
 func (s *service) Transition(ctx context.Context, id string, trigger Trigger, oldEtag string) (Page, error) {
 	page, err := s.repo.Retrieve(ctx, id)
 	if err != nil {
-		return Page{}, fmt.Errorf("failed to get page. id: %s, err: %w", id, err)
+		return Page{}, errors.Wrap(err, "page not found")
 	}
 
 	if page.ETag != oldEtag {
-		return Page{}, arr.New(arr.ETagMismatch, "invalid etag found", "id", id, "request etag", oldEtag, "found etag", page.ETag)
+		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", "id", id, "request etag", oldEtag, "found etag", page.ETag)
 	}
 
 	newStatus, err := s.updater.Transition(page.Status, trigger)
 	if err != nil {
-		return Page{}, arr.Wrap(arr.ResourceIsOutdated, err, "failed to transition status", "id", id, "website", page.Website, "path", page.Path, "trigger", Activate)
+		return Page{}, errors.Wrap(err, "transition failed")
 	}
 
 	page.Status = newStatus
+	// TODO: update the e-tag
 
 	newPage, err := s.repo.Update(ctx, page, oldEtag)
 	if err != nil {
-		return Page{}, fmt.Errorf("failed to update page. id: %s, website: %s, path: %s, err: %w", newPage.ID, newPage.Website, newPage.Path, err)
+		return Page{}, errors.Wrap(err, "update failed")
 	}
 
 	return newPage, nil

@@ -1,9 +1,9 @@
 package page
 
 import (
-	"fmt"
-
 	"github.com/qmuntal/stateless"
+
+	"github.com/abtergo/abtergo/libs/arr"
 )
 
 // Trigger represent a trigger for a status change of a Page.
@@ -29,7 +29,7 @@ func (u *updater) Transition(status Status, trigger Trigger) (Status, error) {
 
 	err := sm.Fire(trigger)
 	if err != nil {
-		return status, fmt.Errorf("invalid state transition. err: %w", err)
+		return status, arr.Wrap(arr.ResourceNotModified, err, "invalid status transition", "old status", status, "trigger", trigger)
 	}
 
 	return sm.MustState().(Status), nil

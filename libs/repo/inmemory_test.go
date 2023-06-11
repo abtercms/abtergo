@@ -42,14 +42,14 @@ func (f testFilter) Match(ctx context.Context, e testEntity) (bool, error) {
 
 func TestInMemoryRepo_Create(t *testing.T) {
 	ctx := context.Background()
-	repo := repo.NewInMemoryRepo[testEntity]()
+	sut := repo.NewInMemoryRepo[testEntity]()
 
 	stubEntity := testEntity{
 		Entity: model.NewEntity(),
 		Foo:    "bar",
 	}.AsNew().(testEntity)
 
-	storedEntity, err := repo.Create(ctx, stubEntity)
+	storedEntity, err := sut.Create(ctx, stubEntity)
 	require.NoError(t, err)
 
 	require.Equal(t, stubEntity, storedEntity)
@@ -60,17 +60,17 @@ func TestInMemoryRepo_Retrieve(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
 			Foo:    "bar",
 		}
 
-		storedEntity, err := repo.Create(ctx, stubEntity)
+		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
-		retrievedEntity, err := repo.Retrieve(ctx, storedEntity.ID)
+		retrievedEntity, err := sut.Retrieve(ctx, storedEntity.ID)
 		require.NoError(t, err)
 
 		require.Equal(t, retrievedEntity, storedEntity)
@@ -84,14 +84,14 @@ func TestInMemoryRepo_Update(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
 			Foo:    "bar",
 		}
 
-		storedEntity, err := repo.Create(ctx, stubEntity)
+		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
 		stubEntity2 := testEntity{
@@ -99,10 +99,10 @@ func TestInMemoryRepo_Update(t *testing.T) {
 			Foo:    "baz",
 		}
 
-		updatedEntity, err := repo.Update(ctx, stubEntity2, storedEntity.GetETag())
+		updatedEntity, err := sut.Update(ctx, stubEntity2, storedEntity.GetETag())
 		require.NoError(t, err)
 
-		retrievedEntity, err := repo.Retrieve(ctx, updatedEntity.ID)
+		retrievedEntity, err := sut.Retrieve(ctx, updatedEntity.ID)
 		require.NoError(t, err)
 
 		require.NotEqual(t, retrievedEntity, storedEntity)
@@ -115,20 +115,20 @@ func TestInMemoryRepo_Delete(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
 			Foo:    "bar",
 		}
 
-		storedEntity, err := repo.Create(ctx, stubEntity)
+		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
-		err = repo.Delete(ctx, storedEntity.GetID(), storedEntity.GetETag())
+		err = sut.Delete(ctx, storedEntity.GetID(), storedEntity.GetETag())
 		assert.NoError(t, err)
 
-		_, err = repo.Retrieve(ctx, storedEntity.ID)
+		_, err = sut.Retrieve(ctx, storedEntity.ID)
 		assert.Error(t, err)
 	})
 }
@@ -149,7 +149,10 @@ func TestInMemoryRepo_List(t *testing.T) {
 		require.NoError(t, err)
 
 		filterMock := new(mocks.Filter[testEntity])
-		filterMock.EXPECT().Match(ctxStub, entityStub).Return(false, assert.AnError)
+		filterMock.EXPECT().
+			Match(ctxStub, entityStub).
+			Once().
+			Return(false, assert.AnError)
 
 		_, err = sut.List(ctxStub, filterMock)
 
@@ -162,9 +165,9 @@ func TestInMemoryRepo_List(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
-		list, err := repo.List(ctx, testFilter{})
+		list, err := sut.List(ctx, testFilter{})
 
 		assert.NoError(t, err)
 		assert.Empty(t, list)
@@ -174,23 +177,23 @@ func TestInMemoryRepo_List(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
 			Foo:    "bar",
 		}
 
-		storedEntity, err := repo.Create(ctx, stubEntity)
+		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
 		now := time.Now()
 		storedEntity.Entity.DeletedAt = &now
 
-		_, err = repo.Update(ctx, storedEntity, storedEntity.GetETag())
+		_, err = sut.Update(ctx, storedEntity, storedEntity.GetETag())
 		require.NoError(t, err)
 
-		list, err := repo.List(ctx, testFilter{})
+		list, err := sut.List(ctx, testFilter{})
 
 		assert.NoError(t, err)
 		assert.Empty(t, list)
@@ -200,17 +203,17 @@ func TestInMemoryRepo_List(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		repo := repo.NewInMemoryRepo[testEntity]()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
 			Foo:    "bar",
 		}
 
-		storedEntity, err := repo.Create(ctx, stubEntity)
+		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
-		list, err := repo.List(ctx, testFilter{})
+		list, err := sut.List(ctx, testFilter{})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)

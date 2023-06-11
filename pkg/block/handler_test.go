@@ -15,7 +15,7 @@ import (
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/block"
+	mocks "github.com/abtergo/abtergo/mocks/pkg/block"
 	"github.com/abtergo/abtergo/pkg/block"
 )
 
@@ -483,7 +483,7 @@ func TestHandler_Delete(t *testing.T) {
 
 type handlerDeps struct {
 	loggerStub  *zap.Logger
-	serviceMock *mocks2.Service
+	serviceMock *mocks.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
@@ -492,7 +492,7 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerStub := zaptest.NewLogger(t)
-	serviceMock := &mocks2.Service{}
+	serviceMock := &mocks.Service{}
 	handler := block.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{

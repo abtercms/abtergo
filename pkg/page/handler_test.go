@@ -14,9 +14,10 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
-	mocks2 "github.com/abtergo/abtergo/mocks/pkg/page"
+	mocks "github.com/abtergo/abtergo/mocks/pkg/page"
 	"github.com/abtergo/abtergo/pkg/page"
 )
 
@@ -77,7 +78,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedPage := page.RandomPage(true)
+		expectedPage := page.RandomPage()
+		expectedPage.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedPage.Clone()
@@ -111,7 +113,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedPage := page.RandomPage(true)
+		expectedPage := page.RandomPage()
+		expectedPage.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedPage.Clone()
@@ -229,7 +232,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Stubs
 
@@ -265,7 +268,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Stubs
 
@@ -308,7 +311,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -339,7 +342,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Stubs
 		payloadStub := expectedPage.Clone()
@@ -378,7 +381,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Stubs
 		payloadStub := expectedPage.Clone()
@@ -424,7 +427,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -455,7 +458,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -493,7 +496,7 @@ func TestHandler_Activate(t *testing.T) {
 	t.Run("error activating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -524,7 +527,7 @@ func TestHandler_Activate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -562,7 +565,7 @@ func TestHandler_Inactivate(t *testing.T) {
 	t.Run("error inactivating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -593,7 +596,7 @@ func TestHandler_Inactivate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedPage := page.RandomPage(false)
+		expectedPage := page.RandomPage()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -624,7 +627,7 @@ func TestHandler_Inactivate(t *testing.T) {
 
 type handlerDeps struct {
 	loggerStub  *zap.Logger
-	serviceMock *mocks2.Service
+	serviceMock *mocks.Service
 }
 
 func (hd handlerDeps) AssertExpectations(t *testing.T) {
@@ -633,7 +636,7 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerStub := zaptest.NewLogger(t)
-	serviceMock := &mocks2.Service{}
+	serviceMock := &mocks.Service{}
 	handler := page.NewHandler(loggerStub, serviceMock)
 
 	app := fiber.New(fiber.Config{

@@ -1,12 +1,12 @@
 package page
 
 import (
-	"fmt"
+	"sync"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -18,25 +18,24 @@ func init() {
 	fakeit.AddEtagFaker()
 }
 
+var lock sync.Mutex
+
 // RandomPage generates a random Page instance.
-func RandomPage(asNew bool) Page {
+func RandomPage() Page {
 	p := mustCreatePage()
-
-	if asNew {
-		p.Entity = model.Entity{}
-
-		return p
-	}
 
 	return p
 }
 
 func mustCreatePage() Page {
+	lock.Lock()
+	defer lock.Unlock()
+
 	p := Page{}
 
 	err := gofakeit.Struct(&p)
 	if err != nil {
-		panic(fmt.Errorf("failed to generate random page. err: %w", err))
+		panic(errors.Wrap(err, "failed to generate random page"))
 	}
 
 	if len(p.HTTPHeader) == 0 {
@@ -51,7 +50,7 @@ func RandomPageList(min, max int) []Page {
 	pages := []Page{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		pages = append(pages, RandomPage(false))
+		pages = append(pages, RandomPage())
 	}
 
 	return pages

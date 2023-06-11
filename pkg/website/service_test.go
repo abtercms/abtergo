@@ -19,7 +19,7 @@ func TestService_Get(t *testing.T) {
 	t.Run("error retrieving content", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage(false)
+		pageStub := page.RandomPage()
 
 		deps.contentRetriever.
 			EXPECT().
@@ -38,10 +38,14 @@ func TestService_Get(t *testing.T) {
 	t.Run("error retrieving template", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage(false)
+		pageStub := page.RandomPage()
 
 		contentStub := new(mocks.Content)
-		contentStub.EXPECT().Render().Once().Return(pageStub.Body, nil)
+		contentStub.
+			EXPECT().
+			Render().
+			Once().
+			Return(pageStub.Body, nil)
 
 		deps.contentRetriever.
 			EXPECT().
@@ -66,11 +70,15 @@ func TestService_Get(t *testing.T) {
 	t.Run("error rendering content", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage(false)
+		pageStub := page.RandomPage()
 		template := templatePkg.RandomTemplate(false)
 
 		contentStub := new(mocks.Content)
-		contentStub.EXPECT().Render().Once().Return(pageStub.Body, nil)
+		contentStub.
+			EXPECT().
+			Render().
+			Once().
+			Return(pageStub.Body, nil)
 
 		deps.contentRetriever.
 			EXPECT().
@@ -103,11 +111,15 @@ func TestService_Get(t *testing.T) {
 
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage(false)
+		pageStub := page.RandomPage()
 		template := templatePkg.RandomTemplate(false)
 
 		contentStub := new(mocks.Content)
-		contentStub.EXPECT().Render().Once().Return(pageStub.Body, nil)
+		contentStub.
+			EXPECT().
+			Render().
+			Once().
+			Return(pageStub.Body, nil)
 
 		deps.contentRetriever.
 			EXPECT().
