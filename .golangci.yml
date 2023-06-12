@@ -51,6 +51,10 @@ issues:
   - text: "ST1000: at least one file in a package should have a package comment"
     linters:
     - stylecheck
+  - path: _test.go
+    text: "make it a constant"
+    linters:
+    - goconst
 
 linters:
   disable-all: true

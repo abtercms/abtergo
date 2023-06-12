@@ -9,29 +9,13 @@ import (
 	"github.com/abtergo/abtergo/libs/validation"
 )
 
-func TestEntity_CalculateETag(t *testing.T) {
-	const stubPayload = "foo"
-
-	t.Run("success", func(t *testing.T) {
-		t.Parallel()
-
-		sut := NewEntity()
-		sut = sut.CalculateETag(stubPayload).(Entity)
-
-		assert.NotEmpty(t, sut.GetETag())
-	})
-}
-
 func TestEntity_IsModified(t *testing.T) {
-	const stubPayload = "foo"
-
 	t.Run("not modified", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.CalculateETag(stubPayload).(Entity)
+		sut := NewEntity().SetETag("foo").(Entity)
 
-		got := sut.IsModified(stubPayload)
+		got := sut.IsModified("foo")
 
 		assert.False(t, got)
 	})
@@ -39,12 +23,9 @@ func TestEntity_IsModified(t *testing.T) {
 	t.Run("modified", func(t *testing.T) {
 		t.Parallel()
 
-		modifiedPayload := "bar"
+		sut := NewEntity().SetETag("foo").(Entity)
 
-		stubEntity := NewEntity()
-		stubEntity.CalculateETag(stubPayload)
-
-		got := stubEntity.IsModified(modifiedPayload)
+		got := sut.IsModified("bar")
 
 		assert.True(t, got)
 	})
@@ -55,9 +36,7 @@ func TestEntity_SetCreatedAt(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity()
-
-		sut = sut.SetCreatedAt(n).(Entity)
+		sut := NewEntity().SetCreatedAt(n).(Entity)
 
 		assert.Equal(t, n, sut.GetCreatedAt())
 	})
@@ -65,10 +44,7 @@ func TestEntity_SetCreatedAt(t *testing.T) {
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.SetCreatedAt(time.Now()).(Entity)
-
-		sut = sut.SetETag("foo").(Entity)
+		sut := NewEntity().SetCreatedAt(time.Now()).SetETag("foo").(Entity)
 
 		assert.Panics(t, func() { sut.SetCreatedAt(time.Now()) })
 	})
@@ -78,9 +54,8 @@ func TestEntity_SetUpdatedAt(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
 		n := time.Unix(time.Now().Unix(), 0)
-		sut = sut.SetUpdatedAt(n).(Entity)
+		sut := NewEntity().SetUpdatedAt(n).(Entity)
 
 		assert.Equal(t, n, sut.GetUpdatedAt())
 	})
@@ -88,11 +63,8 @@ func TestEntity_SetUpdatedAt(t *testing.T) {
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
 		n := time.Unix(time.Now().Unix(), 0)
-		sut = sut.SetUpdatedAt(n).(Entity)
-
-		sut = sut.SetETag("foo").(Entity)
+		sut := NewEntity().SetUpdatedAt(n).SetETag("foo").(Entity)
 
 		assert.Panics(t, func() { sut.SetUpdatedAt(n) })
 	})
@@ -102,9 +74,8 @@ func TestEntity_SetDeletedAt(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
 		n := time.Unix(time.Now().Unix(), 0)
-		sut = sut.SetDeletedAt(&n).(Entity)
+		sut := NewEntity().SetDeletedAt(&n).(Entity)
 
 		assert.Equal(t, &n, sut.GetDeletedAt())
 	})
@@ -112,59 +83,46 @@ func TestEntity_SetDeletedAt(t *testing.T) {
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
 		n := time.Unix(time.Now().Unix(), 0)
-		sut = sut.SetDeletedAt(&n).(Entity)
-
-		sut = sut.SetETag("foo").(Entity)
+		sut := NewEntity().SetDeletedAt(&n).(Entity).SetETag("foo").(Entity)
 
 		assert.Panics(t, func() { sut.SetDeletedAt(&n) })
 	})
 }
 
 func TestEntity_SetID(t *testing.T) {
-	const stubID = "foo"
-
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.SetID(stubID).(Entity)
+		sut := NewEntity().SetID("foo").(Entity)
 
-		assert.Equal(t, stubID, sut.GetID())
+		assert.Equal(t, "foo", sut.GetID())
 	})
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.SetID(stubID).(Entity)
+		sut := NewEntity().SetID("foo").SetETag("foo").(Entity)
 
-		sut = sut.SetETag("foo").(Entity)
-
-		assert.Panics(t, func() { sut.SetID(stubID) })
+		assert.Panics(t, func() { sut.SetID("foo") })
 	})
 }
 
 func TestEntity_SetETag(t *testing.T) {
-	const stubETag = "foo"
-
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.SetETag(stubETag).(Entity)
+		sut := NewEntity().SetETag("foo").(Entity)
 
-		assert.Equal(t, stubETag, sut.GetETag())
+		assert.Equal(t, "foo", sut.GetETag())
 	})
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity()
-		sut = sut.SetETag(stubETag).(Entity)
+		sut := NewEntity().SetETag("foo").(Entity)
 
-		assert.Panics(t, func() { sut.SetETag(stubETag) })
+		assert.Panics(t, func() { sut.SetETag("foo") })
 	})
 }
 
@@ -257,4 +215,53 @@ func TestEntity_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEntity_Clone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		stubEntity := NewEntity()
+
+		clone := stubEntity.Clone()
+
+		assert.Equal(t, stubEntity, clone)
+	})
+}
+
+func TestEntity_IsComplete(t *testing.T) {
+	t.Run("invalid empty entity", func(t *testing.T) {
+		t.Parallel()
+
+		stubEntity := NewEntity()
+
+		assert.False(t, stubEntity.IsComplete())
+	})
+
+	t.Run("invalid non-empty entity, E-Tag missing", func(t *testing.T) {
+		t.Parallel()
+
+		stubEntity := NewEntity()
+
+		assert.False(t, stubEntity.IsComplete())
+	})
+
+	t.Run("invalid non-empty entity, ID missing", func(t *testing.T) {
+		t.Parallel()
+
+		stubEntity := NewEntity()
+		stubEntity.ID = ""
+		stubEntity.ETag = "foo"
+
+		assert.False(t, stubEntity.IsComplete())
+	})
+
+	t.Run("valid non-empty entity", func(t *testing.T) {
+		t.Parallel()
+
+		stubEntity := NewEntity()
+		stubEntity.ETag = "foo"
+
+		assert.True(t, stubEntity.IsComplete())
+	})
 }

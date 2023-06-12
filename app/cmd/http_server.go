@@ -12,6 +12,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
@@ -36,12 +37,14 @@ type HTTPServer struct {
 
 // NewHTTPServer creates a new HTTPServer instance.
 func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
+	errorHandler := fib.NewErrorHandler(logger)
+
 	f := fiber.New(fiber.Config{
 		CaseSensitive:      true,
 		EnableIPValidation: true,
-		EnablePrintRoutes:  true,             // This might be worth disabling
-		ErrorHandler:       fib.ErrorHandler, // TODO: Make this more useful
-		Immutable:          true,             // This allows passing around the parsed payload nicely, but is slower
+		EnablePrintRoutes:  true, // This might be worth disabling
+		ErrorHandler:       errorHandler.Error,
+		Immutable:          true, // This allows passing around the parsed payload nicely, but is slower
 		JSONDecoder:        json.Unmarshal,
 		JSONEncoder:        json.Marshal,
 	})
@@ -56,6 +59,7 @@ func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 // SetupMiddleware sets up middleware to be used.
 func (s *HTTPServer) SetupMiddleware(cCtx *cli.Context) *HTTPServer {
 	// Add middleware
+	s.useHelmetMiddleware(s.fiber)
 	s.useLoggerMiddleware(s.fiber)
 	s.usePProfMiddleware(cCtx, s.fiber)
 	s.useLimiterMiddleware(cCtx, s.fiber)
@@ -146,6 +150,10 @@ func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context, router fiber.Router
 	})
 
 	router.Use(limiterMiddleware)
+}
+
+func (s *HTTPServer) useHelmetMiddleware(r fiber.Router) {
+	r.Use(helmet.New())
 }
 
 func (s *HTTPServer) useLoggerMiddleware(r fiber.Router) {

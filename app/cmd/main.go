@@ -15,6 +15,14 @@ func main() {
 	app := &cli.App{
 		Name:  "server",
 		Usage: "start an HTTP server",
+		Flags: []cli.Flag{
+			&cli.UintFlag{
+				Name:    "port",
+				Aliases: []string{"p"},
+				Value:   8080,
+				Usage:   "port to listen on",
+			},
+		},
 		Action: func(cCtx *cli.Context) error {
 			return NewHTTPServer(logger, cleaner2.New(logger)).SetupHandlers(logger).Start(cCtx)
 		},

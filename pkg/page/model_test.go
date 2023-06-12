@@ -11,18 +11,6 @@ import (
 	"github.com/abtergo/abtergo/pkg/page"
 )
 
-func TestNewPage(t *testing.T) {
-	p := page.NewPage()
-	assert.NotEmpty(t, p.Entity)
-	assert.NotEmpty(t, p.Entity.ID)
-	assert.NotEmpty(t, p.Entity.CreatedAt)
-	assert.NotEmpty(t, p.Entity.UpdatedAt)
-	assert.Empty(t, p.Entity.DeletedAt)
-
-	// TODO: fix etag issue
-	// assert.NotEmpty(t, p.Entity.ETag)
-}
-
 func TestPage_Clone(t *testing.T) {
 	t.Run("random page can be cloned", func(t *testing.T) {
 		p := page.RandomPage()

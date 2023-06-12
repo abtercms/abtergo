@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 	repoMocks "github.com/abtergo/abtergo/mocks/libs/repo"
 	"github.com/abtergo/abtergo/pkg/block"
 )
@@ -18,44 +19,29 @@ func TestService_Create(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 	ctxStub := context.Background()
 
-	t.Run("id provided error", func(t *testing.T) {
-		entityStub := block.RandomBlock(false)
-
-		repoMock := new(repoMocks.Repository[block.Block])
-
-		s := block.NewService(loggerStub, repoMock)
-
-		_, err := s.Create(ctxStub, entityStub)
-		require.Error(t, err)
-
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
-	})
-
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := block.RandomBlock(true)
+		entityStub := block.RandomBlock()
+		entityStub.Entity = model.Entity{}
 		entityStub.ID = ""
 		entityStub.Website = ""
 
 		repoMock := new(repoMocks.Repository[block.Block])
-		repoMock.EXPECT().
-			Create(ctxStub, entityStub).
-			Once().
-			Return(entityStub, nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		_, err := s.Create(ctxStub, entityStub)
-		require.Error(t, err)
 
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
+		repoMock.AssertExpectations(t)
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock(true)
+		entityStub := block.RandomBlock()
+		entityStub.Entity = model.Entity{}
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Create(ctxStub, entityStub).
+			Create(ctxStub, mock.AnythingOfType("block.Block")).
 			Once().
 			Return(entityStub, nil)
 
@@ -66,6 +52,7 @@ func TestService_Create(t *testing.T) {
 		assert.NoError(t, err)
 		got.Entity = entityStub.Entity
 		assert.Equal(t, entityStub, got)
+		repoMock.AssertExpectations(t)
 	})
 }
 
@@ -74,18 +61,19 @@ func TestService_Delete(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock(false)
+		entityStub := block.RandomBlock()
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Delete(ctxStub, entityStub.ID, entityStub.ETag).
 			Once().
 			Return(nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		err := s.Delete(ctxStub, entityStub.ID, entityStub.ETag)
-		require.NoError(t, err)
+
+		assert.NoError(t, err)
+		repoMock.AssertExpectations(t)
 	})
 }
 
@@ -94,20 +82,20 @@ func TestService_Get(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock(false)
+		entityStub := block.RandomBlock()
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
 			Retrieve(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		got, err := s.Get(ctxStub, entityStub.ID)
-		require.NoError(t, err)
 
+		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)
+		repoMock.AssertExpectations(t)
 	})
 }
 
@@ -124,13 +112,13 @@ func TestService_List(t *testing.T) {
 			List(ctxStub, filterStub).
 			Once().
 			Return(stubCollection, nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		got, err := s.List(ctxStub, filterStub)
-		require.NoError(t, err)
 
+		assert.NoError(t, err)
 		assert.Equal(t, stubCollection, got)
+		repoMock.AssertExpectations(t)
 	})
 }
 
@@ -144,52 +132,49 @@ func TestService_Update(t *testing.T) {
 	)
 
 	t.Run("id mismatch error", func(t *testing.T) {
-		entityStub := block.RandomBlock(false)
+		entityStub := block.RandomBlock()
 
 		repoMock := new(repoMocks.Repository[block.Block])
-
 		s := block.NewService(loggerStub, repoMock)
 
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
-		require.Error(t, err)
 
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
+		repoMock.AssertExpectations(t)
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := block.RandomBlock(true)
+		entityStub := block.RandomBlock()
+		entityStub.Entity = model.Entity{}
 		entityStub.Website = ""
 		entityStub.ID = ""
 
 		repoMock := new(repoMocks.Repository[block.Block])
-		repoMock.EXPECT().
-			Update(ctxStub, entityStub, etagStub).
-			Once().
-			Return(entityStub, nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
-		require.Error(t, err)
 
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
+		repoMock.AssertExpectations(t)
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := block.RandomBlock(false)
+		entityStub := block.RandomBlock()
 		entityStub.ID = idStub
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Update(ctxStub, entityStub, etagStub).
+			Update(ctxStub, mock.AnythingOfType("block.Block"), etagStub).
 			Once().
 			Return(entityStub, nil)
-
 		s := block.NewService(loggerStub, repoMock)
 
 		got, err := s.Update(ctxStub, idStub, entityStub, etagStub)
-		require.NoError(t, err)
 
+		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)
+		repoMock.AssertExpectations(t)
 	})
 }

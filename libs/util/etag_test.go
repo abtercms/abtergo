@@ -34,7 +34,7 @@ func TestEtag(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, util.Etag(tt.args.input), "ETag(%v)", tt.args.input)
+			assert.Equalf(t, tt.want, util.ETag(tt.args.input), "ETag(%v)", tt.args.input)
 		})
 	}
 }
@@ -48,7 +48,7 @@ func TestEtagAny(t *testing.T) {
 		input := foo{Bar: "bar"}
 		input.Foo = &input
 
-		assert.Panics(t, func() { util.EtagAny(input) })
+		assert.Panics(t, func() { util.ETagAny(input) })
 	})
 
 	t.Run("success", func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestEtagAny(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				assert.Equalf(t, tt.want, util.EtagAny(tt.args.input), "EtagAny(%v)", tt.args.input)
+				assert.Equalf(t, tt.want, util.ETagAny(tt.args.input), "ETagAny(%v)", tt.args.input)
 			})
 		}
 	})

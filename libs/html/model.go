@@ -97,10 +97,10 @@ func (s Scripts) Clone() Scripts {
 }
 
 type Assets struct {
-	HeaderCSS  Links    `json:"header_css" validate:"dive"`
-	HeaderJS   Scripts  `json:"header_js" validate:"dive"`
-	HeaderMeta MetaList `json:"header_meta" validate:"dive"`
-	FooterJS   Scripts  `json:"footer_js" validate:"dive"`
+	HeaderCSS  Links    `json:"header_css,omitempty" validate:"dive"`
+	HeaderJS   Scripts  `json:"header_js,omitempty" validate:"dive"`
+	HeaderMeta MetaList `json:"header_meta,omitempty" validate:"dive"`
+	FooterJS   Scripts  `json:"footer_js,omitempty" validate:"dive"`
 }
 
 func (a Assets) Clone() Assets {

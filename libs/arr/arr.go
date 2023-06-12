@@ -5,6 +5,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
@@ -70,6 +71,7 @@ type Arr interface {
 	HTTPStatus() int
 	GetSlug() string
 	AsZapFields() []zap.Field
+	Unwrap() error
 }
 
 type arr struct {
@@ -87,13 +89,33 @@ func (a *arr) GetSlug() string {
 }
 
 func (a *arr) AsZapFields() []zap.Field {
-	result := make([]zap.Field, 0, len(a.args)+3)
-	result = append(result, zap.Error(a.e))
+	result := make([]zap.Field, 0, len(a.args)+2)
 	result = append(result, zap.Int("status", a.t.HTTPStatus()))
 	result = append(result, zap.String("title", a.t.GetTitle()))
 	result = append(result, a.args...)
 
 	return result
+}
+
+func (a *arr) boolArgToString(arg zap.Field) string {
+	if arg.Integer == 1 {
+		return "true"
+	}
+
+	return "false"
+}
+
+func (a *arr) timeArgToString(arg zap.Field) string {
+	loc := arg.Interface.(*time.Location)
+	sec := arg.Integer / int64(time.Second)
+	nsec := arg.Integer % int64(time.Second)
+	t := time.Unix(sec, nsec).In(loc)
+
+	if nsec > 0 {
+		return t.Format(time.RFC3339Nano)
+	}
+
+	return t.Format(time.RFC3339)
 }
 
 func (a *arr) argToString(arg zap.Field) string {
@@ -107,10 +129,9 @@ func (a *arr) argToString(arg zap.Field) string {
 	case zapcore.Float64Type:
 		return fmt.Sprintf("%g", math.Float64frombits(uint64(arg.Integer)))
 	case zapcore.BoolType:
-		if arg.Integer == 1 {
-			return "true"
-		}
-		return "false"
+		return a.boolArgToString(arg)
+	case zapcore.TimeType:
+		return a.timeArgToString(arg)
 	}
 
 	return fmt.Sprintf("%v", arg.Interface)
@@ -163,7 +184,7 @@ func newArr(t ErrorType, e error, args ...zap.Field) Arr {
 
 func HTTPStatusFromError(e error) int {
 	if e == nil {
-		return http.StatusInternalServerError
+		return http.StatusOK
 	}
 
 	var a *arr

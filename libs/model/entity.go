@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/util"
 	"github.com/abtergo/abtergo/libs/validation"
 )
 
@@ -32,13 +31,14 @@ type EntityInterface interface {
 	GetDeletedAt() *time.Time
 	SetDeletedAt(t2 *time.Time) EntityInterface
 	GetETag() string
-	SetETag(id string) EntityInterface
-	CalculateETag(payload any) EntityInterface
+	SetETag(etag string) EntityInterface
+	ResetETag(etag string) EntityInterface
 	GetID() string
 	SetID(id string) EntityInterface
 	Clone() EntityInterface
-	IsModified(payload any) bool
+	IsModified(newETag string) bool
 	Validate() error
+	IsComplete() bool
 }
 
 func id() string {
@@ -116,6 +116,10 @@ func (e Entity) Clone() EntityInterface {
 	}
 }
 
+func (e Entity) IsComplete() bool {
+	return e.ETag != "" && e.ID != ""
+}
+
 func (e Entity) SetID(id string) EntityInterface {
 	if e.ETag != "" {
 		panic("entity is sealed.")
@@ -130,12 +134,18 @@ func (e Entity) GetID() string {
 	return e.ID
 }
 
-func (e Entity) SetETag(etag string) EntityInterface {
+func (e Entity) ResetETag(eTag string) EntityInterface {
+	e.ETag = eTag
+
+	return e
+}
+
+func (e Entity) SetETag(eTag string) EntityInterface {
 	if e.ETag != "" {
 		panic("entity is sealed.")
 	}
 
-	e.ETag = etag
+	e.ETag = eTag
 
 	return e
 }
@@ -144,19 +154,7 @@ func (e Entity) GetETag() string {
 	return e.ETag
 }
 
-func (e Entity) CalculateETag(payload any) EntityInterface {
-	if e.ETag != "" {
-		panic("entity is sealed.")
-	}
-
-	e.ETag = util.EtagAny(payload)
-
-	return e
-}
-
-func (e Entity) IsModified(payload any) bool {
-	newETag := util.EtagAny(payload)
-
+func (e Entity) IsModified(newETag string) bool {
 	return newETag != e.ETag
 }
 

@@ -9,19 +9,6 @@ import (
 	"github.com/abtergo/abtergo/pkg/redirect"
 )
 
-func TestNewRedirect(t *testing.T) {
-	r := redirect.NewRedirect()
-
-	assert.NotEmpty(t, r.Entity)
-	assert.NotEmpty(t, r.Entity.ID)
-	assert.NotEmpty(t, r.Entity.CreatedAt)
-	assert.NotEmpty(t, r.Entity.UpdatedAt)
-	assert.Empty(t, r.Entity.DeletedAt)
-
-	// TODO: fix etag issue
-	// assert.NotEmpty(t, r.Entity.ETag)
-}
-
 func TestRedirect_Clone(t *testing.T) {
 	t.Run("random page can be cloned", func(t *testing.T) {
 		r := redirect.RandomRedirect(false)

@@ -497,9 +497,10 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerMock := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
 	handler := template.NewHandler(loggerMock, serviceMock)
+	errorHandler := fib.NewErrorHandler(loggerMock)
 
 	app := fiber.New(fiber.Config{
-		ErrorHandler: fib.ErrorHandler,
+		ErrorHandler: errorHandler.Error,
 	})
 	handler.AddAPIRoutes(app)
 

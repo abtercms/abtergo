@@ -23,21 +23,9 @@ type Redirect struct {
 	Target  string `json:"target,omitempty" xml:"target" form:"target" validate:"required,url" fake:"{url}"`
 }
 
-func NewRedirect() Redirect {
-	return Redirect{
-		Entity: model.NewEntity(),
-	}
-}
-
 func (r Redirect) Clone() model.EntityInterface {
-	c := r.c()
-	c.Entity = r.Entity.Clone().(model.Entity)
-
-	return c
-}
-
-func (r Redirect) c() Redirect {
 	return Redirect{
+		Entity:  r.Entity.Clone().(model.Entity),
 		Website: r.Website,
 		Path:    r.Path,
 		Target:  r.Target,

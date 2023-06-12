@@ -2,11 +2,14 @@ package redirect
 
 import (
 	"context"
+	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
+	"github.com/abtergo/abtergo/libs/util"
 )
 
 // Service provides basic service functionality for Handler.
@@ -35,13 +38,12 @@ func NewService(logger *zap.Logger, repo Repo) Service {
 
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error) {
-	if entity.ID != "" {
-		return Redirect{}, arr.New(arr.InvalidUserInput, "payload must not include an id", zap.String("id in payload", entity.ID))
-	}
-
 	if err := entity.Validate(); err != nil {
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
 	}
+
+	entity.Entity = model.NewEntity()
+	entity.ETag = util.ETagAny(entity)
 
 	return s.repo.Create(ctx, entity)
 }
@@ -65,6 +67,11 @@ func (s *service) Update(ctx context.Context, id string, entity Redirect, oldETa
 	if err := entity.Validate(); err != nil {
 		return Redirect{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
+
+	entity.ID = id
+	entity.ETag = ""
+	entity.UpdatedAt = time.Now()
+	entity.ETag = util.ETagAny(entity)
 
 	return s.repo.Update(ctx, entity, oldETag)
 }

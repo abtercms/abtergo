@@ -2,12 +2,15 @@ package page
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
+	"github.com/abtergo/abtergo/libs/util"
 )
 
 // Service provides basic service functionality for Handler.
@@ -47,6 +50,9 @@ func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 		return Page{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
 	}
 
+	entity.Entity = model.NewEntity()
+	entity.ETag = util.ETagAny(entity)
+
 	return s.repo.Create(ctx, entity)
 }
 
@@ -69,6 +75,10 @@ func (s *service) Update(ctx context.Context, id string, entity Page, oldETag st
 	if err := entity.Validate(); err != nil {
 		return Page{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
 	}
+
+	entity.ID = id
+	entity.UpdatedAt = time.Now()
+	entity.ETag = util.ETagAny(entity)
 
 	return s.repo.Update(ctx, entity, oldETag)
 }

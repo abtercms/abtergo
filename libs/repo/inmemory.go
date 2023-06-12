@@ -28,6 +28,20 @@ func (r *InMemoryRepo[T]) Create(ctx context.Context, entity T) (T, error) {
 
 	_ = ctx
 
+	if !entity.IsComplete() {
+		var (
+			t    T
+			args = []zap.Field{
+				zap.String("id", entity.GetID()),
+				zap.String("etag", entity.GetETag()),
+				zap.Time("created_at", entity.GetCreatedAt()),
+				zap.Time("updated_at", entity.GetUpdatedAt()),
+			}
+		)
+
+		return t, arr.New(arr.ApplicationError, "entity not complete", args...)
+	}
+
 	r.entities[entity.GetID()] = entity
 
 	return entity, nil
@@ -52,6 +66,11 @@ func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag string) 
 	defer r.rwLock.Unlock()
 
 	_ = ctx
+
+	if !entity.IsComplete() {
+		var t T
+		return t, arr.New(arr.ApplicationError, "entity not complete", zap.String("id", entity.GetID()))
+	}
 
 	t, ok := r.entities[entity.GetID()]
 	if !ok {

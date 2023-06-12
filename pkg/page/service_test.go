@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
@@ -60,7 +61,7 @@ func TestService_Create(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Create(ctxStub, entityStub).
+			Create(ctxStub, mock.AnythingOfType("Page")).
 			Once().
 			Return(entityStub, nil)
 
@@ -208,7 +209,7 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Update(ctxStub, entityStub, eTagStub).
+			Update(ctxStub, mock.AnythingOfType("page.Page"), eTagStub).
 			Once().
 			Return(entityStub, nil)
 

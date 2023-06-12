@@ -154,7 +154,7 @@ func AddEtagFaker() {
 		Output:      "string",
 		Params:      []gofakeit.Param{},
 		Generate: func(r *rand.Rand, m *gofakeit.MapParams, info *gofakeit.Info) (interface{}, error) {
-			result := util.Etag(gofakeit.Word())
+			result := util.ETag(gofakeit.Word())
 
 			return result, nil
 		},

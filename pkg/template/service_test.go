@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
@@ -16,20 +17,6 @@ import (
 func TestService_Create(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 	ctxStub := context.Background()
-
-	t.Run("id provided error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
-
-		repoMock := new(repoMocks.Repository[template.Template])
-
-		s := template.NewService(loggerStub, repoMock)
-
-		_, err := s.Create(ctxStub, entityStub)
-
-		assert.Error(t, err)
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
-		repoMock.AssertExpectations(t)
-	})
 
 	t.Run("validation error", func(t *testing.T) {
 		entityStub := template.RandomTemplate(true)
@@ -52,7 +39,7 @@ func TestService_Create(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Create(ctxStub, entityStub).
+			Create(ctxStub, mock.AnythingOfType("template.Template")).
 			Once().
 			Return(entityStub, nil)
 
@@ -181,7 +168,7 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Update(ctxStub, entityStub, etagStub).
+			Update(ctxStub, mock.AnythingOfType("template.Template"), etagStub).
 			Once().
 			Return(entityStub, nil)
 

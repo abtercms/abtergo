@@ -2,12 +2,14 @@ package repo_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
 	mocks "github.com/abtergo/abtergo/mocks/libs/repo"
@@ -41,18 +43,39 @@ func (f testFilter) Match(ctx context.Context, e testEntity) (bool, error) {
 }
 
 func TestInMemoryRepo_Create(t *testing.T) {
-	ctx := context.Background()
-	sut := repo.NewInMemoryRepo[testEntity]()
+	t.Run("incomplete entity", func(t *testing.T) {
+		t.Parallel()
 
-	stubEntity := testEntity{
-		Entity: model.NewEntity(),
-		Foo:    "bar",
-	}.AsNew().(testEntity)
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
 
-	storedEntity, err := sut.Create(ctx, stubEntity)
-	require.NoError(t, err)
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}.AsNew().(testEntity)
 
-	require.Equal(t, stubEntity, storedEntity)
+		_, err := sut.Create(ctx, stubEntity)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusInternalServerError, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
+
+		storedEntity, err := sut.Create(ctx, stubEntity)
+		assert.NoError(t, err)
+
+		assert.Equal(t, stubEntity, storedEntity)
+	})
 }
 
 func TestInMemoryRepo_Retrieve(t *testing.T) {
@@ -64,22 +87,20 @@ func TestInMemoryRepo_Retrieve(t *testing.T) {
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		stubEntity.ETag = "baz"
 
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
 		retrievedEntity, err := sut.Retrieve(ctx, storedEntity.ID)
-		require.NoError(t, err)
 
-		require.Equal(t, retrievedEntity, storedEntity)
-
-		require.Equal(t, stubEntity.AsNew(), storedEntity.AsNew())
+		assert.NoError(t, err)
+		assert.Equal(t, retrievedEntity, storedEntity)
+		assert.Equal(t, stubEntity.AsNew(), storedEntity.AsNew())
 	})
-}
 
-func TestInMemoryRepo_Update(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -88,8 +109,89 @@ func TestInMemoryRepo_Update(t *testing.T) {
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		stubEntity.ETag = "baz"
+
+		storedEntity, err := sut.Create(ctx, stubEntity)
+		require.NoError(t, err)
+
+		retrievedEntity, err := sut.Retrieve(ctx, storedEntity.ID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, retrievedEntity, storedEntity)
+		assert.Equal(t, stubEntity.AsNew(), storedEntity.AsNew())
+	})
+}
+
+func TestInMemoryRepo_Update(t *testing.T) {
+	t.Run("incomplete entity", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}.AsNew().(testEntity)
+
+		_, err := sut.Update(ctx, stubEntity, "bar")
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusInternalServerError, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("error not found", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
+
+		_, err := sut.Update(ctx, stubEntity, "bar")
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusNotFound, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("error e-tag mismatch", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
+
+		storedEntity, err := sut.Create(ctx, stubEntity)
+		require.NoError(t, err)
+
+		_, err = sut.Update(ctx, storedEntity, "bar")
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusPreconditionFailed, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
 
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
@@ -100,17 +202,56 @@ func TestInMemoryRepo_Update(t *testing.T) {
 		}
 
 		updatedEntity, err := sut.Update(ctx, stubEntity2, storedEntity.GetETag())
-		require.NoError(t, err)
+		assert.NoError(t, err)
 
 		retrievedEntity, err := sut.Retrieve(ctx, updatedEntity.ID)
-		require.NoError(t, err)
 
-		require.NotEqual(t, retrievedEntity, storedEntity)
-		require.Equal(t, retrievedEntity, updatedEntity)
+		assert.NoError(t, err)
+		assert.NotEqual(t, retrievedEntity, storedEntity)
+		assert.Equal(t, retrievedEntity, updatedEntity)
 	})
 }
 
 func TestInMemoryRepo_Delete(t *testing.T) {
+	t.Run("error entity not found", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
+
+		err := sut.Delete(ctx, stubEntity.GetID(), stubEntity.GetETag())
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusNotFound, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("error e-tag mismatch", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity: model.NewEntity(),
+			Foo:    "foo",
+		}
+		stubEntity.ETag = "baz"
+
+		storedEntity, err := sut.Create(ctx, stubEntity)
+		require.NoError(t, err)
+
+		err = sut.Delete(ctx, storedEntity.GetID(), "bar")
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusPreconditionFailed, arr.HTTPStatusFromError(err))
+	})
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -119,15 +260,16 @@ func TestInMemoryRepo_Delete(t *testing.T) {
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		stubEntity.ETag = "baz"
 
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
 		err = sut.Delete(ctx, storedEntity.GetID(), storedEntity.GetETag())
-		assert.NoError(t, err)
 
+		assert.NoError(t, err)
 		_, err = sut.Retrieve(ctx, storedEntity.ID)
 		assert.Error(t, err)
 	})
@@ -143,8 +285,9 @@ func TestInMemoryRepo_List(t *testing.T) {
 
 		entityStub := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		entityStub.ETag = "baz"
 		_, err := sut.Create(ctxStub, entityStub)
 		require.NoError(t, err)
 
@@ -181,8 +324,9 @@ func TestInMemoryRepo_List(t *testing.T) {
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		stubEntity.ETag = "baz"
 
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
@@ -207,8 +351,9 @@ func TestInMemoryRepo_List(t *testing.T) {
 
 		stubEntity := testEntity{
 			Entity: model.NewEntity(),
-			Foo:    "bar",
+			Foo:    "foo",
 		}
+		stubEntity.ETag = "baz"
 
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)

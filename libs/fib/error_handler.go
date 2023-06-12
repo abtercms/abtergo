@@ -5,13 +5,29 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 
+	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/problem"
 )
 
-// ErrorHandler is used as the default ErrorHandler that process return error from fiber.Handler.
-func ErrorHandler(ctx *fiber.Ctx, err error) error {
+type ErrorHandler struct {
+	logger *zap.Logger
+}
+
+func NewErrorHandler(logger *zap.Logger) *ErrorHandler {
+	return &ErrorHandler{logger: logger}
+}
+
+func (e *ErrorHandler) Error(ctx *fiber.Ctx, err error) error {
 	p := problem.FromError(ctx.BaseURL(), err)
+
+	var a arr.Arr
+	if errors.As(err, &a) {
+		e.logger.Error(a.Unwrap().Error(), a.AsZapFields()...)
+	} else {
+		e.logger.Error(err.Error(), zap.String("errorType", "?"), zap.Error(err))
+	}
 
 	if p.Status == fiber.StatusInternalServerError {
 		// Retrieve the custom status code if it's a *fiber.Error

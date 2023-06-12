@@ -13,6 +13,7 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
 	mocks "github.com/abtergo/abtergo/mocks/pkg/block"
@@ -76,7 +77,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedBlock := block.RandomBlock(true)
+		expectedBlock := block.RandomBlock()
+		expectedBlock.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedBlock.Clone()
@@ -110,7 +112,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedBlock := block.RandomBlock(true)
+		expectedBlock := block.RandomBlock()
+		expectedBlock.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedBlock.Clone()
@@ -228,7 +231,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Stubs
 
@@ -264,7 +267,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Stubs
 
@@ -309,7 +312,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -340,7 +343,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Stubs
 		payloadStub := expectedBlock.Clone()
@@ -378,7 +381,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Stubs
 		payloadStub := expectedBlock.Clone()
@@ -423,7 +426,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -453,7 +456,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedBlock := block.RandomBlock(false)
+		expectedBlock := block.RandomBlock()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -498,9 +501,10 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
 	handler := block.NewHandler(loggerStub, serviceMock)
+	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{
-		ErrorHandler: fib.ErrorHandler,
+		ErrorHandler: errorHandler.Error,
 	})
 	handler.AddAPIRoutes(app)
 

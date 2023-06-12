@@ -11,19 +11,6 @@ import (
 	"github.com/abtergo/abtergo/pkg/template"
 )
 
-func TestNewTemplate(t *testing.T) {
-	t2 := template.NewTemplate()
-
-	assert.NotEmpty(t, t2.Entity)
-	assert.NotEmpty(t, t2.Entity.ID)
-	assert.NotEmpty(t, t2.Entity.CreatedAt)
-	assert.NotEmpty(t, t2.Entity.UpdatedAt)
-	assert.Empty(t, t2.Entity.DeletedAt)
-
-	// TODO: fix etag issue
-	// assert.NotEmpty(t, t2.Entity.ETag)
-}
-
 func TestTemplate_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tt := template.RandomTemplate(false)

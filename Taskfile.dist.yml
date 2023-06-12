@@ -39,7 +39,7 @@ tasks:
 
   run:
     cmds:
-    - go run app/cmd/* server
+    - go run app/cmd/* --port 38593 server
 
   install:
     cmds:

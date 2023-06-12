@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
@@ -225,7 +226,7 @@ func Test_arr_Error(t *testing.T) {
 			want: "foo: " + assert.AnError.Error() + ".",
 		},
 		{
-			name: "complex error",
+			name: "integers",
 			fields: fields{
 				t:   arr.UnknownError,
 				e:   assert.AnError,
@@ -240,15 +241,60 @@ func Test_arr_Error(t *testing.T) {
 					zap.Uint16("u16", 32),
 					zap.Uint32("u32", 73),
 					zap.Uint64("u64", 89),
+				},
+			},
+			want: "foo: " + assert.AnError.Error() + ". i8: -1, i16: 16, i32: -17, i64: 101, u: 97, u8: 83, u16: 32, u32: 73, u64: 89",
+		},
+		{
+			name: "floats",
+			fields: fields{
+				t:   arr.UnknownError,
+				e:   assert.AnError,
+				msg: "foo",
+				args: []zap.Field{
 					zap.Float32("f32", 123.45),
 					zap.Float64("f64", 64.91),
+				},
+			},
+			want: "foo: " + assert.AnError.Error() + ". f32: 123.45, f64: 64.91",
+		},
+		{
+			name: "non-number scalars",
+			fields: fields{
+				t:   arr.UnknownError,
+				e:   assert.AnError,
+				msg: "foo",
+				args: []zap.Field{
 					zap.String("greeting", "hello"),
 					zap.Bool("is_ok", true),
+				},
+			},
+			want: "foo: " + assert.AnError.Error() + ". greeting: hello, is_ok: true",
+		},
+		{
+			name: "complex",
+			fields: fields{
+				t:   arr.UnknownError,
+				e:   assert.AnError,
+				msg: "foo",
+				args: []zap.Field{
 					zap.Ints("numbers", []int{1, 2, 3}),
 					zap.Strings("foobar", []string{"foo", "bar"}),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". i8: -1, i16: 16, i32: -17, i64: 101, u: 97, u8: 83, u16: 32, u32: 73, u64: 89, f32: 123.45, f64: 64.91, greeting: hello, is_ok: true, numbers: [1 2 3], foobar: [foo bar]",
+			want: "foo: " + assert.AnError.Error() + ". numbers: [1 2 3], foobar: [foo bar]",
+		},
+		{
+			name: "date",
+			fields: fields{
+				t:   arr.UnknownError,
+				e:   assert.AnError,
+				msg: "foo",
+				args: []zap.Field{
+					zap.Time("date", time.Date(2030, 1, 2, 3, 4, 5, 6, time.UTC)),
+				},
+			},
+			want: "foo: " + assert.AnError.Error() + ". date: 2030-01-02T03:04:05.000000006Z",
 		},
 	}
 	for _, tt := range tests {
@@ -273,7 +319,7 @@ func TestHttpStatusFromError(t *testing.T) {
 			args: args{
 				e: nil,
 			},
-			want: http.StatusInternalServerError,
+			want: http.StatusOK,
 		},
 		{
 			name: "non-arr error",

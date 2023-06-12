@@ -1,7 +1,6 @@
 package page
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -62,7 +61,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	response, err := h.service.List(c.Context(), filter)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve entity, err: %w", err)
+		return errors.Wrap(err, "failed to list the pages")
 	}
 
 	return c.JSON(response)
@@ -75,7 +74,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 	response, err := h.service.Get(c.Context(), id)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve entity, err: %w", err)
+		return errors.Wrap(err, "failed to get the page")
 	}
 
 	return c.JSON(response)
@@ -92,9 +91,7 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
-	etag := c.Get(fiber.HeaderETag)
-
-	response, err := h.service.Update(c.Context(), id, payload, etag)
+	response, err := h.service.Update(c.Context(), id, payload, c.Get(fiber.HeaderETag))
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity")
 	}
@@ -109,7 +106,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 	err := h.service.Delete(c.Context(), id, c.Get(fiber.HeaderETag))
 	if err != nil {
-		return fmt.Errorf("failed to delete entity, err: %w", err)
+		return errors.Wrap(err, "failed to delete entity")
 	}
 
 	return c.SendStatus(http.StatusNoContent)
@@ -124,7 +121,7 @@ func (h *Handler) Activate(c *fiber.Ctx) error {
 
 	response, err := h.service.Transition(c.Context(), id, Activate, etag)
 	if err != nil {
-		return fmt.Errorf("failed to activate entity, err: %w", err)
+		return errors.Wrap(err, "failed to activate entity")
 	}
 
 	return c.JSON(response)
@@ -139,7 +136,7 @@ func (h *Handler) Inactivate(c *fiber.Ctx) error {
 
 	response, err := h.service.Transition(c.Context(), id, Inactivate, etag)
 	if err != nil {
-		return fmt.Errorf("failed to inactivate entity, err: %w", err)
+		return errors.Wrap(err, "failed to inactivate entity")
 	}
 
 	return c.JSON(response)

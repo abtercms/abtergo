@@ -26,30 +26,16 @@ type Template struct {
 	Body       string      `json:"body" validate:"required" fake:"{paragraph:10}"`
 	Assets     html.Assets `json:"assets" validate:"dive"`
 	HTTPHeader http.Header `json:"http_header" validate:"dive,required"`
-	Version    int64       `json:"version" validate:"required" fake:"{number:1}"`
-}
-
-func NewTemplate() Template {
-	return Template{
-		Entity: model.NewEntity(),
-	}
 }
 
 func (t Template) Clone() model.EntityInterface {
-	c := t.c()
-	c.Entity = t.Entity.Clone().(model.Entity)
-
-	return c
-}
-
-func (t Template) c() Template {
 	return Template{
+		Entity:     t.Entity.Clone().(model.Entity),
 		Website:    t.Website,
 		Name:       t.Name,
 		Body:       t.Body,
 		Assets:     t.Assets.Clone(),
 		HTTPHeader: t.HTTPHeader.Clone(),
-		Version:    t.Version,
 	}
 }
 

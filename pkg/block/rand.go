@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
-	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -21,7 +20,7 @@ func init() {
 var lock sync.Mutex
 
 // RandomBlock generates a random Block instance.
-func RandomBlock(asNew bool) Block {
+func RandomBlock() Block {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -32,12 +31,6 @@ func RandomBlock(asNew bool) Block {
 		panic(errors.Wrap(err, "failed to generate random redirect"))
 	}
 
-	if asNew {
-		b.Entity = model.Entity{}
-
-		return b
-	}
-
 	return b
 }
 
@@ -46,7 +39,7 @@ func RandomBlockList(min, max int) []Block {
 	blocks := []Block{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		blocks = append(blocks, RandomBlock(false))
+		blocks = append(blocks, RandomBlock())
 	}
 
 	return blocks
