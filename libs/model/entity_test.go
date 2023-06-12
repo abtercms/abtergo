@@ -10,10 +10,10 @@ import (
 )
 
 func TestEntity_CalculateETag(t *testing.T) {
+	const stubPayload = "foo"
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-
-		stubPayload := "foo"
 
 		sut := NewEntity()
 		sut = sut.CalculateETag(stubPayload).(Entity)
@@ -23,10 +23,10 @@ func TestEntity_CalculateETag(t *testing.T) {
 }
 
 func TestEntity_IsModified(t *testing.T) {
+	const stubPayload = "foo"
+
 	t.Run("not modified", func(t *testing.T) {
 		t.Parallel()
-
-		stubPayload := "foo"
 
 		sut := NewEntity()
 		sut = sut.CalculateETag(stubPayload).(Entity)
@@ -39,7 +39,6 @@ func TestEntity_IsModified(t *testing.T) {
 	t.Run("modified", func(t *testing.T) {
 		t.Parallel()
 
-		stubPayload := "foo"
 		modifiedPayload := "bar"
 
 		stubEntity := NewEntity()
@@ -124,10 +123,10 @@ func TestEntity_SetDeletedAt(t *testing.T) {
 }
 
 func TestEntity_SetID(t *testing.T) {
+	const stubID = "foo"
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-
-		stubID := "foo"
 
 		sut := NewEntity()
 		sut = sut.SetID(stubID).(Entity)
@@ -137,8 +136,6 @@ func TestEntity_SetID(t *testing.T) {
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
-
-		stubID := "foo"
 
 		sut := NewEntity()
 		sut = sut.SetID(stubID).(Entity)
@@ -150,10 +147,10 @@ func TestEntity_SetID(t *testing.T) {
 }
 
 func TestEntity_SetETag(t *testing.T) {
+	const stubETag = "foo"
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-
-		stubETag := "foo"
 
 		sut := NewEntity()
 		sut = sut.SetETag(stubETag).(Entity)
@@ -163,8 +160,6 @@ func TestEntity_SetETag(t *testing.T) {
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
-
-		stubETag := "foo"
 
 		sut := NewEntity()
 		sut = sut.SetETag(stubETag).(Entity)

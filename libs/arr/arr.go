@@ -2,12 +2,15 @@ package arr
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type ErrorType string
@@ -64,38 +67,81 @@ func (et ErrorType) GetSlug() string {
 type Arr interface {
 	error
 
-	GetSlug() string
 	HTTPStatus() int
+	GetSlug() string
+	AsZapFields() []zap.Field
 }
 
 type arr struct {
 	t    ErrorType
 	e    error
-	args []string
+	args []zap.Field
 }
 
-func (a arr) HTTPStatus() int {
+func (a *arr) HTTPStatus() int {
 	return a.t.HTTPStatus()
 }
 
-func (a arr) GetSlug() string {
+func (a *arr) GetSlug() string {
 	return a.t.GetSlug()
 }
 
-func (a arr) Error() string {
-	res := a.e.Error() + "."
-	if len(a.args) > 0 {
-		res += " " + strings.Join(a.args, ", ")
-	}
+func (a *arr) AsZapFields() []zap.Field {
+	result := make([]zap.Field, 0, len(a.args)+3)
+	result = append(result, zap.Error(a.e))
+	result = append(result, zap.Int("status", a.t.HTTPStatus()))
+	result = append(result, zap.String("title", a.t.GetTitle()))
+	result = append(result, a.args...)
 
-	return res
+	return result
 }
 
-func (a arr) Unwrap() error {
+func (a *arr) argToString(arg zap.Field) string {
+	switch arg.Type {
+	case zapcore.StringType:
+		return arg.String
+	case zapcore.Int64Type, zapcore.Int32Type, zapcore.Int16Type, zapcore.Int8Type, zapcore.Uint64Type, zapcore.Uint32Type, zapcore.Uint16Type, zapcore.Uint8Type:
+		return fmt.Sprintf("%d", arg.Integer)
+	case zapcore.Float32Type:
+		return fmt.Sprintf("%g", math.Float32frombits(uint32(arg.Integer)))
+	case zapcore.Float64Type:
+		return fmt.Sprintf("%g", math.Float64frombits(uint64(arg.Integer)))
+	case zapcore.BoolType:
+		if arg.Integer == 1 {
+			return "true"
+		}
+		return "false"
+	}
+
+	return fmt.Sprintf("%v", arg.Interface)
+}
+
+func (a *arr) Error() string {
+	res := a.e.Error() + "."
+
+	if len(a.args) == 0 {
+		return res
+	}
+
+	b := strings.Builder{}
+	for _, arg := range a.args {
+		b.WriteString(" ")
+		b.WriteString(arg.Key)
+		b.WriteString(": ")
+		b.WriteString(a.argToString(arg))
+		b.WriteString(",")
+	}
+
+	str := b.String()
+
+	return res + str[0:len(str)-1]
+}
+
+func (a *arr) Unwrap() error {
 	return a.e
 }
 
-func Wrap(t ErrorType, e error, msg string, args ...interface{}) Arr {
+func Wrap(t ErrorType, e error, msg string, args ...zap.Field) Arr {
 	if msg != "" {
 		e = errors.Wrap(e, msg)
 	}
@@ -103,24 +149,15 @@ func Wrap(t ErrorType, e error, msg string, args ...interface{}) Arr {
 	return newArr(t, e, args...)
 }
 
-func New(t ErrorType, msg string, args ...interface{}) Arr {
+func New(t ErrorType, msg string, args ...zap.Field) Arr {
 	return newArr(t, errors.New(msg), args...)
 }
 
-func newArr(t ErrorType, e error, args ...interface{}) Arr {
-	if len(args)%2 != 0 {
-		panic("invalid args")
-	}
-
-	a := make([]string, 0, len(args)/2)
-	for i := 0; i < len(args); i += 2 {
-		a = append(a, fmt.Sprintf("%s: %v", args[i], args[i+1]))
-	}
-
+func newArr(t ErrorType, e error, args ...zap.Field) Arr {
 	return &arr{
 		e:    e,
 		t:    t,
-		args: a,
+		args: args,
 	}
 }
 

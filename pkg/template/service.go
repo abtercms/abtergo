@@ -36,7 +36,7 @@ func NewService(logger *zap.Logger, repository Repo) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Template) (Template, error) {
 	if entity.ID != "" {
-		return Template{}, arr.New(arr.InvalidUserInput, "payload must not include an id", "id in payload", entity.ID)
+		return Template{}, arr.New(arr.InvalidUserInput, "payload must not include an id", zap.String("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -59,7 +59,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Template, error) {
 // Update updates an existing entity.
 func (s *service) Update(ctx context.Context, id string, entity Template, oldEtag string) (Template, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
+		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {

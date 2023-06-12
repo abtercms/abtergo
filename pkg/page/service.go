@@ -40,7 +40,7 @@ func NewService(logger *zap.Logger, repo Repo, updater Updater) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 	if entity.ID != "" {
-		return Page{}, arr.New(arr.InvalidUserInput, "payload must not include an id", "id", entity.ID)
+		return Page{}, arr.New(arr.InvalidUserInput, "payload must not include an id", zap.String("id", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -63,7 +63,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Page, error) {
 // Update updates an existing entity.
 func (s *service) Update(ctx context.Context, id string, entity Page, oldETag string) (Page, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Page{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", "id in path", id, "id in payload", entity.ID)
+		return Page{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -86,7 +86,7 @@ func (s *service) Transition(ctx context.Context, id string, trigger Trigger, ol
 	}
 
 	if page.ETag != oldEtag {
-		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", "id", id, "request etag", oldEtag, "found etag", page.ETag)
+		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", zap.String("id", id), zap.String("request etag", oldEtag), zap.String("found etag", page.ETag))
 	}
 
 	newStatus, err := s.updater.Transition(page.Status, trigger)

@@ -8,17 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 )
-
-func TestNew(t *testing.T) {
-	t.Run("invalid argument count", func(t *testing.T) {
-		t.Parallel()
-
-		assert.Panics(t, func() { _ = arr.New(arr.UnknownError, "foo", "bar") })
-	})
-}
 
 func TestErrorType_HTTPStatus(t *testing.T) {
 	tests := []struct {
@@ -176,7 +169,7 @@ func Test_arr_GetSlug(t *testing.T) {
 	type fields struct {
 		t    arr.ErrorType
 		msg  string
-		args []interface{}
+		args []zap.Field
 	}
 	tests := []struct {
 		name   string
@@ -195,9 +188,8 @@ func Test_arr_GetSlug(t *testing.T) {
 			fields: fields{
 				t:   arr.ResourceNotFound,
 				msg: "foo",
-				args: []interface{}{
-					"bar",
-					"quix",
+				args: []zap.Field{
+					zap.String("bar", "quix"),
 				},
 			},
 			want: "resource-not-found",
@@ -216,7 +208,7 @@ func Test_arr_Error(t *testing.T) {
 		t    arr.ErrorType
 		e    error
 		msg  string
-		args []interface{}
+		args []zap.Field
 	}
 	tests := []struct {
 		name   string
@@ -238,20 +230,25 @@ func Test_arr_Error(t *testing.T) {
 				t:   arr.UnknownError,
 				e:   assert.AnError,
 				msg: "foo",
-				args: []interface{}{
-					"num",
-					123.45,
-					"greeting",
-					"hello",
-					"is_ok",
-					true,
-					"numbers",
-					[]int{1, 2, 3},
-					"foobar",
-					map[string]interface{}{"foo": "bar"},
+				args: []zap.Field{
+					zap.Int8("i8", -1),
+					zap.Int16("i16", 16),
+					zap.Int32("i32", -17),
+					zap.Int64("i64", 101),
+					zap.Uint("u", 97),
+					zap.Uint8("u8", 83),
+					zap.Uint16("u16", 32),
+					zap.Uint32("u32", 73),
+					zap.Uint64("u64", 89),
+					zap.Float32("f32", 123.45),
+					zap.Float64("f64", 64.91),
+					zap.String("greeting", "hello"),
+					zap.Bool("is_ok", true),
+					zap.Ints("numbers", []int{1, 2, 3}),
+					zap.Strings("foobar", []string{"foo", "bar"}),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". num: 123.45, greeting: hello, is_ok: true, numbers: [1 2 3], foobar: map[foo:bar]",
+			want: "foo: " + assert.AnError.Error() + ". i8: -1, i16: 16, i32: -17, i64: 101, u: 97, u8: 83, u16: 32, u32: 73, u64: 89, f32: 123.45, f64: 64.91, greeting: hello, is_ok: true, numbers: [1 2 3], foobar: [foo bar]",
 		},
 	}
 	for _, tt := range tests {

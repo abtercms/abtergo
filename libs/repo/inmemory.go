@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"go.uber.org/zap"
+
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 )
@@ -39,7 +41,7 @@ func (r *InMemoryRepo[T]) Retrieve(ctx context.Context, id string) (T, error) {
 
 	t, ok := r.entities[id]
 	if !ok {
-		return t, arr.New(arr.ResourceNotFound, "entity not found", "id", id)
+		return t, arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", id))
 	}
 
 	return t, nil
@@ -53,11 +55,11 @@ func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag string) 
 
 	t, ok := r.entities[entity.GetID()]
 	if !ok {
-		return t, arr.New(arr.ResourceNotFound, "entity not found", "id", entity.GetID())
+		return t, arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", entity.GetID()))
 	}
 
 	if t.GetETag() != oldETag {
-		return t, arr.New(arr.ETagMismatch, "e-tag mismatch", "id", entity.GetID(), "stored e-tag", t.GetETag(), "received e-tag", oldETag)
+		return t, arr.New(arr.ETagMismatch, "e-tag mismatch", zap.String("id", entity.GetID()), zap.String("stored e-tag", t.GetETag()), zap.String("received e-tag", oldETag))
 	}
 
 	r.entities[entity.GetID()] = entity
@@ -73,11 +75,11 @@ func (r *InMemoryRepo[T]) Delete(ctx context.Context, id string, oldETag string)
 
 	t, ok := r.entities[id]
 	if !ok {
-		return arr.New(arr.ResourceNotFound, "entity not found", "id", id)
+		return arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", id))
 	}
 
 	if oldETag != t.GetETag() {
-		return arr.New(arr.ETagMismatch, "e-tag mismatch", "id", id, "stored e-tag", t.GetETag(), "received e-tag", oldETag)
+		return arr.New(arr.ETagMismatch, "e-tag mismatch", zap.String("id", id), zap.String("stored e-tag", t.GetETag()), zap.String("received e-tag", oldETag))
 	}
 
 	delete(r.entities, id)
@@ -97,7 +99,7 @@ func (r *InMemoryRepo[T]) List(ctx context.Context, filter Filter[T]) ([]T, erro
 
 		match, err := filter.Match(ctx, entity)
 		if err != nil {
-			return nil, arr.Wrap(arr.ApplicationError, err, "failed to match entity", "id", entity.GetID())
+			return nil, arr.Wrap(arr.ApplicationError, err, "failed to match entity", zap.String("id", entity.GetID()))
 		}
 
 		if match {
