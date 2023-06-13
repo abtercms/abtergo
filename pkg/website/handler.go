@@ -14,7 +14,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(logger *zap.Logger, service Service) *Handler {
+func NewHandler(service Service, logger *zap.Logger) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,

@@ -1,7 +1,6 @@
 package redirect
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +8,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
-	"github.com/abtergo/abtergo/libs/fib"
 )
 
 // Handler represents a set of HTTP handlers.
@@ -19,7 +17,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(logger *zap.Logger, service Service) *Handler {
+func NewHandler(service Service, logger *zap.Logger) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,
@@ -40,7 +38,7 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 	payload := Redirect{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
+		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	response, err := h.service.Create(c.Context(), payload)
@@ -60,7 +58,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	response, err := h.service.List(c.Context(), filter)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve entity, err: %w", err)
+		return errors.Wrap(err, "failed to list entity")
 	}
 
 	return c.JSON(response)
@@ -73,7 +71,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 	response, err := h.service.Get(c.Context(), id)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve entity, err: %w", err)
+		return errors.Wrap(err, "failed to get entity")
 	}
 
 	return c.JSON(response)
@@ -87,14 +85,14 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 	payload := Redirect{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
+		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	etag := c.Get(fiber.HeaderETag)
 
 	response, err := h.service.Update(c.Context(), id, payload, etag)
 	if err != nil {
-		return fmt.Errorf("failed to update entity, err: %w", err)
+		return errors.Wrap(err, "failed to update entity")
 	}
 
 	return c.JSON(response)
@@ -107,7 +105,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 	err := h.service.Delete(c.Context(), id, c.Get(fiber.HeaderETag))
 	if err != nil {
-		return fmt.Errorf("failed to delete entity, err: %w", err)
+		return errors.Wrap(err, "failed to delete entity")
 	}
 
 	return c.SendStatus(http.StatusNoContent)
@@ -115,6 +113,6 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 func checkWiring(id string) {
 	if id == "" {
-		panic(fib.ErrRouteHandleWiring)
+		panic(arr.New(arr.ApplicationError, "wiring error"))
 	}
 }

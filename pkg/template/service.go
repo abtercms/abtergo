@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
@@ -29,7 +30,7 @@ type service struct {
 }
 
 // NewService creates a new Service instance.
-func NewService(logger *zap.Logger, repository Repo) Service {
+func NewService(repository Repo, logger *zap.Logger) Service {
 	return &service{
 		logger: logger,
 		repo:   repository,
@@ -39,23 +40,38 @@ func NewService(logger *zap.Logger, repository Repo) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Template) (Template, error) {
 	if err := entity.Validate(); err != nil {
-		return Template{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
+		return Template{}, arr.WrapWithType(arr.InvalidUserInput, err, "validation failed")
 	}
 
 	entity.Entity = model.NewEntity()
 	entity.ETag = util.ETagAny(entity)
 
-	return s.repo.Create(ctx, entity)
+	entity, err := s.repo.Create(ctx, entity)
+	if err != nil {
+		return Template{}, errors.Wrap(err, "failed to create template")
+	}
+
+	return entity, nil
 }
 
 // Get retrieves an existing entity.
 func (s *service) Get(ctx context.Context, id string) (Template, error) {
-	return s.repo.Retrieve(ctx, id)
+	entity, err := s.repo.Retrieve(ctx, id)
+	if err != nil {
+		return Template{}, errors.Wrap(err, "failed to retrieve template")
+	}
+
+	return entity, nil
 }
 
 // List retrieves a collection of existing entities.
 func (s *service) List(ctx context.Context, filter Filter) ([]Template, error) {
-	return s.repo.List(ctx, filter)
+	entities, err := s.repo.List(ctx, filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list templates")
+	}
+
+	return entities, nil
 }
 
 // Update updates an existing entity.
@@ -65,17 +81,27 @@ func (s *service) Update(ctx context.Context, id string, entity Template, oldEta
 	}
 
 	if err := entity.Validate(); err != nil {
-		return Template{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
+		return Template{}, arr.WrapWithType(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
 	entity.ID = id
 	entity.UpdatedAt = time.Now()
 	entity.ETag = util.ETagAny(entity)
 
-	return s.repo.Update(ctx, entity, oldEtag)
+	entity, err := s.repo.Update(ctx, entity, oldEtag)
+	if err != nil {
+		return Template{}, errors.Wrap(err, "failed to update entity")
+	}
+
+	return entity, nil
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id string, oldEtag string) error {
-	return s.repo.Delete(ctx, id, oldEtag)
+func (s *service) Delete(ctx context.Context, id string, oldETag string) error {
+	err := s.repo.Delete(ctx, id, oldETag)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete template")
+	}
+
+	return nil
 }

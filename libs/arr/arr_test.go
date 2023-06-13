@@ -14,6 +14,173 @@ import (
 	"github.com/abtergo/abtergo/libs/arr"
 )
 
+func TestWrap(t *testing.T) {
+	type args struct {
+		e    error
+		msg  string
+		args []zap.Field
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantDetailed string
+		wantError    string
+		wantArgs     []zap.Field
+	}{
+		{
+			name: "assert.AnError wrapped",
+			args: args{
+				e:    assert.AnError,
+				msg:  "outdated resource",
+				args: []zap.Field{zap.String("id", "foo")},
+			},
+			wantDetailed: "outdated resource: assert.AnError general error for testing. id: foo",
+			wantError:    "outdated resource: assert.AnError general error for testing",
+			wantArgs: []zap.Field{
+				zap.Error(errors.Wrap(assert.AnError, "outdated resource")),
+				zap.String("type", string(arr.UnknownError)),
+				zap.Int("status", http.StatusInternalServerError),
+				zap.String("id", "foo"),
+			},
+		},
+		{
+			name: "arr.Arr wrapped",
+			args: args{
+				e:    arr.New(arr.ResourceNotFound, "not found"),
+				msg:  "outdated resource",
+				args: []zap.Field{zap.String("id", "foo")},
+			},
+			wantDetailed: "outdated resource: not found. id: foo",
+			wantError:    "outdated resource: not found",
+			wantArgs: []zap.Field{
+				zap.Error(errors.Wrap(arr.New(arr.ResourceNotFound, "not found"), "outdated resource")),
+				zap.String("type", string(arr.ResourceNotFound)),
+				zap.Int("status", http.StatusNotFound),
+				zap.String("id", "foo"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := arr.Wrap(tt.args.e, tt.args.msg, tt.args.args...)
+
+			assert.Equal(t, tt.wantDetailed, sut.DetailedError())
+			assert.Equal(t, tt.wantError, sut.Error())
+			gotArgs := sut.AsZapFields()
+			assert.Equal(t, tt.wantArgs[0].Interface.(error).Error(), gotArgs[0].Interface.(error).Error())
+			assert.Equal(t, tt.wantArgs[1:], gotArgs[1:])
+		})
+	}
+}
+
+func TestWrapWithFallback(t *testing.T) {
+	type args struct {
+		t    arr.ErrorType
+		e    error
+		msg  string
+		args []zap.Field
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantDetailed string
+		wantError    string
+		wantArgs     []zap.Field
+	}{
+		{
+			name: "assert.AnError wrapped",
+			args: args{
+				t:    arr.ResourceIsOutdated,
+				e:    assert.AnError,
+				msg:  "outdated resource",
+				args: []zap.Field{zap.String("id", "foo")},
+			},
+			wantDetailed: "outdated resource: assert.AnError general error for testing. id: foo",
+			wantError:    "outdated resource: assert.AnError general error for testing",
+			wantArgs: []zap.Field{
+				zap.Error(errors.Wrap(assert.AnError, "outdated resource")),
+				zap.String("type", string(arr.ResourceIsOutdated)),
+				zap.Int("status", http.StatusConflict),
+				zap.String("id", "foo"),
+			},
+		},
+		{
+			name: "arr.Arr wrapped",
+			args: args{
+				t:    arr.ResourceIsOutdated,
+				e:    arr.New(arr.ResourceNotFound, "not found"),
+				msg:  "outdated resource",
+				args: []zap.Field{zap.String("id", "foo")},
+			},
+			wantDetailed: "outdated resource: not found. id: foo",
+			wantError:    "outdated resource: not found",
+			wantArgs: []zap.Field{
+				zap.Error(errors.Wrap(arr.New(arr.ResourceNotFound, "not found"), "outdated resource")),
+				zap.String("type", string(arr.ResourceNotFound)),
+				zap.Int("status", http.StatusNotFound),
+				zap.String("id", "foo"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := arr.WrapWithFallback(tt.args.t, tt.args.e, tt.args.msg, tt.args.args...)
+
+			assert.Equal(t, tt.wantDetailed, sut.DetailedError())
+			assert.Equal(t, tt.wantError, sut.Error())
+			gotArgs := sut.AsZapFields()
+			assert.Equal(t, tt.wantArgs[0].Interface.(error).Error(), gotArgs[0].Interface.(error).Error())
+			assert.Equal(t, tt.wantArgs[1:], gotArgs[1:])
+		})
+	}
+}
+
+func TestWrapWithType(t *testing.T) {
+	type args struct {
+		t    arr.ErrorType
+		e    error
+		msg  string
+		args []zap.Field
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantDetailed  string
+		wantError     string
+		wantArgs      []zap.Field
+		wantErrorType arr.ErrorType
+	}{
+		{
+			name: "error type",
+			args: args{
+				t:    arr.ResourceIsOutdated,
+				e:    assert.AnError,
+				msg:  "outdated resource",
+				args: []zap.Field{zap.String("id", "foo")},
+			},
+			wantDetailed: "outdated resource: assert.AnError general error for testing. id: foo",
+			wantError:    "outdated resource: assert.AnError general error for testing",
+			wantArgs: []zap.Field{
+				zap.Error(errors.Wrap(assert.AnError, "outdated resource")),
+				zap.String("type", string(arr.ResourceIsOutdated)),
+				zap.Int("status", http.StatusConflict),
+				zap.String("id", "foo"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := arr.WrapWithType(tt.args.t, tt.args.e, tt.args.msg, tt.args.args...)
+
+			assert.Equal(t, tt.wantDetailed, sut.DetailedError())
+			assert.Equal(t, tt.wantError, sut.Error())
+			gotArgs := sut.AsZapFields()
+			assert.Equal(t, tt.wantArgs[0].Interface.(error).Error(), gotArgs[0].Interface.(error).Error())
+			assert.Equal(t, tt.wantArgs[1:], gotArgs[1:])
+		})
+	}
+}
+
 func TestErrorType_HTTPStatus(t *testing.T) {
 	tests := []struct {
 		name string
@@ -160,7 +327,7 @@ func Test_arr_HttpStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := arr.New(tt.fields.t, tt.name)
 			if got := a.HTTPStatus(); got != tt.want {
-				t.Errorf("HTTPStatus() = %v, want %v", got, tt.want)
+				t.Errorf("HTTPStatus() = %v, wantDetailed %v", got, tt.want)
 			}
 		})
 	}
@@ -204,7 +371,7 @@ func Test_arr_GetSlug(t *testing.T) {
 	}
 }
 
-func Test_arr_Error(t *testing.T) {
+func Test_arr_DetailedError(t *testing.T) {
 	type fields struct {
 		t    arr.ErrorType
 		e    error
@@ -212,9 +379,10 @@ func Test_arr_Error(t *testing.T) {
 		args []zap.Field
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   string
+		name         string
+		fields       fields
+		wantDetailed string
+		wantError    string
 	}{
 		{
 			name: "simple error",
@@ -223,7 +391,8 @@ func Test_arr_Error(t *testing.T) {
 				e:   assert.AnError,
 				msg: "foo",
 			},
-			want: "foo: " + assert.AnError.Error() + ".",
+			wantDetailed: "foo: " + assert.AnError.Error() + ".",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 		{
 			name: "integers",
@@ -243,7 +412,8 @@ func Test_arr_Error(t *testing.T) {
 					zap.Uint64("u64", 89),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". i8: -1, i16: 16, i32: -17, i64: 101, u: 97, u8: 83, u16: 32, u32: 73, u64: 89",
+			wantDetailed: "foo: " + assert.AnError.Error() + ". i8: -1, i16: 16, i32: -17, i64: 101, u: 97, u8: 83, u16: 32, u32: 73, u64: 89",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 		{
 			name: "floats",
@@ -256,7 +426,8 @@ func Test_arr_Error(t *testing.T) {
 					zap.Float64("f64", 64.91),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". f32: 123.45, f64: 64.91",
+			wantDetailed: "foo: " + assert.AnError.Error() + ". f32: 123.45, f64: 64.91",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 		{
 			name: "non-number scalars",
@@ -269,7 +440,8 @@ func Test_arr_Error(t *testing.T) {
 					zap.Bool("is_ok", true),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". greeting: hello, is_ok: true",
+			wantDetailed: "foo: " + assert.AnError.Error() + ". greeting: hello, is_ok: true",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 		{
 			name: "complex",
@@ -282,7 +454,8 @@ func Test_arr_Error(t *testing.T) {
 					zap.Strings("foobar", []string{"foo", "bar"}),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". numbers: [1 2 3], foobar: [foo bar]",
+			wantDetailed: "foo: " + assert.AnError.Error() + ". numbers: [1 2 3], foobar: [foo bar]",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 		{
 			name: "date",
@@ -294,13 +467,15 @@ func Test_arr_Error(t *testing.T) {
 					zap.Time("date", time.Date(2030, 1, 2, 3, 4, 5, 6, time.UTC)),
 				},
 			},
-			want: "foo: " + assert.AnError.Error() + ". date: 2030-01-02T03:04:05.000000006Z",
+			wantDetailed: "foo: " + assert.AnError.Error() + ". date: 2030-01-02T03:04:05.000000006Z",
+			wantError:    "foo: " + assert.AnError.Error(),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := arr.Wrap(tt.fields.t, tt.fields.e, tt.fields.msg, tt.fields.args...)
-			assert.Equalf(t, tt.want, a.Error(), "Error()")
+			a := arr.WrapWithType(tt.fields.t, tt.fields.e, tt.fields.msg, tt.fields.args...)
+			assert.Equalf(t, tt.wantDetailed, a.DetailedError(), "DetailedError()")
+			assert.Equalf(t, tt.wantError, a.Error(), "Error()")
 		})
 	}
 }
@@ -331,35 +506,35 @@ func TestHttpStatusFromError(t *testing.T) {
 		{
 			name: "unknown error",
 			args: args{
-				e: arr.Wrap(arr.UnknownError, assert.AnError, "foo"),
+				e: arr.WrapWithType(arr.UnknownError, assert.AnError, "foo"),
 			},
 			want: http.StatusInternalServerError,
 		},
 		{
 			name: "not found error",
 			args: args{
-				e: arr.Wrap(arr.ResourceNotFound, assert.AnError, "foo"),
+				e: arr.WrapWithType(arr.ResourceNotFound, assert.AnError, "foo"),
 			},
 			want: http.StatusNotFound,
 		},
 		{
-			name: "not found error wrapped var errors.Wrap",
+			name: "not found error wrapped var errors.WrapWithType",
 			args: args{
-				e: errors.Wrap(arr.Wrap(arr.ResourceNotFound, assert.AnError, "foo"), "bar"),
+				e: errors.Wrap(arr.WrapWithType(arr.ResourceNotFound, assert.AnError, "foo"), "bar"),
 			},
 			want: http.StatusNotFound,
 		},
 		{
 			name: "not found error wrapped via fmt",
 			args: args{
-				e: arr.Wrap(arr.ResourceNotFound, assert.AnError, "bar"),
+				e: arr.WrapWithType(arr.ResourceNotFound, assert.AnError, "bar"),
 			},
 			want: http.StatusNotFound,
 		},
 		{
 			name: "not found error double wrapped",
 			args: args{
-				e: fmt.Errorf("bar, err: %w", errors.Wrap(arr.Wrap(arr.ResourceNotFound, assert.AnError, "foo"), "bar")),
+				e: fmt.Errorf("bar, err: %w", errors.Wrap(arr.WrapWithType(arr.ResourceNotFound, assert.AnError, "foo"), "bar")),
 			},
 			want: http.StatusNotFound,
 		},
@@ -374,7 +549,7 @@ func TestHttpStatusFromError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := arr.HTTPStatusFromError(tt.args.e); got != tt.want {
-				t.Errorf("HTTPStatusFromError() = %v, want %v", got, tt.want)
+				t.Errorf("HTTPStatusFromError() = %v, wantDetailed %v", got, tt.want)
 			}
 		})
 	}
@@ -413,21 +588,21 @@ func TestTypeFromError(t *testing.T) {
 		{
 			name: "wrapped error",
 			args: args{
-				e: arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"),
+				e: arr.WrapWithType(arr.ETagMismatch, assert.AnError, "foo"),
 			},
 			want: arr.ETagMismatch,
 		},
 		{
 			name: "double wrapped error",
 			args: args{
-				e: errors.Wrap(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"), "bar"),
+				e: errors.Wrap(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"), "bar"),
 			},
 			want: arr.UpstreamServiceBusy,
 		},
 		{
 			name: "fmt wrapped error",
 			args: args{
-				e: fmt.Errorf("quix. err: %w", arr.Wrap(arr.ResourceNotModified, assert.AnError, "foo")),
+				e: fmt.Errorf("quix. err: %w", arr.WrapWithType(arr.ResourceNotModified, assert.AnError, "foo")),
 			},
 			want: arr.ResourceNotModified,
 		},

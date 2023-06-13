@@ -92,7 +92,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, payloadStub).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
+			Return(page.Page{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -167,7 +167,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, page.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"))
+			Return(nil, arr.WrapWithType(arr.ETagMismatch, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages", nil)
@@ -244,7 +244,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedPage.ID).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
+			Return(page.Page{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages/"+expectedPage.ID, nil)
@@ -355,7 +355,7 @@ func TestHandler_Put(t *testing.T) {
 			EXPECT().
 			Update(mock.Anything, expectedPage.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(page.Page{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
+			Return(page.Page{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -437,7 +437,7 @@ func TestHandler_Delete(t *testing.T) {
 			EXPECT().
 			Delete(mock.Anything, expectedPage.ID, previousEtagStub).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
+			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/pages/"+expectedPage.ID, nil)
@@ -506,7 +506,7 @@ func TestHandler_Activate(t *testing.T) {
 			EXPECT().
 			Transition(mock.Anything, expectedPage.ID, page.Activate, previousEtagStub).
 			Once().
-			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
+			Return(expectedPage, arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/activations", nil)
@@ -575,7 +575,7 @@ func TestHandler_Inactivate(t *testing.T) {
 			EXPECT().
 			Transition(mock.Anything, expectedPage.ID, page.Inactivate, previousEtagStub).
 			Once().
-			Return(expectedPage, arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
+			Return(expectedPage, arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/inactivations", nil)
@@ -641,7 +641,7 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
-	handler := page.NewHandler(loggerStub, serviceMock)
+	handler := page.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{

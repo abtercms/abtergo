@@ -1,10 +1,10 @@
 package redirect
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
 	"github.com/abtergo/abtergo/libs/model"
@@ -28,7 +28,7 @@ func RandomRedirect(asNew bool) Redirect {
 
 	err := gofakeit.Struct(&r)
 	if err != nil {
-		panic(fmt.Errorf("failed to generate random redirect. err: %w", err))
+		panic(errors.Wrap(err, "failed to generate random redirect"))
 	}
 
 	if asNew {

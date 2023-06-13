@@ -13,20 +13,32 @@ tasks:
 
   generate:
     deps: [clean]
+    sources:
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - mockery
     - go generate {{.PACKAGES}}
 
   lint:
+    sources:
+    - app/**/*.go
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - golangci-lint --version
     - golangci-lint run {{.PACKAGES}}
 
   unit:
+    sources:
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt
 
   integration:
+    sources:
+    - doc/*
     cmds:
     - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt -tags=integration
 
@@ -38,6 +50,10 @@ tasks:
     deps: [lint clean generate integration doc]
 
   run:
+    sources:
+    - app/**/*.go
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - go run app/cmd/* --port 38593 server
 

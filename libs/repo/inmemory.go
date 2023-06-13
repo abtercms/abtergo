@@ -118,7 +118,7 @@ func (r *InMemoryRepo[T]) List(ctx context.Context, filter Filter[T]) ([]T, erro
 
 		match, err := filter.Match(ctx, entity)
 		if err != nil {
-			return nil, arr.Wrap(arr.ApplicationError, err, "failed to match entity", zap.String("id", entity.GetID()))
+			return nil, arr.WrapWithType(arr.ApplicationError, err, "failed to match entity", zap.String("id", entity.GetID()))
 		}
 
 		if match {

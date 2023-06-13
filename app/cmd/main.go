@@ -6,7 +6,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	cleaner2 "github.com/abtergo/abtergo/libs/cleaner"
+	"github.com/abtergo/abtergo/app/http"
+	"github.com/abtergo/abtergo/libs/cleaner"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			return NewHTTPServer(logger, cleaner2.New(logger)).
+			return http.NewServer(logger, cleaner.New(logger)).
 				SetupMiddleware(cCtx).
 				SetupHandlers().
 				Start(cCtx)

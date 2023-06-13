@@ -18,4 +18,8 @@ coverprofile.txt
 # IDEA project files
 .idea/
 
+# Generated files
 mocks/
+
+# Task
+.task/

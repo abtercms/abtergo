@@ -3,10 +3,10 @@ package util
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
 	"io"
 
 	json "github.com/goccy/go-json"
+	"github.com/pkg/errors"
 )
 
 // ETag generates an etag derived from a string source.
@@ -14,7 +14,7 @@ func ETag(input string) string {
 	h := sha1.New()
 	_, err := io.WriteString(h, input)
 	if err != nil {
-		panic(fmt.Errorf("failed to create new sha1 hash from string, input: %s, err: %w", input, err))
+		panic(errors.Wrapf(err, "failed to create new sha1 hash from string. input: '%s'", input))
 	}
 
 	byteArray := h.Sum(nil)
@@ -28,7 +28,7 @@ func ETag(input string) string {
 func ETagAny(input any) string {
 	data, err := json.Marshal(input)
 	if err != nil {
-		panic(fmt.Errorf("failed to create new sha1 hash from input, input: %v, err: %w", input, err))
+		panic(errors.Wrapf(err, "failed to create new sha1 hash from input. input: '%v'", input))
 	}
 
 	return ETag(string(data))

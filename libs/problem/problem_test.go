@@ -36,12 +36,12 @@ func TestFromError(t *testing.T) {
 			name: "invalid user input",
 			args: args{
 				baseURL: "https://example.com",
-				err:     arr.Wrap(arr.InvalidUserInput, assert.AnError, "foo"),
+				err:     arr.WrapWithType(arr.InvalidUserInput, assert.AnError, "foo"),
 			},
 			want: Problem{
 				Type:   "https://example.com/problem/invalid-user-input",
 				Title:  arr.InvalidUserInput.GetTitle(),
-				Detail: "foo: assert.AnError general error for testing.",
+				Detail: "foo: assert.AnError general error for testing",
 				Status: http.StatusBadRequest,
 			},
 		},

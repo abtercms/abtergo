@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
-	"github.com/abtergo/abtergo/libs/fib"
 )
 
 // Handler represents a set of HTTP handlers.
@@ -18,7 +17,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(logger *zap.Logger, service Service) *Handler {
+func NewHandler(service Service, logger *zap.Logger) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,
@@ -41,7 +40,7 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 	payload := Page{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
+		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	response, err := h.service.Create(c.Context(), payload)
@@ -88,7 +87,7 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 	payload := Page{}
 
 	if err := c.BodyParser(&payload); err != nil {
-		return arr.Wrap(arr.InvalidUserInput, err, "failed to parse the request payload")
+		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
 	response, err := h.service.Update(c.Context(), id, payload, c.Get(fiber.HeaderETag))
@@ -144,6 +143,6 @@ func (h *Handler) Inactivate(c *fiber.Ctx) error {
 
 func checkWiring(id string) {
 	if id == "" {
-		panic(fib.ErrRouteHandleWiring)
+		panic(arr.New(arr.ApplicationError, "wiring error"))
 	}
 }

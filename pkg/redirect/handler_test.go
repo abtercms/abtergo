@@ -88,7 +88,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, expectedRedirect).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
+			Return(redirect.Redirect{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, expectedRedirect)
@@ -162,7 +162,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, redirect.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"))
+			Return(nil, arr.WrapWithType(arr.ETagMismatch, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects", nil)
@@ -242,7 +242,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedRedirect.ID).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
+			Return(redirect.Redirect{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
@@ -352,7 +352,7 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousEtagStub).
 			Once().
-			Return(redirect.Redirect{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
+			Return(redirect.Redirect{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, expectedRedirect)
@@ -432,7 +432,7 @@ func TestHandler_Delete(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Delete(mock.Anything, expectedRedirect.ID, previousEtagStub).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
+			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
@@ -497,7 +497,7 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
-	handler := redirect.NewHandler(loggerStub, serviceMock)
+	handler := redirect.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{

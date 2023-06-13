@@ -64,7 +64,7 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
-	handler := website.NewHandler(loggerStub, serviceMock)
+	handler := website.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{

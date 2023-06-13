@@ -30,7 +30,7 @@ func (u *updater) Transition(status Status, trigger Trigger) (Status, error) {
 
 	err := sm.Fire(trigger)
 	if err != nil {
-		return status, arr.Wrap(arr.ResourceNotModified, err, "invalid status transition", zap.String("old status", string(status)), zap.String("trigger", string(trigger)))
+		return status, arr.WrapWithType(arr.ResourceNotModified, err, "invalid status transition", zap.String("old status", string(status)), zap.String("trigger", string(trigger)))
 	}
 
 	return sm.MustState().(Status), nil

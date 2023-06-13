@@ -2,7 +2,10 @@ package website
 
 import (
 	"context"
-	"fmt"
+
+	"go.uber.org/zap"
+
+	"github.com/abtergo/abtergo/libs/arr"
 )
 
 // Service provides basic service functionality for Handler.
@@ -29,13 +32,18 @@ func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRet
 func (s *service) Get(ctx context.Context, website, path string) (string, error) {
 	content, err := s.contentRetriever.Retrieve(ctx, website, path)
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve page, website: %s, path: %s, err: %w", website, path, err)
+		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve content", zap.String("website", website), zap.String("path", path))
 	}
 
 	template, err := s.templateRetriever.Retrieve(ctx, website, path)
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve template, website: %s, path: %s, err: %w", website, path, err)
+		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve template", zap.String("website", website), zap.String("path", path))
 	}
 
-	return s.renderer.Render(template.Body, content.Render())
+	raw, err := s.renderer.Render(template.Body, content.Render())
+	if err != nil {
+		return "", arr.WrapWithFallback(arr.TemplateError, err, "failed to render content", zap.String("website", website), zap.String("path", path))
+	}
+
+	return raw, nil
 }

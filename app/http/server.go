@@ -1,4 +1,4 @@
-package main
+package http
 
 import (
 	"fmt"
@@ -28,15 +28,15 @@ type cleaner interface {
 	Run()
 }
 
-// HTTPServer represents an HTTP server and contains all dependencies necessary.
-type HTTPServer struct {
+// Server represents an HTTP server and contains all dependencies necessary.
+type Server struct {
 	logger  *zap.Logger
 	cleaner cleaner
 	fiber   *fiber.App
 }
 
-// NewHTTPServer creates a new HTTPServer instance.
-func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
+// NewServer creates a new Server instance.
+func NewServer(logger *zap.Logger, cleaner cleaner) *Server {
 	errorHandler := fib.NewErrorHandler(logger)
 
 	f := fiber.New(fiber.Config{
@@ -49,7 +49,7 @@ func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 		JSONEncoder:        json.Marshal,
 	})
 
-	return &HTTPServer{
+	return &Server{
 		logger:  logger,
 		cleaner: cleaner,
 		fiber:   f,
@@ -57,7 +57,7 @@ func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 }
 
 // SetupMiddleware sets up middleware to be used.
-func (s *HTTPServer) SetupMiddleware(cCtx *cli.Context) *HTTPServer {
+func (s *Server) SetupMiddleware(cCtx *cli.Context) *Server {
 	// Add middleware
 	s.useHelmetMiddleware()
 	s.useZapLoggerMiddleware()
@@ -70,7 +70,7 @@ func (s *HTTPServer) SetupMiddleware(cCtx *cli.Context) *HTTPServer {
 }
 
 // SetupHandlers sets up handlers for each module.
-func (s *HTTPServer) SetupHandlers() *HTTPServer {
+func (s *Server) SetupHandlers() *Server {
 	// Add API handlers
 	api := s.fiber.Group("/api")
 
@@ -85,8 +85,8 @@ func (s *HTTPServer) SetupHandlers() *HTTPServer {
 	return s
 }
 
-// Start starts a new HTTPServer.
-func (s *HTTPServer) Start(cCtx *cli.Context) error {
+// Start starts a new Server.
+func (s *Server) Start(cCtx *cli.Context) error {
 	// Listen from a different goroutine
 	go func() {
 		if err := s.fiber.Listen(fmt.Sprintf(":%d", cCtx.Uint("port"))); err != nil {
@@ -127,7 +127,7 @@ const (
 	localhost = "127.0.0.1"
 )
 
-func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context) {
+func (s *Server) useLimiterMiddleware(cCtx *cli.Context) {
 	if !cCtx.Bool("use-pprof") {
 		return
 	}
@@ -153,11 +153,11 @@ func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context) {
 	s.fiber.Use(limiterMiddleware)
 }
 
-func (s *HTTPServer) useHelmetMiddleware() {
+func (s *Server) useHelmetMiddleware() {
 	s.fiber.Use(helmet.New())
 }
 
-func (s *HTTPServer) usePProfMiddleware(cCtx *cli.Context) {
+func (s *Server) usePProfMiddleware(cCtx *cli.Context) {
 	pprofEnabled := cCtx.Bool(usePprofFlag)
 	pprofPrefix := cCtx.String(pprofPrefixFlag)
 
@@ -168,7 +168,7 @@ func (s *HTTPServer) usePProfMiddleware(cCtx *cli.Context) {
 	s.fiber.Use(pprof.New(pprof.Config{Prefix: pprofPrefix}))
 }
 
-func (s *HTTPServer) useCompressMiddleware(cCtx *cli.Context) {
+func (s *Server) useCompressMiddleware(cCtx *cli.Context) {
 	level := cCtx.Int(compressionLevelFlag)
 
 	s.fiber.Use(compress.New(compress.Config{
@@ -176,7 +176,7 @@ func (s *HTTPServer) useCompressMiddleware(cCtx *cli.Context) {
 	}))
 }
 
-func (s *HTTPServer) useRecoverMiddleware() {
+func (s *Server) useRecoverMiddleware() {
 	s.fiber.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
@@ -185,7 +185,7 @@ func (s *HTTPServer) useRecoverMiddleware() {
 	}))
 }
 
-func (s *HTTPServer) useZapLoggerMiddleware() {
+func (s *Server) useZapLoggerMiddleware() {
 	s.fiber.Use(fiberzap.New(fiberzap.Config{
 		Logger: s.logger,
 	}))

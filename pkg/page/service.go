@@ -32,7 +32,7 @@ type service struct {
 }
 
 // NewService creates a new Service instance.
-func NewService(logger *zap.Logger, repo Repo, updater Updater) Service {
+func NewService(repo Repo, updater Updater, logger *zap.Logger) Service {
 	return &service{
 		logger:  logger,
 		repo:    repo,
@@ -47,23 +47,38 @@ func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 	}
 
 	if err := entity.Validate(); err != nil {
-		return Page{}, arr.Wrap(arr.InvalidUserInput, err, "validation failed")
+		return Page{}, arr.WrapWithType(arr.InvalidUserInput, err, "validation failed")
 	}
 
 	entity.Entity = model.NewEntity()
 	entity.ETag = util.ETagAny(entity)
 
-	return s.repo.Create(ctx, entity)
+	entity, err := s.repo.Create(ctx, entity)
+	if err != nil {
+		return Page{}, errors.Wrap(err, "failed to create page")
+	}
+
+	return entity, nil
 }
 
 // Get retrieves an existing entity.
 func (s *service) Get(ctx context.Context, id string) (Page, error) {
-	return s.repo.Retrieve(ctx, id)
+	entity, err := s.repo.Retrieve(ctx, id)
+	if err != nil {
+		return Page{}, errors.Wrap(err, "retrieving entity failed")
+	}
+
+	return entity, nil
 }
 
 // List retrieves a collection of existing entities.
 func (s *service) List(ctx context.Context, filter Filter) ([]Page, error) {
-	return s.repo.List(ctx, filter)
+	entities, err := s.repo.List(ctx, filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list entities")
+	}
+
+	return entities, nil
 }
 
 // Update updates an existing entity.
@@ -73,19 +88,29 @@ func (s *service) Update(ctx context.Context, id string, entity Page, oldETag st
 	}
 
 	if err := entity.Validate(); err != nil {
-		return Page{}, arr.Wrap(arr.InvalidUserInput, err, "payload validation failed")
+		return Page{}, arr.WrapWithType(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
 	entity.ID = id
 	entity.UpdatedAt = time.Now()
 	entity.ETag = util.ETagAny(entity)
 
-	return s.repo.Update(ctx, entity, oldETag)
+	entity, err := s.repo.Update(ctx, entity, oldETag)
+	if err != nil {
+		return Page{}, errors.Wrap(err, "failed to update page")
+	}
+
+	return entity, nil
 }
 
 // Delete deletes an existing entity.
 func (s *service) Delete(ctx context.Context, id, oldETag string) error {
-	return s.repo.Delete(ctx, id, oldETag)
+	err := s.repo.Delete(ctx, id, oldETag)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete page")
+	}
+
+	return nil
 }
 
 // Transition changes the status of an existing entity.
@@ -109,7 +134,7 @@ func (s *service) Transition(ctx context.Context, id string, trigger Trigger, ol
 
 	newPage, err := s.repo.Update(ctx, page, oldEtag)
 	if err != nil {
-		return Page{}, errors.Wrap(err, "update failed")
+		return Page{}, errors.Wrap(err, "failed to update page")
 	}
 
 	return newPage, nil

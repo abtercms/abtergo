@@ -24,13 +24,29 @@ func TestService_Create(t *testing.T) {
 		entityStub.Website = ""
 
 		repoMock := new(repoMocks.Repository[template.Template])
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		_, err := s.Create(ctxStub, entityStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
+		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("repo error", func(t *testing.T) {
+		entityStub := template.RandomTemplate(true)
+
+		repoMock := new(repoMocks.Repository[template.Template])
+		repoMock.EXPECT().
+			Create(ctxStub, mock.AnythingOfType("template.Template")).
+			Once().
+			Return(template.Template{}, assert.AnError)
+		s := template.NewService(repoMock, loggerStub)
+
+		_, err := s.Create(ctxStub, entityStub)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -42,8 +58,7 @@ func TestService_Create(t *testing.T) {
 			Create(ctxStub, mock.AnythingOfType("template.Template")).
 			Once().
 			Return(entityStub, nil)
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		got, err := s.Create(ctxStub, entityStub)
 
@@ -58,6 +73,23 @@ func TestService_Delete(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 	ctxStub := context.Background()
 
+	t.Run("repo error", func(t *testing.T) {
+		entityStub := template.RandomTemplate(false)
+
+		repoMock := new(repoMocks.Repository[template.Template])
+		repoMock.EXPECT().
+			Delete(ctxStub, entityStub.ID, entityStub.ETag).
+			Once().
+			Return(assert.AnError)
+		s := template.NewService(repoMock, loggerStub)
+
+		err := s.Delete(ctxStub, entityStub.ID, entityStub.ETag)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		repoMock.AssertExpectations(t)
+	})
+
 	t.Run("success", func(t *testing.T) {
 		entityStub := template.RandomTemplate(false)
 
@@ -66,8 +98,7 @@ func TestService_Delete(t *testing.T) {
 			Delete(ctxStub, entityStub.ID, entityStub.ETag).
 			Once().
 			Return(nil)
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		err := s.Delete(ctxStub, entityStub.ID, entityStub.ETag)
 
@@ -80,6 +111,23 @@ func TestService_Get(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 	ctxStub := context.Background()
 
+	t.Run("repo error", func(t *testing.T) {
+		entityStub := template.RandomTemplate(false)
+
+		repoMock := new(repoMocks.Repository[template.Template])
+		repoMock.EXPECT().
+			Retrieve(ctxStub, entityStub.ID).
+			Once().
+			Return(template.Template{}, assert.AnError)
+		s := template.NewService(repoMock, loggerStub)
+
+		_, err := s.Get(ctxStub, entityStub.ID)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		repoMock.AssertExpectations(t)
+	})
+
 	t.Run("success", func(t *testing.T) {
 		entityStub := template.RandomTemplate(false)
 
@@ -88,8 +136,7 @@ func TestService_Get(t *testing.T) {
 			Retrieve(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		got, err := s.Get(ctxStub, entityStub.ID)
 
@@ -103,6 +150,23 @@ func TestService_List(t *testing.T) {
 	loggerStub := zaptest.NewLogger(t)
 	ctxStub := context.Background()
 
+	t.Run("repo error", func(t *testing.T) {
+		filterStub := template.Filter{}
+
+		repoMock := new(repoMocks.Repository[template.Template])
+		repoMock.EXPECT().
+			List(ctxStub, filterStub).
+			Once().
+			Return(nil, assert.AnError)
+		s := template.NewService(repoMock, loggerStub)
+
+		_, err := s.List(ctxStub, filterStub)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		repoMock.AssertExpectations(t)
+	})
+
 	t.Run("success", func(t *testing.T) {
 		filterStub := template.Filter{}
 		stubCollection := template.RandomTemplateList(1, 3)
@@ -112,8 +176,7 @@ func TestService_List(t *testing.T) {
 			List(ctxStub, filterStub).
 			Once().
 			Return(stubCollection, nil)
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		got, err := s.List(ctxStub, filterStub)
 
@@ -137,8 +200,7 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 
-		s := template.NewService(loggerStub, repoMock)
-
+		s := template.NewService(repoMock, loggerStub)
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
 
 		assert.Error(t, err)
@@ -152,13 +214,30 @@ func TestService_Update(t *testing.T) {
 		entityStub.ID = ""
 
 		repoMock := new(repoMocks.Repository[template.Template])
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
+		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("repo error", func(t *testing.T) {
+		entityStub := template.RandomTemplate(false)
+		entityStub.ID = idStub
+
+		repoMock := new(repoMocks.Repository[template.Template])
+		repoMock.EXPECT().
+			Update(ctxStub, mock.AnythingOfType("template.Template"), etagStub).
+			Once().
+			Return(template.Template{}, assert.AnError)
+		s := template.NewService(repoMock, loggerStub)
+
+		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -171,8 +250,7 @@ func TestService_Update(t *testing.T) {
 			Update(ctxStub, mock.AnythingOfType("template.Template"), etagStub).
 			Once().
 			Return(entityStub, nil)
-
-		s := template.NewService(loggerStub, repoMock)
+		s := template.NewService(repoMock, loggerStub)
 
 		got, err := s.Update(ctxStub, idStub, entityStub, etagStub)
 

@@ -92,7 +92,7 @@ func TestHandler_Post(t *testing.T) {
 			EXPECT().
 			Create(mock.Anything, payloadStub).
 			Once().
-			Return(block.Block{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, "foo"))
+			Return(block.Block{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -167,7 +167,7 @@ func TestHandler_List(t *testing.T) {
 			EXPECT().
 			List(mock.Anything, block.Filter{}).
 			Once().
-			Return(nil, arr.Wrap(arr.ETagMismatch, assert.AnError, "foo"))
+			Return(nil, arr.WrapWithType(arr.ETagMismatch, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/blocks", nil)
@@ -244,7 +244,7 @@ func TestHandler_Get(t *testing.T) {
 			EXPECT().
 			Get(mock.Anything, expectedBlock.ID).
 			Once().
-			Return(block.Block{}, arr.Wrap(arr.ResourceIsOutdated, assert.AnError, ""))
+			Return(block.Block{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, ""))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
@@ -356,7 +356,7 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Update(mock.Anything, expectedBlock.ID, payloadStub, previousEtagStub).
 			Once().
-			Return(block.Block{}, arr.Wrap(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
+			Return(block.Block{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
 		reqBody := util.DataToReaderHelper(t, payloadStub)
@@ -436,7 +436,7 @@ func TestHandler_Delete(t *testing.T) {
 		deps.serviceMock.EXPECT().
 			Delete(mock.Anything, expectedBlock.ID, previousEtagStub).
 			Once().
-			Return(arr.Wrap(arr.UpstreamServiceBusy, assert.AnError, "foo"))
+			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
@@ -501,7 +501,7 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 
 	loggerStub := zaptest.NewLogger(t)
 	serviceMock := &mocks.Service{}
-	handler := block.NewHandler(loggerStub, serviceMock)
+	handler := block.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{

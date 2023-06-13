@@ -1,10 +1,10 @@
 package template
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
 	"github.com/abtergo/abtergo/libs/model"
@@ -29,7 +29,7 @@ func RandomTemplate(asNew bool) Template {
 
 	err := gofakeit.Struct(&t)
 	if err != nil {
-		panic(fmt.Errorf("failed to generate random redirect. err: %w", err))
+		panic(errors.Wrap(err, "failed to generate random template"))
 	}
 
 	if len(t.HTTPHeader) == 0 {

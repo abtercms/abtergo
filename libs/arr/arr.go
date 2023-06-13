@@ -26,6 +26,7 @@ const (
 	InvalidUserInput           ErrorType = "invalid user input"
 	UpstreamServiceUnavailable ErrorType = "upstream service unavailable"
 	UpstreamServiceBusy        ErrorType = "upstream service busy"
+	TemplateError              ErrorType = "template error"
 )
 
 func (et ErrorType) HTTPStatus() int {
@@ -70,6 +71,7 @@ type Arr interface {
 
 	HTTPStatus() int
 	GetSlug() string
+	DetailedError() string
 	AsZapFields() []zap.Field
 	Unwrap() error
 }
@@ -88,10 +90,36 @@ func (a *arr) GetSlug() string {
 	return a.t.GetSlug()
 }
 
+func (a *arr) Error() string {
+	return a.e.Error()
+}
+
+func (a *arr) DetailedError() string {
+	res := a.e.Error() + "."
+
+	if len(a.args) == 0 {
+		return res
+	}
+
+	b := strings.Builder{}
+	for _, arg := range a.args {
+		b.WriteString(" ")
+		b.WriteString(arg.Key)
+		b.WriteString(": ")
+		b.WriteString(a.argToString(arg))
+		b.WriteString(",")
+	}
+
+	str := b.String()
+
+	return res + str[0:len(str)-1]
+}
+
 func (a *arr) AsZapFields() []zap.Field {
-	result := make([]zap.Field, 0, len(a.args)+2)
+	result := make([]zap.Field, 0, len(a.args)+5)
+	result = append(result, zap.Error(a))
+	result = append(result, zap.String("type", string(a.t)))
 	result = append(result, zap.Int("status", a.t.HTTPStatus()))
-	result = append(result, zap.String("title", a.t.GetTitle()))
 	result = append(result, a.args...)
 
 	return result
@@ -137,32 +165,27 @@ func (a *arr) argToString(arg zap.Field) string {
 	return fmt.Sprintf("%v", arg.Interface)
 }
 
-func (a *arr) Error() string {
-	res := a.e.Error() + "."
-
-	if len(a.args) == 0 {
-		return res
-	}
-
-	b := strings.Builder{}
-	for _, arg := range a.args {
-		b.WriteString(" ")
-		b.WriteString(arg.Key)
-		b.WriteString(": ")
-		b.WriteString(a.argToString(arg))
-		b.WriteString(",")
-	}
-
-	str := b.String()
-
-	return res + str[0:len(str)-1]
-}
-
 func (a *arr) Unwrap() error {
 	return a.e
 }
 
-func Wrap(t ErrorType, e error, msg string, args ...zap.Field) Arr {
+func Wrap(e error, msg string, args ...zap.Field) Arr {
+	t2 := TypeFromError(e)
+
+	return WrapWithType(t2, e, msg, args...)
+}
+
+func WrapWithFallback(t ErrorType, e error, msg string, args ...zap.Field) Arr {
+	t2 := TypeFromError(e)
+
+	if t2 != UnknownError {
+		return WrapWithType(t2, e, msg, args...)
+	}
+
+	return WrapWithType(t, e, msg, args...)
+}
+
+func WrapWithType(t ErrorType, e error, msg string, args ...zap.Field) Arr {
 	if msg != "" {
 		e = errors.Wrap(e, msg)
 	}
@@ -176,8 +199,8 @@ func New(t ErrorType, msg string, args ...zap.Field) Arr {
 
 func newArr(t ErrorType, e error, args ...zap.Field) Arr {
 	return &arr{
-		e:    e,
 		t:    t,
+		e:    e,
 		args: args,
 	}
 }

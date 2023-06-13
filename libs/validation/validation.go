@@ -9,6 +9,7 @@ import (
 	"time"
 
 	validator "github.com/go-playground/validator/v10"
+	"github.com/pkg/errors"
 )
 
 // NewValidator creates validator with proper configuration for json tag name extraction.
@@ -36,23 +37,25 @@ func jsonTagName(fld reflect.StructField) string {
 func AddNotBeforeValidation(v *validator.Validate) {
 	// Register custom validators here
 	err := v.RegisterValidation("not_before_date", ValidateNotBeforeDate)
-	if err != nil {
-		panic(fmt.Errorf("failed to register 'not before date' validator. err: %w", err))
-	}
+	mustRegister(err, "not_before_date")
 }
 
 func AddEtagValidation(v *validator.Validate) {
 	err := v.RegisterValidation("etag", ValidateEtag)
-	if err != nil {
-		panic(fmt.Errorf("failed to register 'etag' validator. err: %w", err))
-	}
+	mustRegister(err, "etag")
 }
 
 func AddPathValidation(v *validator.Validate) {
 	err := v.RegisterValidation("path", ValidatePath)
-	if err != nil {
-		panic(fmt.Errorf("failed to register 'path' validator. err: %w", err))
+	mustRegister(err, "path")
+}
+
+func mustRegister(err error, validatorName string) {
+	if err == nil {
+		return
 	}
+
+	panic(errors.Wrapf(err, "failed to register '%s' validator", validatorName))
 }
 
 // ValidateNotBeforeDate validates that a date is not before a reference date.
@@ -67,7 +70,7 @@ func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 		if field.Type().ConvertibleTo(timeType) {
 			p, err := time.Parse(time.DateOnly, param)
 			if err != nil {
-				panic(fmt.Sprintf("Invalid date: %s", param))
+				panic(fmt.Errorf("invalid date: %s", param))
 			}
 
 			t := field.Convert(timeType).Interface().(time.Time)
@@ -76,7 +79,7 @@ func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Errorf("bad field type %T", field.Interface()))
 }
 
 // ValidateEtag validates an e-tag.
@@ -91,7 +94,7 @@ func ValidateEtag(fl validator.FieldLevel) bool {
 
 	match, err := regexp.MatchString(pattern, val)
 	if err != nil {
-		panic(fmt.Sprintf("Invalid pattern: %s", pattern))
+		panic(errors.Wrapf(err, "invalid pattern: %s", pattern))
 	}
 
 	return match
