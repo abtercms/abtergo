@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
+	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/pkg/errors"
@@ -43,7 +43,7 @@ func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 		CaseSensitive:      true,
 		EnableIPValidation: true,
 		EnablePrintRoutes:  true, // This might be worth disabling
-		ErrorHandler:       errorHandler.Error,
+		ErrorHandler:       errorHandler.Handle,
 		Immutable:          true, // This allows passing around the parsed payload nicely, but is slower
 		JSONDecoder:        json.Unmarshal,
 		JSONEncoder:        json.Marshal,
@@ -59,27 +59,28 @@ func NewHTTPServer(logger *zap.Logger, cleaner cleaner) *HTTPServer {
 // SetupMiddleware sets up middleware to be used.
 func (s *HTTPServer) SetupMiddleware(cCtx *cli.Context) *HTTPServer {
 	// Add middleware
-	s.useHelmetMiddleware(s.fiber)
-	s.useLoggerMiddleware(s.fiber)
-	s.usePProfMiddleware(cCtx, s.fiber)
-	s.useLimiterMiddleware(cCtx, s.fiber)
-	s.useCompressMiddleware(cCtx, s.fiber)
-	s.useRecoverMiddleware(s.fiber)
+	s.useHelmetMiddleware()
+	s.useZapLoggerMiddleware()
+	s.usePProfMiddleware(cCtx)
+	s.useLimiterMiddleware(cCtx)
+	s.useCompressMiddleware(cCtx)
+	s.useRecoverMiddleware()
 
 	return s
 }
 
 // SetupHandlers sets up handlers for each module.
-func (s *HTTPServer) SetupHandlers(logger *zap.Logger) *HTTPServer {
+func (s *HTTPServer) SetupHandlers() *HTTPServer {
 	// Add API handlers
 	api := s.fiber.Group("/api")
 
-	createRedirectHandler(logger).AddAPIRoutes(api)
-	createTemplateHandler(logger).AddAPIRoutes(api)
-	createPageHandler(logger).AddAPIRoutes(api)
-	createBlockHandler(logger).AddAPIRoutes(api)
+	createRedirectHandler(s.logger).AddAPIRoutes(api)
+	createTemplateHandler(s.logger).AddAPIRoutes(api)
+	createPageHandler(s.logger).AddAPIRoutes(api)
+	createBlockHandler(s.logger).AddAPIRoutes(api)
+	createRendererHandler(s.logger).AddRoutes(api)
 
-	createRendererHandler(logger).AddRoutes(api)
+	api.Get("/healthz", func(cCtx *fiber.Ctx) error { panic(errors.New("hello")) })
 
 	return s
 }
@@ -126,7 +127,7 @@ const (
 	localhost = "127.0.0.1"
 )
 
-func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context, router fiber.Router) {
+func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context) {
 	if !cCtx.Bool("use-pprof") {
 		return
 	}
@@ -149,20 +150,14 @@ func (s *HTTPServer) useLimiterMiddleware(cCtx *cli.Context, router fiber.Router
 		},
 	})
 
-	router.Use(limiterMiddleware)
+	s.fiber.Use(limiterMiddleware)
 }
 
-func (s *HTTPServer) useHelmetMiddleware(r fiber.Router) {
-	r.Use(helmet.New())
+func (s *HTTPServer) useHelmetMiddleware() {
+	s.fiber.Use(helmet.New())
 }
 
-func (s *HTTPServer) useLoggerMiddleware(r fiber.Router) {
-	r.Use(logger.New(logger.Config{
-		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
-	}))
-}
-
-func (s *HTTPServer) usePProfMiddleware(cCtx *cli.Context, r fiber.Router) {
+func (s *HTTPServer) usePProfMiddleware(cCtx *cli.Context) {
 	pprofEnabled := cCtx.Bool(usePprofFlag)
 	pprofPrefix := cCtx.String(pprofPrefixFlag)
 
@@ -170,22 +165,28 @@ func (s *HTTPServer) usePProfMiddleware(cCtx *cli.Context, r fiber.Router) {
 		return
 	}
 
-	r.Use(pprof.New(pprof.Config{Prefix: pprofPrefix}))
+	s.fiber.Use(pprof.New(pprof.Config{Prefix: pprofPrefix}))
 }
 
-func (s *HTTPServer) useCompressMiddleware(cCtx *cli.Context, r fiber.Router) {
+func (s *HTTPServer) useCompressMiddleware(cCtx *cli.Context) {
 	level := cCtx.Int(compressionLevelFlag)
 
-	r.Use(compress.New(compress.Config{
+	s.fiber.Use(compress.New(compress.Config{
 		Level: compress.Level(level),
 	}))
 }
 
-func (s *HTTPServer) useRecoverMiddleware(r fiber.Router) {
-	r.Use(recover.New(recover.Config{
+func (s *HTTPServer) useRecoverMiddleware() {
+	s.fiber.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
 			s.logger.Error(fmt.Sprintf("%v", e), zap.String("stack", string(debug.Stack())))
 		},
+	}))
+}
+
+func (s *HTTPServer) useZapLoggerMiddleware() {
+	s.fiber.Use(fiberzap.New(fiberzap.Config{
+		Logger: s.logger,
 	}))
 }

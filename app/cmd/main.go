@@ -24,7 +24,10 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			return NewHTTPServer(logger, cleaner2.New(logger)).SetupHandlers(logger).Start(cCtx)
+			return NewHTTPServer(logger, cleaner2.New(logger)).
+				SetupMiddleware(cCtx).
+				SetupHandlers().
+				Start(cCtx)
 		},
 	}
 

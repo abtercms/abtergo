@@ -645,7 +645,7 @@ func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	errorHandler := fib.NewErrorHandler(loggerStub)
 
 	app := fiber.New(fiber.Config{
-		ErrorHandler: errorHandler.Error,
+		ErrorHandler: errorHandler.Handle,
 		ReadTimeout:  time.Hour,
 		WriteTimeout: time.Hour,
 		IdleTimeout:  time.Hour,
