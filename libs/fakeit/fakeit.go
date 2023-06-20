@@ -120,7 +120,7 @@ func AddPathFaker() {
 				slug[i] = gofakeit.BS()
 			}
 
-			path := "/" + strings.ToLower(strings.Join(slug, "/"))
+			path := "/" + strings.Replace(strings.ToLower(strings.Join(slug, "/")), " ", "+", -1)
 
 			if r.NormFloat64() < 0.5 {
 				path += "." + gofakeit.FileExtension()

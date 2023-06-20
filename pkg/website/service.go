@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/templ"
 )
 
 // Service provides basic service functionality for Handler.
@@ -16,11 +17,11 @@ type Service interface {
 type service struct {
 	contentRetriever  ContentRetriever
 	templateRetriever TemplateRetriever
-	renderer          Renderer
+	renderer          templ.Renderer
 }
 
 // NewService creates a new Service instance.
-func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRetriever, renderer Renderer) Service {
+func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRetriever, renderer templ.Renderer) Service {
 	return &service{
 		contentRetriever:  contentRetriever,
 		templateRetriever: templateRetriever,

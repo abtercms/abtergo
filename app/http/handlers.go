@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/repo"
+	"github.com/abtergo/abtergo/libs/templ"
 	"github.com/abtergo/abtergo/pkg/block"
 	"github.com/abtergo/abtergo/pkg/page"
 	"github.com/abtergo/abtergo/pkg/redirect"
@@ -47,7 +48,8 @@ func createBlockHandler(logger *zap.Logger) *block.Handler {
 func createRendererHandler(logger *zap.Logger) *website.Handler {
 	contentRetriever := website.NewContentRetriever()
 	templateRetriever := website.NewTemplateRetriever()
-	renderer := website.NewRenderer()
+	parser := templ.NewParser("block")
+	renderer := templ.NewRenderer(parser, nil)
 	service := website.NewService(contentRetriever, templateRetriever, renderer)
 	handler := website.NewHandler(service, logger)
 

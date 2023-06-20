@@ -180,7 +180,7 @@ func TestAddPathFaker(t *testing.T) {
 
 		assert.NotEmpty(t, f.Bar)
 		assert.Equal(t, path.Clean(f.Bar), f.Bar)
-		assert.Regexp(t, regexp.MustCompile("^/[a-zA-Z0-9_/.-]+$"), f.Bar)
+		assert.Regexp(t, regexp.MustCompile("^/[a-zA-Z0-9_/. -]+$"), f.Bar)
 	})
 }
 

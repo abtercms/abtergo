@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	templMocks "github.com/abtergo/abtergo/mocks/libs/templ"
 	mocks "github.com/abtergo/abtergo/mocks/pkg/website"
 	"github.com/abtergo/abtergo/pkg/page"
 	templatePkg "github.com/abtergo/abtergo/pkg/template"
@@ -150,7 +151,7 @@ func TestService_Get(t *testing.T) {
 type serviceDeps struct {
 	contentRetriever  *mocks.ContentRetriever
 	templateRetriever *mocks.TemplateRetriever
-	rendererMock      *mocks.Renderer
+	rendererMock      *templMocks.Renderer
 }
 
 func (sd serviceDeps) AssertExpectations(t *testing.T) {
@@ -167,7 +168,7 @@ func setupServiceMocks(t *testing.T) (website.Service, serviceDeps) {
 	sd := serviceDeps{
 		contentRetriever:  &mocks.ContentRetriever{},
 		templateRetriever: &mocks.TemplateRetriever{},
-		rendererMock:      &mocks.Renderer{},
+		rendererMock:      &templMocks.Renderer{},
 	}
 
 	serviceMock := website.NewService(sd.contentRetriever, sd.templateRetriever, sd.rendererMock)
