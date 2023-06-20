@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/adelowo/onecache"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
@@ -32,11 +33,12 @@ type cleaner interface {
 type Server struct {
 	logger  *zap.Logger
 	cleaner cleaner
+	cache   onecache.Store
 	fiber   *fiber.App
 }
 
 // NewServer creates a new Server instance.
-func NewServer(logger *zap.Logger, cleaner cleaner) *Server {
+func NewServer(logger *zap.Logger, cleaner cleaner, cache onecache.Store) *Server {
 	errorHandler := fib.NewErrorHandler(logger)
 
 	f := fiber.New(fiber.Config{
@@ -52,6 +54,7 @@ func NewServer(logger *zap.Logger, cleaner cleaner) *Server {
 	return &Server{
 		logger:  logger,
 		cleaner: cleaner,
+		cache:   cache,
 		fiber:   f,
 	}
 }
@@ -78,7 +81,7 @@ func (s *Server) SetupHandlers() *Server {
 	createTemplateHandler(s.logger).AddAPIRoutes(api)
 	createPageHandler(s.logger).AddAPIRoutes(api)
 	createBlockHandler(s.logger).AddAPIRoutes(api)
-	createRendererHandler(s.logger).AddRoutes(api)
+	createRendererHandler(s.logger, s.cache).AddRoutes(api)
 
 	api.Get("/healthz", func(cCtx *fiber.Ctx) error { panic(errors.New("hello")) })
 

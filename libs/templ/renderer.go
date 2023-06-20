@@ -3,6 +3,7 @@ package templ
 import (
 	"strings"
 
+	"github.com/adelowo/onecache"
 	"github.com/cbroglie/mustache"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -18,10 +19,11 @@ type Renderer interface {
 }
 
 // NewRenderer creates a new Renderer instance.
-func NewRenderer(parser Parser, retrievers map[string]Retriever) Renderer {
+func NewRenderer(parser Parser, retrievers map[string]Retriever, cache onecache.Store) Renderer {
 	return &renderer{
 		retrievers: retrievers,
 		parser:     parser,
+		cache:      cache,
 	}
 }
 
@@ -29,6 +31,7 @@ type renderer struct {
 	context    []any
 	retrievers map[string]Retriever
 	parser     Parser
+	cache      onecache.Store
 }
 
 func (r *renderer) SetContext(context ...any) {
@@ -61,7 +64,7 @@ func (r *renderer) Render(template string, context ...any) (string, error) {
 		return parsedTemplate, nil
 	}
 
-	parsedTemplate, err = r.resolveViewTags(parsedTemplate, viewTags)
+	parsedTemplate, _, err = r.resolveViewTags(parsedTemplate, viewTags)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to process template")
 	}
@@ -74,18 +77,21 @@ func (r *renderer) Render(template string, context ...any) (string, error) {
 	return parsedTemplate, nil
 }
 
-func (r *renderer) resolveViewTags(parsedTemplate string, viewTags []ViewTag) (string, error) {
+func (r *renderer) resolveViewTags(parsedTemplate string, viewTags []ViewTag) (string, []CacheableContent, error) {
 	template := parsedTemplate
+	ccList := []CacheableContent{}
 	for _, viewTag := range viewTags {
-		retrievedTemplate, err := r.retrievers[viewTag.TagName].Retrieve(viewTag)
+		cc, err := r.retrievers[viewTag.TagName].Retrieve(viewTag)
 		if err != nil {
-			return parsedTemplate, arr.Wrap(err, "failed to retrieve template", zap.String("tag", viewTag.TagName), zap.String("needle example", viewTag.Needles[0]))
+			return "", nil, arr.Wrap(err, "failed to retrieve template", zap.String("tag", viewTag.TagName), zap.String("needle example", viewTag.Needles[0]))
 		}
 
+		ccList = append(ccList, cc)
+
 		for _, needle := range viewTag.Needles {
-			template = strings.Replace(template, needle, retrievedTemplate, -1)
+			template = strings.Replace(template, needle, cc.Content, -1)
 		}
 	}
 
-	return template, nil
+	return template, ccList, nil
 }

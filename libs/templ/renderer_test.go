@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/adelowo/onecache/memory"
 	"github.com/cbroglie/mustache"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/html"
@@ -202,11 +203,13 @@ Foobar`,
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeRetrieverMap := make(map[string]templ.Retriever)
-			fr := newFakeRetriever()
+			fr := newRetrieverDouble()
 			for i, vt := range tt.fields.viewTags {
 				fr.SetViewTag(vt, tt.fields.templates[i])
 				fakeRetrieverMap[vt.TagName] = fr
 			}
+
+			cacheDouble := memory.New()
 
 			parserMock := new(mocks.Parser)
 			parserMock.EXPECT().
@@ -218,7 +221,7 @@ Foobar`,
 				Maybe().
 				Return(nil, nil)
 			defer parserMock.AssertExpectations(t)
-			r := templ.NewRenderer(parserMock, fakeRetrieverMap)
+			r := templ.NewRenderer(parserMock, fakeRetrieverMap, cacheDouble)
 
 			got, err := r.Render(tt.args.template, tt.args.context...)
 

@@ -7,26 +7,26 @@ import (
 	"github.com/abtergo/abtergo/libs/util"
 )
 
-type fakeRetriever struct {
+type retrieverDouble struct {
 	results map[string]string
 }
 
-func newFakeRetriever() *fakeRetriever {
-	return &fakeRetriever{
+func newRetrieverDouble() *retrieverDouble {
+	return &retrieverDouble{
 		results: make(map[string]string),
 	}
 }
 
-func (fr *fakeRetriever) Retrieve(viewTag templ.ViewTag) (string, error) {
+func (fr *retrieverDouble) Retrieve(viewTag templ.ViewTag) (templ.CacheableContent, error) {
 	tag := util.ETagAny(viewTag)
 	str, ok := fr.results[tag]
 	if !ok {
-		return "", fmt.Errorf("no result found for %s", tag)
+		return templ.CacheableContent{}, fmt.Errorf("no result found for %s", tag)
 	}
 
-	return str, nil
+	return templ.CacheableContent{Content: str}, nil
 }
 
-func (fr *fakeRetriever) SetViewTag(viewTag templ.ViewTag, result string) {
+func (fr *retrieverDouble) SetViewTag(viewTag templ.ViewTag, result string) {
 	fr.results[util.ETagAny(viewTag)] = result
 }

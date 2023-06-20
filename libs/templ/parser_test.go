@@ -62,7 +62,7 @@ func TestRenderer_ParseBlocks(t *testing.T) {
 			},
 		},
 		{
-			name: "double",
+			name: "retrieverDouble",
 			args: args{
 				template: `Hello, <block module="moduleName" id="entityName" arg1="this" arg2="that"/>! <block module="moduleName2" id="entityName1" arg1="that" arg2="this">foo</block>!`,
 			},

@@ -12,6 +12,7 @@ import (
 
 func main() {
 	logger := createLogger()
+	cache := createCache()
 
 	app := &cli.App{
 		Name:  "server",
@@ -25,7 +26,7 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			return http.NewServer(logger, cleaner.New(logger)).
+			return http.NewServer(logger, cleaner.New(logger), cache).
 				SetupMiddleware(cCtx).
 				SetupHandlers().
 				Start(cCtx)

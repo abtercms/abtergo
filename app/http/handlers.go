@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/adelowo/onecache"
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/repo"
@@ -45,11 +46,11 @@ func createBlockHandler(logger *zap.Logger) *block.Handler {
 	return handler
 }
 
-func createRendererHandler(logger *zap.Logger) *website.Handler {
+func createRendererHandler(logger *zap.Logger, cache onecache.Store) *website.Handler {
 	contentRetriever := website.NewContentRetriever()
 	templateRetriever := website.NewTemplateRetriever()
 	parser := templ.NewParser("block")
-	renderer := templ.NewRenderer(parser, nil)
+	renderer := templ.NewRenderer(parser, nil, cache)
 	service := website.NewService(contentRetriever, templateRetriever, renderer)
 	handler := website.NewHandler(service, logger)
 
