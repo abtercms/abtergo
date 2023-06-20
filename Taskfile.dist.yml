@@ -38,16 +38,25 @@ tasks:
 
   integration:
     sources:
-    - doc/*
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt -tags=integration
 
   doc:
+    sources:
+    - doc/*
     cmds:
     - for f in `ls doc/*.d2`; do `d2 --sketch --layout elk --theme 200 $f ${f%.d2}.svg`;done
 
-  build:
-    deps: [lint clean generate integration doc]
+  default:
+    sources:
+    - app/**/*.go
+    - libs/**/*.go
+    - pkg/**/*.go
+    deps: [clean lint generate integration doc]
+    cmds:
+    - go build app/cmd/*
 
   run:
     sources:
