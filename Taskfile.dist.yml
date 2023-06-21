@@ -7,6 +7,9 @@ vars:
 
 tasks:
   clean:
+    sources:
+    - libs/**/*.go
+    - pkg/**/*.go
     cmds:
     - rm -rvf mocks build coverprofile.txt
     - mkdir mocks
@@ -14,6 +17,7 @@ tasks:
   generate:
     deps: [clean]
     sources:
+    - mocks/**/*.go
     - libs/**/*.go
     - pkg/**/*.go
     cmds:

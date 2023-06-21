@@ -23,6 +23,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/pkg/block"
+	"github.com/abtergo/abtergo/pkg/page"
+	"github.com/abtergo/abtergo/pkg/redirect"
+	"github.com/abtergo/abtergo/pkg/template"
+	"github.com/abtergo/abtergo/pkg/website"
 )
 
 type cleaner interface {
@@ -77,13 +82,16 @@ func (s *Server) SetupHandlers() *Server {
 	// Add API handlers
 	api := s.fiber.Group("/api")
 
-	createRedirectHandler(s.logger).AddAPIRoutes(api)
-	createTemplateHandler(s.logger).AddAPIRoutes(api)
-	createPageHandler(s.logger).AddAPIRoutes(api)
-	createBlockHandler(s.logger).AddAPIRoutes(api)
-	createRendererHandler(s.logger, s.cache).AddRoutes(api)
+	redirect.CreateHandler(s.logger).AddAPIRoutes(api)
+	template.CreateHandler(s.logger).AddAPIRoutes(api)
+	page.CreateHandler(s.logger).AddAPIRoutes(api)
+	block.CreateHandler(s.logger).AddAPIRoutes(api)
 
 	api.Get("/healthz", func(cCtx *fiber.Ctx) error { panic(errors.New("hello")) })
+
+	// Add Web handlers
+	web := s.fiber.Group("")
+	website.CreateHandler(s.logger, s.cache).AddRoutes(web)
 
 	return s
 }

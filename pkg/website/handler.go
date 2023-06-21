@@ -36,5 +36,5 @@ func (h *Handler) CatchAll(c *fiber.Ctx) error {
 		statusCode = arr.HTTPStatusFromError(err)
 	}
 
-	return c.Status(statusCode).Format(body)
+	return c.Status(statusCode).SendString(body)
 }

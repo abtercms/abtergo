@@ -21,10 +21,10 @@ func (fr *retrieverDouble) Retrieve(viewTag templ.ViewTag) (templ.CacheableConte
 	tag := util.ETagAny(viewTag)
 	str, ok := fr.results[tag]
 	if !ok {
-		return templ.CacheableContent{}, fmt.Errorf("no result found for %s", tag)
+		return nil, fmt.Errorf("no result found for %s", tag)
 	}
 
-	return templ.CacheableContent{Content: str}, nil
+	return templ.NewCacheableContent(str, nil), nil
 }
 
 func (fr *retrieverDouble) SetViewTag(viewTag templ.ViewTag, result string) {

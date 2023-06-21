@@ -31,9 +31,9 @@ func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRet
 
 // Get retrieves content for a given website+path combination.
 func (s *service) Get(ctx context.Context, website, path string) (string, error) {
-	content, err := s.contentRetriever.Retrieve(ctx, website, path)
+	page, err := s.contentRetriever.Retrieve(ctx, website, path)
 	if err != nil {
-		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve content", zap.String("website", website), zap.String("path", path))
+		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve page", zap.String("website", website), zap.String("path", path))
 	}
 
 	template, err := s.templateRetriever.Retrieve(ctx, website, path)
@@ -41,10 +41,27 @@ func (s *service) Get(ctx context.Context, website, path string) (string, error)
 		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve template", zap.String("website", website), zap.String("path", path))
 	}
 
-	raw, err := s.renderer.Render(template.Body, content.Render())
+	allContext := s.mergeContexts(page.GetContext(), template.GetContext())
+	raw, err := s.renderer.RenderInLayout(page.Render(), template.Render(), allContext...)
 	if err != nil {
 		return "", arr.WrapWithFallback(arr.TemplateError, err, "failed to render content", zap.String("website", website), zap.String("path", path))
 	}
 
 	return raw, nil
+}
+
+func (s *service) mergeContexts(c1, c2 []any) []any {
+	if len(c1) == 0 {
+		return c2
+	}
+
+	if len(c2) == 0 {
+		return c1
+	}
+
+	merged := make([]any, 0, len(c1)+len(c2))
+	merged = append(merged, c1...)
+	merged = append(merged, c2...)
+
+	return merged
 }

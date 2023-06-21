@@ -14,6 +14,73 @@ import (
 	mocks "github.com/abtergo/abtergo/mocks/libs/templ"
 )
 
+func TestRenderer_RenderInLayout(t *testing.T) {
+	type args struct {
+		content  string
+		template string
+		context  []interface{}
+	}
+	type fields struct {
+		parsedTemplate string
+		viewTags       []templ.ViewTag
+		templates      []string
+	}
+	tests := []struct {
+		name   string
+		args   args
+		fields fields
+		want   string
+	}{
+		{
+			name: "simple",
+			args: args{
+				content:  "<p>This is a fallback page. The resource you're looking for is not found.</p>",
+				template: `<!DOCTYPE html><html><body>{{{content}}}</body></html>`,
+			},
+			want: "<!DOCTYPE html><html><body><p>This is a fallback page. The resource you're looking for is not found.</p></body></html>",
+		},
+		{
+			name: "wrong order",
+			args: args{
+				content:  `<!DOCTYPE html><html><body>{{{content}}}</body></html>`,
+				template: "<p>This is a fallback page. The resource you're looking for is not found.</p>",
+			},
+			want: "<p>This is a fallback page. The resource you're looking for is not found.</p>",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeRetrieverMap := make(map[string]templ.Retriever)
+			fr := newRetrieverDouble()
+			for i, vt := range tt.fields.viewTags {
+				fr.SetViewTag(vt, tt.fields.templates[i])
+				fakeRetrieverMap[vt.TagName] = fr
+			}
+
+			cacheDouble := memory.New()
+
+			parserMock := new(mocks.Parser)
+			parserMock.EXPECT().
+				Parse(tt.fields.parsedTemplate).
+				Maybe().
+				Return(tt.fields.viewTags, nil)
+			parserMock.EXPECT().
+				Parse(tt.want).
+				Maybe().
+				Return(nil, nil)
+			defer parserMock.AssertExpectations(t)
+			r := templ.NewRenderer(parserMock, fakeRetrieverMap, cacheDouble)
+
+			got, err := r.RenderInLayout(tt.args.content, tt.args.template, tt.args.context...)
+
+			assert.NoError(t, err)
+			if got != tt.want {
+				t.Errorf("Render() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRenderer_Render(t *testing.T) {
 	type data struct {
 		A bool
@@ -50,6 +117,22 @@ You have just won ${{value}}!`,
 			},
 			want: `Hello, World!
 You have just won $12!`,
+		},
+		{
+			name: "no override",
+			args: args{
+				template: `Hello, {{name}}!
+You have just won ${{value}}!`,
+				context: []interface{}{
+					map[string]string{"name": "World", "value": "11"},
+					map[string]int{"value": 12},
+				},
+			},
+			fields: fields{
+				parsedTemplate: `Hello, World!`,
+			},
+			want: `Hello, World!
+You have just won $11!`,
 		},
 		{
 			name: "section",

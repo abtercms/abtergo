@@ -13,9 +13,8 @@ import (
 
 // Renderer is an interface enabling rendering of content.
 type Renderer interface {
-	AddContext(context ...any)
-	SetContext(context ...any)
 	Render(template string, context ...any) (string, error)
+	RenderInLayout(content, template string, context ...any) (string, error)
 }
 
 // NewRenderer creates a new Renderer instance.
@@ -28,25 +27,23 @@ func NewRenderer(parser Parser, retrievers map[string]Retriever, cache onecache.
 }
 
 type renderer struct {
-	context    []any
 	retrievers map[string]Retriever
 	parser     Parser
 	cache      onecache.Store
 }
 
-func (r *renderer) SetContext(context ...any) {
-	r.context = context
-}
+func (r *renderer) RenderInLayout(content, template string, context ...any) (string, error) {
+	parsedTemplate, err := mustache.RenderInLayout(content, template, context...)
+	if err != nil {
+		return "", errors.Wrap(err, "mustache failed to render template")
+	}
 
-func (r *renderer) AddContext(context ...any) {
-	r.context = append(r.context, context...)
+	return r.Render(parsedTemplate, context...)
 }
 
 // Render renders content using a template library using given template and context.
 func (r *renderer) Render(template string, context ...any) (string, error) {
-	allContext := append(r.context, context...)
-
-	parsedTemplate, err := mustache.Render(template, allContext...)
+	parsedTemplate, err := mustache.Render(template, context...)
 	if err != nil {
 		return "", errors.Wrap(err, "mustache failed to render template")
 	}
@@ -89,7 +86,7 @@ func (r *renderer) resolveViewTags(parsedTemplate string, viewTags []ViewTag) (s
 		ccList = append(ccList, cc)
 
 		for _, needle := range viewTag.Needles {
-			template = strings.Replace(template, needle, cc.Content, -1)
+			template = strings.Replace(template, needle, cc.Render(), -1)
 		}
 	}
 

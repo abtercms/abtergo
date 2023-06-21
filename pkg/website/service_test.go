@@ -20,15 +20,15 @@ func TestService_Get(t *testing.T) {
 	t.Run("error retrieving content", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage()
+		randomPage := page.RandomPage()
 
 		deps.contentRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
 			Return(nil, assert.AnError)
 
-		got, err := s.Get(ctxStub, pageStub.Website, pageStub.Path)
+		got, err := s.Get(ctxStub, randomPage.Website, randomPage.Path)
 
 		assert.Error(t, err)
 		assert.Empty(t, got)
@@ -39,28 +39,25 @@ func TestService_Get(t *testing.T) {
 	t.Run("error retrieving template", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage()
+		randomPage := page.RandomPage()
 
-		contentStub := new(mocks.Content)
-		contentStub.
-			EXPECT().
-			Render().
-			Once().
-			Return(pageStub.Body, nil)
+		contentMock := new(templMocks.CacheableContent)
+		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)
+		contentMock.EXPECT().GetContext().Once().Return(nil)
 
 		deps.contentRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(contentStub, nil)
+			Return(contentMock, nil)
 
 		deps.templateRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(templatePkg.Template{}, assert.AnError)
+			Return(nil, assert.AnError)
 
-		got, err := s.Get(ctxStub, pageStub.Website, pageStub.Path)
+		got, err := s.Get(ctxStub, randomPage.Website, randomPage.Path)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -71,35 +68,36 @@ func TestService_Get(t *testing.T) {
 	t.Run("error rendering content", func(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage()
-		template := templatePkg.RandomTemplate(false)
+		randomPage := page.RandomPage()
+		randomTemplate := templatePkg.RandomTemplate(false)
 
-		contentStub := new(mocks.Content)
-		contentStub.
-			EXPECT().
-			Render().
-			Once().
-			Return(pageStub.Body, nil)
+		contentMock := new(templMocks.CacheableContent)
+		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)
+		contentMock.EXPECT().GetContext().Once().Return(nil)
+
+		templateMock := new(templMocks.CacheableContent)
+		templateMock.EXPECT().Render().Once().Return(randomTemplate.Body, nil)
+		templateMock.EXPECT().GetContext().Once().Return(nil)
 
 		deps.contentRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(contentStub, nil)
+			Return(contentMock, nil)
 
 		deps.templateRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(template, nil)
+			Return(templateMock, nil)
 
 		deps.rendererMock.
 			EXPECT().
-			Render(template.Body, pageStub.Body).
+			RenderInLayout(randomPage.Body, randomTemplate.Body).
 			Once().
 			Return("", assert.AnError)
 
-		got, err := s.Get(ctxStub, pageStub.Website, pageStub.Path)
+		got, err := s.Get(ctxStub, randomPage.Website, randomPage.Path)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -112,35 +110,36 @@ func TestService_Get(t *testing.T) {
 
 		s, deps := setupServiceMocks(t)
 
-		pageStub := page.RandomPage()
-		template := templatePkg.RandomTemplate(false)
+		randomPage := page.RandomPage()
+		randomTemplate := templatePkg.RandomTemplate(false)
 
-		contentStub := new(mocks.Content)
-		contentStub.
-			EXPECT().
-			Render().
-			Once().
-			Return(pageStub.Body, nil)
+		contentMock := new(templMocks.CacheableContent)
+		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)
+		contentMock.EXPECT().GetContext().Once().Return(nil)
+
+		templateMock := new(templMocks.CacheableContent)
+		templateMock.EXPECT().Render().Once().Return(randomTemplate.Body, nil)
+		templateMock.EXPECT().GetContext().Once().Return(nil)
 
 		deps.contentRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(contentStub, nil)
+			Return(contentMock, nil)
 
 		deps.templateRetriever.
 			EXPECT().
-			Retrieve(mock.Anything, pageStub.Website, pageStub.Path).
+			Retrieve(mock.Anything, randomPage.Website, randomPage.Path).
 			Once().
-			Return(template, nil)
+			Return(templateMock, nil)
 
 		deps.rendererMock.
 			EXPECT().
-			Render(template.Body, pageStub.Body).
+			RenderInLayout(randomPage.Body, randomTemplate.Body).
 			Once().
 			Return(expectedBody, nil)
 
-		got, err := s.Get(ctxStub, pageStub.Website, pageStub.Path)
+		got, err := s.Get(ctxStub, randomPage.Website, randomPage.Path)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedBody, got)
