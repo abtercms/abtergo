@@ -63,9 +63,9 @@ func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 
 // Get retrieves an existing entity.
 func (s *service) Get(ctx context.Context, id string) (Page, error) {
-	entity, err := s.repo.Retrieve(ctx, id)
+	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return Page{}, errors.Wrap(err, "retrieving entity failed")
+		return Page{}, errors.Wrap(err, "getting entity failed")
 	}
 
 	return entity, nil
@@ -115,7 +115,7 @@ func (s *service) Delete(ctx context.Context, id, oldETag string) error {
 
 // Transition changes the status of an existing entity.
 func (s *service) Transition(ctx context.Context, id string, trigger Trigger, oldEtag string) (Page, error) {
-	page, err := s.repo.Retrieve(ctx, id)
+	page, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Page{}, errors.Wrap(err, "page not found")
 	}

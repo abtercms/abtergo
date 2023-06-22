@@ -116,7 +116,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(template.Template{}, assert.AnError)
 		s := template.NewService(repoMock, loggerStub)
@@ -133,7 +133,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
 		s := template.NewService(repoMock, loggerStub)

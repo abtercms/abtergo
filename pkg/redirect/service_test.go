@@ -116,7 +116,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(redirect.Redirect{}, assert.AnError)
 		s := redirect.NewService(repoMock, loggerStub)
@@ -133,7 +133,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
 		s := redirect.NewService(repoMock, loggerStub)

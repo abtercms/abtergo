@@ -8,6 +8,7 @@ v0.1
 
 v0.2
 * [ ] User management
+* [ ] Redis/memcached based caching
 
 v0.3
 * [ ] File management 

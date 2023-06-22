@@ -104,7 +104,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(page.Page{}, assert.AnError)
 		updaterMock := new(mocks.Updater)
@@ -123,7 +123,7 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
 		updaterMock := new(mocks.Updater)
@@ -279,7 +279,7 @@ func Test_service_Transition(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, idStub).
+			GetByID(ctxStub, idStub).
 			Once().
 			Return(page.Page{}, assert.AnError)
 		updaterMock := new(mocks.Updater)
@@ -301,7 +301,7 @@ func Test_service_Transition(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, idStub).
+			GetByID(ctxStub, idStub).
 			Once().
 			Return(entityStub, nil)
 		updaterMock := new(mocks.Updater)
@@ -324,7 +324,7 @@ func Test_service_Transition(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, idStub).
+			GetByID(ctxStub, idStub).
 			Once().
 			Return(entityStub, nil)
 		updaterMock := new(mocks.Updater)
@@ -354,7 +354,7 @@ func Test_service_Transition(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, idStub).
+			GetByID(ctxStub, idStub).
 			Once().
 			Return(entityStub, nil)
 		repoMock.EXPECT().
@@ -388,7 +388,7 @@ func Test_service_Transition(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[page.Page])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, idStub).
+			GetByID(ctxStub, idStub).
 			Once().
 			Return(entityStub, nil)
 		repoMock.EXPECT().

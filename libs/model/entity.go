@@ -7,7 +7,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
+	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fakeit"
 	"github.com/abtergo/abtergo/libs/validation"
 )
@@ -39,6 +41,12 @@ type EntityInterface interface {
 	IsModified(newETag string) bool
 	Validate() error
 	IsComplete() bool
+	GetUniqueKey() string
+}
+
+type Retrievable interface {
+	GetWebsite() string
+	GetPath() string
 }
 
 func id() string {
@@ -152,6 +160,10 @@ func (e Entity) SetETag(eTag string) EntityInterface {
 
 func (e Entity) GetETag() string {
 	return e.ETag
+}
+
+func (e Entity) GetUniqueKey() string {
+	panic(arr.New(arr.ApplicationError, "invalid unique key request", zap.String("entity", e.ID)))
 }
 
 func (e Entity) IsModified(newETag string) bool {

@@ -53,15 +53,6 @@ tasks:
     cmds:
     - for f in `ls doc/*.d2`; do `d2 --sketch --layout elk --theme 200 $f ${f%.d2}.svg`;done
 
-  default:
-    sources:
-    - app/**/*.go
-    - libs/**/*.go
-    - pkg/**/*.go
-    deps: [clean lint generate integration doc]
-    cmds:
-    - go build app/cmd/*
-
   run:
     sources:
     - app/**/*.go
@@ -85,3 +76,12 @@ tasks:
     cmds:
     - go get -t -u ./...
     - go mod tidy
+
+  default:
+    deps: [generate, lint, unit]
+    sources:
+    - app/**/*.go
+    - libs/**/*.go
+    - pkg/**/*.go
+    cmds:
+      - go install app/cmd/*

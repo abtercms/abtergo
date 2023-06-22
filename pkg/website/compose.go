@@ -8,7 +8,7 @@ import (
 )
 
 func CreateHandler(logger *zap.Logger, cache onecache.Store) *Handler {
-	cr := NewContentRetriever()
+	cr := NewContentRetriever(logger, nil)
 	tr := NewTemplateRetriever()
 	p := templ.NewParser("block")
 	r := templ.NewRenderer(p, nil, cache)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/abtergo/abtergo/libs/html"
 	"github.com/abtergo/abtergo/libs/model"
+	"github.com/abtergo/abtergo/libs/util"
 	"github.com/abtergo/abtergo/libs/validation"
 )
 
@@ -41,4 +42,20 @@ func (t Template) Clone() model.EntityInterface {
 
 func (t Template) Validate() error {
 	return templateValidator.Struct(&t)
+}
+
+func (t Template) Render() string {
+	return t.Body
+}
+
+func (t Template) GetContext() []any {
+	return []any{t}
+}
+
+func (t Template) GetTags() []string {
+	return []string{"template-" + t.ID}
+}
+
+func (t Template) GetUniqueKey() string {
+	return util.Key(t.Website, t.Name)
 }

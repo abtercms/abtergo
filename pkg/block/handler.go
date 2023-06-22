@@ -69,7 +69,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
 	checkWiring(id)
 
-	response, err := h.service.Get(c.Context(), id)
+	response, err := h.service.GetByID(c.Context(), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to get entity")
 	}

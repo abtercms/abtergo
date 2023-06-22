@@ -56,7 +56,7 @@ func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error)
 
 // Get retrieves an existing entity.
 func (s *service) Get(ctx context.Context, id string) (Redirect, error) {
-	entity, err := s.repo.Retrieve(ctx, id)
+	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Redirect{}, errors.Wrap(err, "failed to retrieve redirect")
 	}

@@ -13,9 +13,8 @@ import (
 	"github.com/abtergo/abtergo/libs/util"
 )
 
-// Service provides basic service functionality for Handler.
 type Service interface {
-	Get(ctx context.Context, id string) (Block, error)
+	GetByID(ctx context.Context, id string) (Block, error)
 	List(ctx context.Context, filter Filter) ([]Block, error)
 	Create(ctx context.Context, block Block) (Block, error)
 	Update(ctx context.Context, id string, block Block, oldETag string) (Block, error)
@@ -29,7 +28,6 @@ type service struct {
 	repo   Repo
 }
 
-// NewService creates a new Service instance.
 func NewService(repo Repo, logger *zap.Logger) Service {
 	return &service{
 		logger: logger,
@@ -37,7 +35,6 @@ func NewService(repo Repo, logger *zap.Logger) Service {
 	}
 }
 
-// Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Block) (Block, error) {
 	if err := entity.Validate(); err != nil {
 		return Block{}, arr.WrapWithType(arr.InvalidUserInput, err, "validation failed")
@@ -54,9 +51,8 @@ func (s *service) Create(ctx context.Context, entity Block) (Block, error) {
 	return entity, nil
 }
 
-// Get retrieves an existing entity.
-func (s *service) Get(ctx context.Context, id string) (Block, error) {
-	entity, err := s.repo.Retrieve(ctx, id)
+func (s *service) GetByID(ctx context.Context, id string) (Block, error) {
+	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Block{}, errors.Wrap(err, "failed to retrieve entity")
 	}
@@ -64,7 +60,6 @@ func (s *service) Get(ctx context.Context, id string) (Block, error) {
 	return entity, nil
 }
 
-// List retrieves a collection of existing entities.
 func (s *service) List(ctx context.Context, filter Filter) ([]Block, error) {
 	entities, err := s.repo.List(ctx, filter)
 	if err != nil {
@@ -74,7 +69,6 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Block, error) {
 	return entities, nil
 }
 
-// Update updates an existing entity.
 func (s *service) Update(ctx context.Context, id string, entity Block, etag string) (Block, error) {
 	if entity.ID != "" && entity.ID != id {
 		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
@@ -96,7 +90,6 @@ func (s *service) Update(ctx context.Context, id string, entity Block, etag stri
 	return entity, nil
 }
 
-// Delete deletes an existing entity.
 func (s *service) Delete(ctx context.Context, id, oldETag string) error {
 	err := s.repo.Delete(ctx, id, oldETag)
 	if err != nil {

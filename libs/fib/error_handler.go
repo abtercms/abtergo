@@ -30,7 +30,7 @@ func (eh *ErrorHandler) Handle(ctx *fiber.Ctx, err error) error {
 	}
 
 	if p.Status == fiber.StatusInternalServerError {
-		// Retrieve the custom status code if it's a *fiber.Handle
+		// GetByKey the custom status code if it's a *fiber.Handle
 		var e *fiber.Error
 		if errors.As(err, &e) && e.Code != fiber.StatusInternalServerError {
 			p = problem.FromError(ctx.BaseURL(), err)

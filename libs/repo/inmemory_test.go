@@ -12,18 +12,26 @@ import (
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
+	"github.com/abtergo/abtergo/libs/util"
 	mocks "github.com/abtergo/abtergo/mocks/libs/repo"
 )
 
 type testEntity struct {
 	model.Entity
 
-	Foo string `json:"foo"`
+	Website string `json:"website,omitempty"`
+	Path    string `json:"path,omitempty"`
+	Foo     string `json:"foo"`
+}
+
+func (e testEntity) GetUniqueKey() string {
+	return util.Key(e.Website, e.Path)
 }
 
 func (e testEntity) Clone() model.EntityInterface {
 	c := e.AsNew().(testEntity)
 	c.Entity = e.Entity.Clone().(model.Entity)
+
 	return e
 }
 
@@ -78,7 +86,7 @@ func TestInMemoryRepo_Create(t *testing.T) {
 	})
 }
 
-func TestInMemoryRepo_Retrieve(t *testing.T) {
+func TestInMemoryRepo_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -94,7 +102,7 @@ func TestInMemoryRepo_Retrieve(t *testing.T) {
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
-		retrievedEntity, err := sut.Retrieve(ctx, storedEntity.ID)
+		retrievedEntity, err := sut.GetByID(ctx, storedEntity.ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, retrievedEntity, storedEntity)
@@ -116,7 +124,53 @@ func TestInMemoryRepo_Retrieve(t *testing.T) {
 		storedEntity, err := sut.Create(ctx, stubEntity)
 		require.NoError(t, err)
 
-		retrievedEntity, err := sut.Retrieve(ctx, storedEntity.ID)
+		retrievedEntity, err := sut.GetByID(ctx, storedEntity.ID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, retrievedEntity, storedEntity)
+		assert.Equal(t, stubEntity.AsNew(), storedEntity.AsNew())
+	})
+}
+
+func TestInMemoryRepo_Retrieve(t *testing.T) {
+	t.Run("missing index", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity:  model.NewEntity(),
+			Foo:     "foo",
+			Website: "bar",
+			Path:    "quix",
+		}
+		stubEntity.ETag = "baz"
+
+		_, err := sut.GetByKey(ctx, stubEntity.GetUniqueKey())
+
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusNotFound, arr.HTTPStatusFromError(err))
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		sut := repo.NewInMemoryRepo[testEntity]()
+
+		stubEntity := testEntity{
+			Entity:  model.NewEntity(),
+			Foo:     "foo",
+			Website: "bar",
+			Path:    "quix",
+		}
+		stubEntity.ETag = "baz"
+
+		storedEntity, err := sut.Create(ctx, stubEntity)
+		require.NoError(t, err)
+
+		retrievedEntity, err := sut.GetByKey(ctx, stubEntity.GetUniqueKey())
 
 		assert.NoError(t, err)
 		assert.Equal(t, retrievedEntity, storedEntity)
@@ -204,7 +258,7 @@ func TestInMemoryRepo_Update(t *testing.T) {
 		updatedEntity, err := sut.Update(ctx, stubEntity2, storedEntity.GetETag())
 		assert.NoError(t, err)
 
-		retrievedEntity, err := sut.Retrieve(ctx, updatedEntity.ID)
+		retrievedEntity, err := sut.GetByID(ctx, updatedEntity.ID)
 
 		assert.NoError(t, err)
 		assert.NotEqual(t, retrievedEntity, storedEntity)
@@ -270,7 +324,7 @@ func TestInMemoryRepo_Delete(t *testing.T) {
 		err = sut.Delete(ctx, storedEntity.GetID(), storedEntity.GetETag())
 
 		assert.NoError(t, err)
-		_, err = sut.Retrieve(ctx, storedEntity.ID)
+		_, err = sut.GetByID(ctx, storedEntity.ID)
 		assert.Error(t, err)
 	})
 }

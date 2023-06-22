@@ -242,7 +242,7 @@ func TestHandler_Get(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Get(mock.Anything, expectedBlock.ID).
+			GetByID(mock.Anything, expectedBlock.ID).
 			Once().
 			Return(block.Block{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, ""))
 
@@ -278,7 +278,7 @@ func TestHandler_Get(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Get(mock.Anything, expectedBlock.ID).
+			GetByID(mock.Anything, expectedBlock.ID).
 			Once().
 			Return(expectedBlock, nil)
 

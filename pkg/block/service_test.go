@@ -81,12 +81,12 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(block.Block{}, assert.AnError)
 		s := block.NewService(repoMock, loggerStub)
 
-		_, err := s.Get(ctxStub, entityStub.ID)
+		_, err := s.GetByID(ctxStub, entityStub.ID)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -98,12 +98,12 @@ func TestService_Get(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Retrieve(ctxStub, entityStub.ID).
+			GetByID(ctxStub, entityStub.ID).
 			Once().
 			Return(entityStub, nil)
 		s := block.NewService(repoMock, loggerStub)
 
-		got, err := s.Get(ctxStub, entityStub.ID)
+		got, err := s.GetByID(ctxStub, entityStub.ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)

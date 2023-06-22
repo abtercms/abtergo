@@ -7,6 +7,7 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/templ"
+	"github.com/abtergo/abtergo/libs/util"
 )
 
 // Service provides basic service functionality for Handler.
@@ -31,7 +32,7 @@ func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRet
 
 // Get retrieves content for a given website+path combination.
 func (s *service) Get(ctx context.Context, website, path string) (string, error) {
-	page, err := s.contentRetriever.Retrieve(ctx, website, path)
+	page, err := s.contentRetriever.Retrieve(ctx, util.Key(website, path))
 	if err != nil {
 		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve page", zap.String("website", website), zap.String("path", path))
 	}

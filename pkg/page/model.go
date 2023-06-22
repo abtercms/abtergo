@@ -54,6 +54,22 @@ func (p Page) Clone() model.EntityInterface {
 	}
 }
 
+func (p Page) Render() string {
+	return p.Body
+}
+
+func (p Page) GetContext() []any {
+	return []any{p}
+}
+
+func (p Page) GetTags() []string {
+	return []string{"page-" + p.ID}
+}
+
+func (p Page) GetUniqueKey() string {
+	return util.Key(p.Website, p.Path)
+}
+
 func (p Page) Validate() error {
 	return pageValidator.Struct(p)
 }

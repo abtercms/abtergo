@@ -30,6 +30,10 @@ func (h *Handler) AddRoutes(r fiber.Router) {
 func (h *Handler) CatchAll(c *fiber.Ctx) error {
 	h.logger.Info("catch all", zap.String("method", c.Method()), zap.String("path", c.Path()))
 
+	if c.Method() != fiber.MethodGet {
+		return c.SendStatus(fiber.StatusMethodNotAllowed)
+	}
+
 	statusCode := fiber.StatusOK
 	body, err := h.service.Get(c.Context(), c.BaseURL(), c.Path())
 	if err != nil {
