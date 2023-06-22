@@ -19,7 +19,7 @@ type Service interface {
 	Create(ctx context.Context, page Page) (Page, error)
 	Update(ctx context.Context, id model.ID, page Page, oldETag model.ETag) (Page, error)
 	Delete(ctx context.Context, id model.ID, oldETag model.ETag) error
-	Transition(ctx context.Context, id model.ID, trigger Trigger, oldEtag model.ETag) (Page, error)
+	Transition(ctx context.Context, id model.ID, trigger Trigger, oldETag model.ETag) (Page, error)
 }
 
 type Repo = repo.Repository[Page]
@@ -113,14 +113,14 @@ func (s *service) Delete(ctx context.Context, id model.ID, oldETag model.ETag) e
 }
 
 // Transition changes the status of an existing entity.
-func (s *service) Transition(ctx context.Context, id model.ID, trigger Trigger, oldEtag model.ETag) (Page, error) {
+func (s *service) Transition(ctx context.Context, id model.ID, trigger Trigger, oldETag model.ETag) (Page, error) {
 	page, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Page{}, errors.Wrap(err, "page not found")
 	}
 
-	if page.ETag != oldEtag {
-		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", zap.Stringer("id", id), zap.Stringer("request etag", oldEtag), zap.Stringer("found etag", page.ETag))
+	if page.ETag != oldETag {
+		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", zap.Stringer("id", id), zap.Stringer("request e-tag", oldETag), zap.Stringer("found e-tag", page.ETag))
 	}
 
 	newStatus, err := s.updater.Transition(page.Status, trigger)
@@ -131,7 +131,7 @@ func (s *service) Transition(ctx context.Context, id model.ID, trigger Trigger, 
 	page.Status = newStatus
 	// TODO: update the e-tag
 
-	newPage, err := s.repo.Update(ctx, page, oldEtag)
+	newPage, err := s.repo.Update(ctx, page, oldETag)
 	if err != nil {
 		return Page{}, errors.Wrap(err, "failed to update page")
 	}

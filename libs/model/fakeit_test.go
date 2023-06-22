@@ -11,7 +11,7 @@ import (
 	"github.com/abtergo/abtergo/libs/model"
 )
 
-func TestAddEtagFaker(t *testing.T) {
+func TestAddETagFaker(t *testing.T) {
 	model.AddETagFaker()
 
 	t.Run("success", func(t *testing.T) {

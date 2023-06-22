@@ -30,13 +30,13 @@ func TestTemplate_Validate(t *testing.T) {
 		invalidFields []string
 	}{
 		{
-			name:          "id is required if etag, updated at or created at are present",
+			name:          "id is required if e-tag is present, updated at or created at are present",
 			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.ID = "" },
 			invalidFields: []string{"id"},
 		},
 		{
-			name:     "id, etag, created at and updated at are not required if all are empty",
+			name:     "id, e-tag, created at and updated at are not required if all are empty",
 			template: template.RandomTemplate(false),
 			modifier: func(c *template.Template) {
 				c.ID = ""
@@ -89,13 +89,13 @@ func TestTemplate_Validate(t *testing.T) {
 			invalidFields: []string{"name", "content"},
 		},
 		{
-			name:          "etag is required if id, updated at or created at are present",
+			name:          "e-tag is required if id, updated at or created at are present",
 			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.ETag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{
-			name:          "created at is required if id, etag, or updated at are present",
+			name:          "created at is required if id, e-tag, or updated at are present",
 			template:      template.RandomTemplate(false),
 			modifier:      func(c *template.Template) { c.CreatedAt = time.Time{} },
 			invalidFields: []string{"created_at"},

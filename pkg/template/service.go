@@ -74,7 +74,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Template, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id model.ID, entity Template, oldEtag model.ETag) (Template, error) {
+func (s *service) Update(ctx context.Context, id model.ID, entity Template, oldETag model.ETag) (Template, error) {
 	if entity.ID != "" && entity.ID != id {
 		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
 	}
@@ -87,7 +87,7 @@ func (s *service) Update(ctx context.Context, id model.ID, entity Template, oldE
 	entity.UpdatedAt = time.Now()
 	entity.ETag = model.ETagFromAny(entity)
 
-	entity, err := s.repo.Update(ctx, entity, oldEtag)
+	entity, err := s.repo.Update(ctx, entity, oldETag)
 	if err != nil {
 		return Template{}, errors.Wrap(err, "failed to update entity")
 	}

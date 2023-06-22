@@ -18,7 +18,7 @@ func NewValidator() *validator.Validate {
 	v.RegisterTagNameFunc(jsonTagName)
 
 	AddNotBeforeValidation(v)
-	AddEtagValidation(v)
+	AddETagValidation(v)
 	AddPathValidation(v)
 
 	return v
@@ -40,8 +40,8 @@ func AddNotBeforeValidation(v *validator.Validate) {
 	mustRegister(err, "not_before_date")
 }
 
-func AddEtagValidation(v *validator.Validate) {
-	err := v.RegisterValidation("etag", ValidateEtag)
+func AddETagValidation(v *validator.Validate) {
+	err := v.RegisterValidation("etag", ValidateETag)
 	mustRegister(err, "etag")
 }
 
@@ -82,8 +82,8 @@ func ValidateNotBeforeDate(fl validator.FieldLevel) bool {
 	panic(fmt.Errorf("bad field type %T", field.Interface()))
 }
 
-// ValidateEtag validates an e-tag.
-func ValidateEtag(fl validator.FieldLevel) bool {
+// ValidateETag validates an e-tag.
+func ValidateETag(fl validator.FieldLevel) bool {
 	val := fl.Field().String()
 
 	if val == "" {

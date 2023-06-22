@@ -23,7 +23,7 @@ func ETagFromString(input string) ETag {
 	return ETag(encodedString[:5])
 }
 
-// ETagFromAny generates an etag derived from any JSON marshalable source.
+// ETagFromAny generates an e-tag derived from any JSON marshalable source.
 func ETagFromAny(input any) ETag {
 	data, err := json.Marshal(input)
 	if err != nil {

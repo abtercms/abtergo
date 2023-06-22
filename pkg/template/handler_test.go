@@ -424,7 +424,7 @@ func TestHandler_Put(t *testing.T) {
 func TestHandler_Delete(t *testing.T) {
 	const (
 		baseURLStub                 = "https://example.com"
-		previousEtagStub model.ETag = "foo"
+		previousETagStub model.ETag = "foo"
 	)
 
 	t.Run("error deleting entity", func(t *testing.T) {
@@ -437,14 +437,14 @@ func TestHandler_Delete(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Delete(mock.Anything, expectedTemplate.ID, previousEtagStub).
+			Delete(mock.Anything, expectedTemplate.ID, previousETagStub).
 			Once().
 			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
 		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -468,14 +468,14 @@ func TestHandler_Delete(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Delete(mock.Anything, expectedTemplate.ID, previousEtagStub).
+			Delete(mock.Anything, expectedTemplate.ID, previousETagStub).
 			Once().
 			Return(nil)
 
 		// Request
 		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test

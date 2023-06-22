@@ -33,8 +33,8 @@ type EntityInterface interface {
 	GetDeletedAt() *time.Time
 	SetDeletedAt(t2 *time.Time) EntityInterface
 	GetETag() ETag
-	SetETag(etag ETag) EntityInterface
-	ResetETag(etag ETag) EntityInterface
+	SetETag(eTag ETag) EntityInterface
+	ResetETag(eTag ETag) EntityInterface
 	GetID() ID
 	SetID(id ID) EntityInterface
 	Clone() EntityInterface
@@ -45,20 +45,20 @@ type EntityInterface interface {
 
 type ID string
 
-func (id ID) String() string {
-	return string(id)
+func (i ID) String() string {
+	return string(i)
 }
 
 type ETag string
 
-func (etag ETag) String() string {
-	return string(etag)
+func (e ETag) String() string {
+	return string(e)
 }
 
 type Key string
 
-func (key Key) String() string {
-	return string(key)
+func (k Key) String() string {
+	return string(k)
 }
 
 func id() ID {

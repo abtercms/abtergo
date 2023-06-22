@@ -208,7 +208,7 @@ func TestErrorType_HTTPStatus(t *testing.T) {
 			want: http.StatusConflict,
 		},
 		{
-			name: "invalid etag",
+			name: "invalid e-tag",
 			et:   arr.ETagMismatch,
 			want: http.StatusPreconditionFailed,
 		},
@@ -267,7 +267,7 @@ func TestErrorType_GetSlug(t *testing.T) {
 			want: "resource-is-outdated",
 		},
 		{
-			name: "invalid etag",
+			name: "invalid e-tag",
 			et:   arr.ETagMismatch,
 			want: "e-tag-mismatch",
 		},

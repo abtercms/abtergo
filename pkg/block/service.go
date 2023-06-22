@@ -68,7 +68,7 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Block, error) {
 	return entities, nil
 }
 
-func (s *service) Update(ctx context.Context, id model.ID, entity Block, etag model.ETag) (Block, error) {
+func (s *service) Update(ctx context.Context, id model.ID, entity Block, eTag model.ETag) (Block, error) {
 	if entity.ID != "" && entity.ID != id {
 		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
 	}
@@ -81,7 +81,7 @@ func (s *service) Update(ctx context.Context, id model.ID, entity Block, etag mo
 	entity.UpdatedAt = time.Now()
 	entity.ETag = model.ETagFromAny(entity)
 
-	entity, err := s.repo.Update(ctx, entity, etag)
+	entity, err := s.repo.Update(ctx, entity, eTag)
 	if err != nil {
 		return Block{}, errors.Wrap(err, "failed to update entity")
 	}

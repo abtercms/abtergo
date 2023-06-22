@@ -15,11 +15,11 @@ func TestValidate(t *testing.T) {
 	v := validation.NewValidator()
 
 	validation.AddNotBeforeValidation(v)
-	validation.AddEtagValidation(v)
+	validation.AddETagValidation(v)
 	validation.AddPathValidation(v)
 
 	type obj struct {
-		Etag      string    `json:"etag" validate:"etag"`
+		ETag      string    `json:"etag" validate:"etag"`
 		CreatedAt time.Time `json:"created_at,omitempty" validate:"not_before_date=2023-01-01"`
 		Path      string    `json:"path,omitempty" validate:"path"`
 	}
@@ -32,16 +32,16 @@ func TestValidate(t *testing.T) {
 		{
 			name: "valid",
 			obj: obj{
-				Etag:      "abc23",
+				ETag:      "abc23",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
 				Path:      "/path",
 			},
 			wantErr: nil,
 		},
 		{
-			name: "empty etag",
+			name: "empty e-tag",
 			obj: obj{
-				Etag:      "",
+				ETag:      "",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
 			},
 			wantErr: nil,
@@ -49,15 +49,15 @@ func TestValidate(t *testing.T) {
 		{
 			name: "empty created at",
 			obj: obj{
-				Etag:      "",
+				ETag:      "",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
 			},
 			wantErr: nil,
 		},
 		{
-			name: "invalid etag",
+			name: "invalid e-tag",
 			obj: obj{
-				Etag:      "ASBDJSI",
+				ETag:      "ASBDJSI",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
 			},
 			wantErr: errors.New("Key: 'obj.etag' Error:Field validation for 'etag' failed on the 'etag' tag"),
@@ -65,7 +65,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "created_at is before date",
 			obj: obj{
-				Etag:      "abc23",
+				ETag:      "abc23",
 				CreatedAt: util.MustParseDate("2021-01-01", time.DateOnly),
 			},
 			wantErr: errors.New("Key: 'obj.created_at' Error:Field validation for 'created_at' failed on the 'not_before_date' tag"),
@@ -73,7 +73,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "invalid path",
 			obj: obj{
-				Etag:      "ASBDJSI",
+				ETag:      "ASBDJSI",
 				CreatedAt: util.MustParseDate("2023-01-01", time.DateOnly),
 				Path:      "https://example.com/path",
 			},
