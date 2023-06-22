@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/abtergo/abtergo/libs/util"
+	"github.com/abtergo/abtergo/libs/model"
 	templMocks "github.com/abtergo/abtergo/mocks/libs/templ"
 	mocks "github.com/abtergo/abtergo/mocks/pkg/website"
 	"github.com/abtergo/abtergo/pkg/page"
@@ -22,7 +22,7 @@ func TestService_Get(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
 		randomPage := page.RandomPage()
-		key := util.Key(randomPage.Website, randomPage.Path)
+		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		deps.contentRetriever.
 			EXPECT().
@@ -42,7 +42,7 @@ func TestService_Get(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
 		randomPage := page.RandomPage()
-		key := util.Key(randomPage.Website, randomPage.Path)
+		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		contentMock := new(templMocks.CacheableContent)
 		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)
@@ -73,7 +73,7 @@ func TestService_Get(t *testing.T) {
 
 		randomPage := page.RandomPage()
 		randomTemplate := templatePkg.RandomTemplate(false)
-		key := util.Key(randomPage.Website, randomPage.Path)
+		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		contentMock := new(templMocks.CacheableContent)
 		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)
@@ -116,7 +116,7 @@ func TestService_Get(t *testing.T) {
 
 		randomPage := page.RandomPage()
 		randomTemplate := templatePkg.RandomTemplate(false)
-		key := util.Key(randomPage.Website, randomPage.Path)
+		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		contentMock := new(templMocks.CacheableContent)
 		contentMock.EXPECT().Render().Once().Return(randomPage.Body, nil)

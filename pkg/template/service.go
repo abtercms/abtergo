@@ -10,16 +10,15 @@ import (
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
-	"github.com/abtergo/abtergo/libs/util"
 )
 
 // Service provides basic service functionality for Handler.
 type Service interface {
-	Get(ctx context.Context, id string) (Template, error)
+	Get(ctx context.Context, id model.ID) (Template, error)
 	List(ctx context.Context, filter Filter) ([]Template, error)
 	Create(ctx context.Context, template Template) (Template, error)
-	Update(ctx context.Context, id string, template Template, oldETag string) (Template, error)
-	Delete(ctx context.Context, id, oldETag string) error
+	Update(ctx context.Context, id model.ID, template Template, oldETag model.ETag) (Template, error)
+	Delete(ctx context.Context, id model.ID, oldETag model.ETag) error
 }
 
 type Repo = repo.Repository[Template]
@@ -44,7 +43,7 @@ func (s *service) Create(ctx context.Context, entity Template) (Template, error)
 	}
 
 	entity.Entity = model.NewEntity()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Create(ctx, entity)
 	if err != nil {
@@ -55,7 +54,7 @@ func (s *service) Create(ctx context.Context, entity Template) (Template, error)
 }
 
 // Get retrieves an existing entity.
-func (s *service) Get(ctx context.Context, id string) (Template, error) {
+func (s *service) Get(ctx context.Context, id model.ID) (Template, error) {
 	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Template{}, errors.Wrap(err, "failed to retrieve template")
@@ -75,9 +74,9 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Template, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id string, entity Template, oldEtag string) (Template, error) {
+func (s *service) Update(ctx context.Context, id model.ID, entity Template, oldEtag model.ETag) (Template, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
+		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -86,7 +85,7 @@ func (s *service) Update(ctx context.Context, id string, entity Template, oldEta
 
 	entity.ID = id
 	entity.UpdatedAt = time.Now()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Update(ctx, entity, oldEtag)
 	if err != nil {
@@ -97,7 +96,7 @@ func (s *service) Update(ctx context.Context, id string, entity Template, oldEta
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id string, oldETag string) error {
+func (s *service) Delete(ctx context.Context, id model.ID, oldETag model.ETag) error {
 	err := s.repo.Delete(ctx, id, oldETag)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete template")

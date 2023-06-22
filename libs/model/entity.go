@@ -18,7 +18,7 @@ var entityValidator *validator.Validate
 
 func init() {
 	fakeit.AddDateRangeFaker()
-	fakeit.AddEtagFaker()
+	AddETagFaker()
 
 	v := validation.NewValidator()
 
@@ -32,30 +32,42 @@ type EntityInterface interface {
 	SetUpdatedAt(t2 time.Time) EntityInterface
 	GetDeletedAt() *time.Time
 	SetDeletedAt(t2 *time.Time) EntityInterface
-	GetETag() string
-	SetETag(etag string) EntityInterface
-	ResetETag(etag string) EntityInterface
-	GetID() string
-	SetID(id string) EntityInterface
+	GetETag() ETag
+	SetETag(etag ETag) EntityInterface
+	ResetETag(etag ETag) EntityInterface
+	GetID() ID
+	SetID(id ID) EntityInterface
 	Clone() EntityInterface
-	IsModified(newETag string) bool
 	Validate() error
 	IsComplete() bool
-	GetUniqueKey() string
+	GetUniqueKey() Key
 }
 
-type Retrievable interface {
-	GetWebsite() string
-	GetPath() string
+type ID string
+
+func (id ID) String() string {
+	return string(id)
 }
 
-func id() string {
-	return ulid.MustNew(ulid.Timestamp(time.Now()), nil).String()
+type ETag string
+
+func (etag ETag) String() string {
+	return string(etag)
+}
+
+type Key string
+
+func (key Key) String() string {
+	return string(key)
+}
+
+func id() ID {
+	return ID(ulid.MustNew(ulid.Timestamp(time.Now()), nil).String())
 }
 
 type Entity struct {
-	ID        string     `json:"id,omitempty" validate:"required_with=ETag CreatedAt UpdatedAt" fake:"{uuid}"`
-	ETag      string     `json:"etag,omitempty" validate:"required_with=ID CreatedAt UpdatedAt,etag" fake:"{etag}"`
+	ID        ID         `json:"id,omitempty" validate:"required_with=ETag CreatedAt UpdatedAt" fake:"{uuid}"`
+	ETag      ETag       `json:"etag,omitempty" validate:"required_with=ID CreatedAt UpdatedAt,etag" fake:"{etag}"`
 	CreatedAt time.Time  `json:"created_at,omitempty" validate:"required_with=ID ETag UpdatedAt,not_before_date=2023-01-01" fake:"{daterange2:[2023-01-01],[2023-12-31]}"`
 	UpdatedAt time.Time  `json:"updated_at,omitempty" validate:"required_with=ID ETag CreatedAt,gtecsfield=CreatedAt" fake:"{daterange2:[2024-01-01],[2024-12-31]}"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -128,7 +140,7 @@ func (e Entity) IsComplete() bool {
 	return e.ETag != "" && e.ID != ""
 }
 
-func (e Entity) SetID(id string) EntityInterface {
+func (e Entity) SetID(id ID) EntityInterface {
 	if e.ETag != "" {
 		panic("entity is sealed.")
 	}
@@ -138,17 +150,17 @@ func (e Entity) SetID(id string) EntityInterface {
 	return e
 }
 
-func (e Entity) GetID() string {
+func (e Entity) GetID() ID {
 	return e.ID
 }
 
-func (e Entity) ResetETag(eTag string) EntityInterface {
+func (e Entity) ResetETag(eTag ETag) EntityInterface {
 	e.ETag = eTag
 
 	return e
 }
 
-func (e Entity) SetETag(eTag string) EntityInterface {
+func (e Entity) SetETag(eTag ETag) EntityInterface {
 	if e.ETag != "" {
 		panic("entity is sealed.")
 	}
@@ -158,16 +170,12 @@ func (e Entity) SetETag(eTag string) EntityInterface {
 	return e
 }
 
-func (e Entity) GetETag() string {
+func (e Entity) GetETag() ETag {
 	return e.ETag
 }
 
-func (e Entity) GetUniqueKey() string {
-	panic(arr.New(arr.ApplicationError, "invalid unique key request", zap.String("entity", e.ID)))
-}
-
-func (e Entity) IsModified(newETag string) bool {
-	return newETag != e.ETag
+func (e Entity) GetUniqueKey() Key {
+	panic(arr.New(arr.ApplicationError, "invalid unique key request", zap.String("entity", string(e.ID))))
 }
 
 func (e Entity) Validate() error {

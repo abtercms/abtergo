@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 // Handler represents a set of HTTP handlers.
@@ -69,7 +70,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
 	checkWiring(id)
 
-	response, err := h.service.GetByID(c.Context(), id)
+	response, err := h.service.GetByID(c.Context(), model.ID(id))
 	if err != nil {
 		return errors.Wrap(err, "failed to get entity")
 	}
@@ -80,6 +81,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 // Put handles requests to update a single Block instance.
 func (h *Handler) Put(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
 	payload := Block{}
@@ -88,9 +90,7 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
-	etag := c.Get(fiber.HeaderETag)
-
-	response, err := h.service.Update(c.Context(), id, payload, etag)
+	response, err := h.service.Update(c.Context(), model.ID(id), payload, model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity")
 	}
@@ -101,9 +101,10 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 // Delete handles requests to delete a single Block instance.
 func (h *Handler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
-	err := h.service.Delete(c.Context(), id, c.Get(fiber.HeaderETag))
+	err := h.service.Delete(c.Context(), model.ID(id), model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to delete entity")
 	}

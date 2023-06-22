@@ -1,4 +1,4 @@
-package model
+package model_test
 
 import (
 	"testing"
@@ -6,37 +6,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/validation"
 )
-
-func TestEntity_IsModified(t *testing.T) {
-	t.Run("not modified", func(t *testing.T) {
-		t.Parallel()
-
-		sut := NewEntity().SetETag("foo").(Entity)
-
-		got := sut.IsModified("foo")
-
-		assert.False(t, got)
-	})
-
-	t.Run("modified", func(t *testing.T) {
-		t.Parallel()
-
-		sut := NewEntity().SetETag("foo").(Entity)
-
-		got := sut.IsModified("bar")
-
-		assert.True(t, got)
-	})
-}
 
 func TestEntity_SetCreatedAt(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity().SetCreatedAt(n).(Entity)
+		sut := model.NewEntity().SetCreatedAt(n).(model.Entity)
 
 		assert.Equal(t, n, sut.GetCreatedAt())
 	})
@@ -44,7 +23,7 @@ func TestEntity_SetCreatedAt(t *testing.T) {
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity().SetCreatedAt(time.Now()).SetETag("foo").(Entity)
+		sut := model.NewEntity().SetCreatedAt(time.Now()).SetETag("foo").(model.Entity)
 
 		assert.Panics(t, func() { sut.SetCreatedAt(time.Now()) })
 	})
@@ -55,7 +34,7 @@ func TestEntity_SetUpdatedAt(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity().SetUpdatedAt(n).(Entity)
+		sut := model.NewEntity().SetUpdatedAt(n).(model.Entity)
 
 		assert.Equal(t, n, sut.GetUpdatedAt())
 	})
@@ -64,7 +43,7 @@ func TestEntity_SetUpdatedAt(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity().SetUpdatedAt(n).SetETag("foo").(Entity)
+		sut := model.NewEntity().SetUpdatedAt(n).SetETag("foo").(model.Entity)
 
 		assert.Panics(t, func() { sut.SetUpdatedAt(n) })
 	})
@@ -75,7 +54,7 @@ func TestEntity_SetDeletedAt(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity().SetDeletedAt(&n).(Entity)
+		sut := model.NewEntity().SetDeletedAt(&n).(model.Entity)
 
 		assert.Equal(t, &n, sut.GetDeletedAt())
 	})
@@ -84,7 +63,7 @@ func TestEntity_SetDeletedAt(t *testing.T) {
 		t.Parallel()
 
 		n := time.Unix(time.Now().Unix(), 0)
-		sut := NewEntity().SetDeletedAt(&n).(Entity).SetETag("foo").(Entity)
+		sut := model.NewEntity().SetDeletedAt(&n).(model.Entity).SetETag("foo").(model.Entity)
 
 		assert.Panics(t, func() { sut.SetDeletedAt(&n) })
 	})
@@ -94,15 +73,15 @@ func TestEntity_SetID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity().SetID("foo").(Entity)
+		sut := model.NewEntity().SetID("foo").(model.Entity)
 
-		assert.Equal(t, "foo", sut.GetID())
+		assert.Equal(t, model.ID("foo"), sut.GetID())
 	})
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity().SetID("foo").SetETag("foo").(Entity)
+		sut := model.NewEntity().SetID("foo").SetETag("foo").(model.Entity)
 
 		assert.Panics(t, func() { sut.SetID("foo") })
 	})
@@ -112,15 +91,15 @@ func TestEntity_SetETag(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity().SetETag("foo").(Entity)
+		sut := model.NewEntity().SetETag("foo").(model.Entity)
 
-		assert.Equal(t, "foo", sut.GetETag())
+		assert.Equal(t, model.ETag("foo"), sut.GetETag())
 	})
 
 	t.Run("error setting updated after e-tag was added", func(t *testing.T) {
 		t.Parallel()
 
-		sut := NewEntity().SetETag("foo").(Entity)
+		sut := model.NewEntity().SetETag("foo").(model.Entity)
 
 		assert.Panics(t, func() { sut.SetETag("foo") })
 	})
@@ -129,32 +108,32 @@ func TestEntity_SetETag(t *testing.T) {
 func TestEntity_Validate(t *testing.T) {
 	tests := []struct {
 		name          string
-		entity        Entity
-		modifier      func(c *Entity)
+		entity        model.Entity
+		modifier      func(c *model.Entity)
 		invalidFields []string
 	}{
 		{
 			name:          "valid empty",
-			entity:        Entity{},
-			modifier:      func(c *Entity) {},
+			entity:        model.Entity{},
+			modifier:      func(c *model.Entity) {},
 			invalidFields: []string{},
 		},
 		{
 			name:          "valid random",
-			entity:        RandomEntity(),
-			modifier:      func(c *Entity) {},
+			entity:        model.RandomEntity(),
+			modifier:      func(c *model.Entity) {},
 			invalidFields: []string{},
 		},
 		{
 			name:          "invalid without etag",
-			entity:        NewEntity(),
-			modifier:      func(c *Entity) {},
+			entity:        model.NewEntity(),
+			modifier:      func(c *model.Entity) {},
 			invalidFields: []string{"etag"},
 		},
 		{
 			name:   "invalid without id",
-			entity: NewEntity(),
-			modifier: func(c *Entity) {
+			entity: model.NewEntity(),
+			modifier: func(c *model.Entity) {
 				c.ETag = "foo23"
 				c.ID = ""
 			},
@@ -162,8 +141,8 @@ func TestEntity_Validate(t *testing.T) {
 		},
 		{
 			name:   "invalid etag",
-			entity: NewEntity(),
-			modifier: func(c *Entity) {
+			entity: model.NewEntity(),
+			modifier: func(c *model.Entity) {
 				c.ID = "foo"
 				c.ETag = "bar"
 			},
@@ -171,32 +150,32 @@ func TestEntity_Validate(t *testing.T) {
 		},
 		{
 			name:   "invalid missing created at",
-			entity: RandomEntity(),
-			modifier: func(c *Entity) {
+			entity: model.RandomEntity(),
+			modifier: func(c *model.Entity) {
 				c.CreatedAt = time.Time{}
 			},
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:   "invalid missing updated at",
-			entity: RandomEntity(),
-			modifier: func(c *Entity) {
+			entity: model.RandomEntity(),
+			modifier: func(c *model.Entity) {
 				c.UpdatedAt = time.Time{}
 			},
 			invalidFields: []string{"updated_at"},
 		},
 		{
 			name:   "created at before 20223",
-			entity: RandomEntity(),
-			modifier: func(c *Entity) {
+			entity: model.RandomEntity(),
+			modifier: func(c *model.Entity) {
 				c.CreatedAt = time.Date(2022, 12, 31, 0, 0, 0, 0, time.UTC)
 			},
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:   "invalid created at after updated at",
-			entity: RandomEntity(),
-			modifier: func(c *Entity) {
+			entity: model.RandomEntity(),
+			modifier: func(c *model.Entity) {
 				c.UpdatedAt = c.CreatedAt.Add(-1 * time.Second)
 			},
 			invalidFields: []string{"updated_at"},
@@ -221,7 +200,7 @@ func TestEntity_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		stubEntity := NewEntity()
+		stubEntity := model.NewEntity()
 
 		clone := stubEntity.Clone()
 
@@ -233,7 +212,7 @@ func TestEntity_IsComplete(t *testing.T) {
 	t.Run("invalid empty entity", func(t *testing.T) {
 		t.Parallel()
 
-		stubEntity := NewEntity()
+		stubEntity := model.NewEntity()
 
 		assert.False(t, stubEntity.IsComplete())
 	})
@@ -241,7 +220,7 @@ func TestEntity_IsComplete(t *testing.T) {
 	t.Run("invalid non-empty entity, E-Tag missing", func(t *testing.T) {
 		t.Parallel()
 
-		stubEntity := NewEntity()
+		stubEntity := model.NewEntity()
 
 		assert.False(t, stubEntity.IsComplete())
 	})
@@ -249,7 +228,7 @@ func TestEntity_IsComplete(t *testing.T) {
 	t.Run("invalid non-empty entity, ID missing", func(t *testing.T) {
 		t.Parallel()
 
-		stubEntity := NewEntity()
+		stubEntity := model.NewEntity()
 		stubEntity.ID = ""
 		stubEntity.ETag = "foo"
 
@@ -259,7 +238,7 @@ func TestEntity_IsComplete(t *testing.T) {
 	t.Run("valid non-empty entity", func(t *testing.T) {
 		t.Parallel()
 
-		stubEntity := NewEntity()
+		stubEntity := model.NewEntity()
 		stubEntity.ETag = "foo"
 
 		assert.True(t, stubEntity.IsComplete())

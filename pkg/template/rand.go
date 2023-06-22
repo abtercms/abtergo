@@ -15,7 +15,7 @@ func init() {
 	fakeit.AddCSSURLFaker()
 	fakeit.AddJSURLFaker()
 	fakeit.AddDateRangeFaker()
-	fakeit.AddEtagFaker()
+	model.AddETagFaker()
 }
 
 var lock sync.Mutex

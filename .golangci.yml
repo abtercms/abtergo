@@ -20,7 +20,7 @@ issues:
   - text: "TODO/BUG/FIXME: \"TODO: "
     linters:
     - godox
-  - path: libs/util/etag.go
+  - path: libs/model/etag.go
     text: "weak cryptographic"
     linters:
     - gosec

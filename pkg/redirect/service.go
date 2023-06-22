@@ -10,16 +10,15 @@ import (
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
-	"github.com/abtergo/abtergo/libs/util"
 )
 
 // Service provides basic service functionality for Handler.
 type Service interface {
-	Get(ctx context.Context, id string) (Redirect, error)
+	Get(ctx context.Context, id model.ID) (Redirect, error)
 	List(ctx context.Context, filter Filter) ([]Redirect, error)
 	Create(ctx context.Context, redirect Redirect) (Redirect, error)
-	Update(ctx context.Context, id string, redirect Redirect, oldETag string) (Redirect, error)
-	Delete(ctx context.Context, id, oldETag string) error
+	Update(ctx context.Context, id model.ID, redirect Redirect, oldETag model.ETag) (Redirect, error)
+	Delete(ctx context.Context, id model.ID, oldETag model.ETag) error
 }
 
 type Repo = repo.Repository[Redirect]
@@ -44,7 +43,7 @@ func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error)
 	}
 
 	entity.Entity = model.NewEntity()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Create(ctx, entity)
 	if err != nil {
@@ -55,7 +54,7 @@ func (s *service) Create(ctx context.Context, entity Redirect) (Redirect, error)
 }
 
 // Get retrieves an existing entity.
-func (s *service) Get(ctx context.Context, id string) (Redirect, error) {
+func (s *service) Get(ctx context.Context, id model.ID) (Redirect, error) {
 	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Redirect{}, errors.Wrap(err, "failed to retrieve redirect")
@@ -75,9 +74,9 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Redirect, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id string, entity Redirect, oldETag string) (Redirect, error) {
+func (s *service) Update(ctx context.Context, id model.ID, entity Redirect, oldETag model.ETag) (Redirect, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Redirect{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
+		return Redirect{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -87,7 +86,7 @@ func (s *service) Update(ctx context.Context, id string, entity Redirect, oldETa
 	entity.ID = id
 	entity.ETag = ""
 	entity.UpdatedAt = time.Now()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Update(ctx, entity, oldETag)
 	if err != nil {
@@ -98,7 +97,7 @@ func (s *service) Update(ctx context.Context, id string, entity Redirect, oldETa
 }
 
 // Delete deletes an existing entity.
-func (s *service) Delete(ctx context.Context, id, oldETag string) error {
+func (s *service) Delete(ctx context.Context, id model.ID, oldETag model.ETag) error {
 	err := s.repo.Delete(ctx, id, oldETag)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete redirect")

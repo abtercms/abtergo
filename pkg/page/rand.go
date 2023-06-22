@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/abtergo/abtergo/libs/fakeit"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func init() {
@@ -15,7 +16,7 @@ func init() {
 	fakeit.AddCSSURLFaker()
 	fakeit.AddJSURLFaker()
 	fakeit.AddDateRangeFaker()
-	fakeit.AddEtagFaker()
+	model.AddETagFaker()
 }
 
 var lock sync.Mutex

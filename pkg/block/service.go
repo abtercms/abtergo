@@ -10,15 +10,14 @@ import (
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
-	"github.com/abtergo/abtergo/libs/util"
 )
 
 type Service interface {
-	GetByID(ctx context.Context, id string) (Block, error)
+	GetByID(ctx context.Context, id model.ID) (Block, error)
 	List(ctx context.Context, filter Filter) ([]Block, error)
 	Create(ctx context.Context, block Block) (Block, error)
-	Update(ctx context.Context, id string, block Block, oldETag string) (Block, error)
-	Delete(ctx context.Context, id, oldETag string) error
+	Update(ctx context.Context, id model.ID, block Block, oldETag model.ETag) (Block, error)
+	Delete(ctx context.Context, id model.ID, oldETag model.ETag) error
 }
 
 type Repo = repo.Repository[Block]
@@ -41,7 +40,7 @@ func (s *service) Create(ctx context.Context, entity Block) (Block, error) {
 	}
 
 	entity.Entity = model.NewEntity()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Create(ctx, entity)
 	if err != nil {
@@ -51,7 +50,7 @@ func (s *service) Create(ctx context.Context, entity Block) (Block, error) {
 	return entity, nil
 }
 
-func (s *service) GetByID(ctx context.Context, id string) (Block, error) {
+func (s *service) GetByID(ctx context.Context, id model.ID) (Block, error) {
 	entity, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Block{}, errors.Wrap(err, "failed to retrieve entity")
@@ -69,9 +68,9 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Block, error) {
 	return entities, nil
 }
 
-func (s *service) Update(ctx context.Context, id string, entity Block, etag string) (Block, error) {
+func (s *service) Update(ctx context.Context, id model.ID, entity Block, etag model.ETag) (Block, error) {
 	if entity.ID != "" && entity.ID != id {
-		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.String("id in path", id), zap.String("id in payload", entity.ID))
+		return Block{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -80,7 +79,7 @@ func (s *service) Update(ctx context.Context, id string, entity Block, etag stri
 
 	entity.ID = id
 	entity.UpdatedAt = time.Now()
-	entity.ETag = util.ETagAny(entity)
+	entity.ETag = model.ETagFromAny(entity)
 
 	entity, err := s.repo.Update(ctx, entity, etag)
 	if err != nil {
@@ -90,7 +89,7 @@ func (s *service) Update(ctx context.Context, id string, entity Block, etag stri
 	return entity, nil
 }
 
-func (s *service) Delete(ctx context.Context, id, oldETag string) error {
+func (s *service) Delete(ctx context.Context, id model.ID, oldETag model.ETag) error {
 	err := s.repo.Delete(ctx, id, oldETag)
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity")

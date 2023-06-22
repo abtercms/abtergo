@@ -1,6 +1,7 @@
 package page_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -247,7 +248,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(page.Page{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages/"+expectedPage.ID, nil)
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -283,7 +285,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(expectedPage, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/pages/"+expectedPage.ID, nil)
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -304,8 +307,8 @@ func TestHandler_Get(t *testing.T) {
 
 func TestHandler_Put(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousETagStub model.ETag = "foo"
 	)
 
 	t.Run("error parsing payload", func(t *testing.T) {
@@ -319,9 +322,10 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 
 		// Request
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
 		reqBody := util.DataToReaderHelper(t, `"foo"`)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/pages/"+expectedPage.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -353,14 +357,15 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Update(mock.Anything, expectedPage.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedPage.ID, payloadStub, previousETagStub).
 			Once().
 			Return(page.Page{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/pages/"+expectedPage.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -392,14 +397,15 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 		deps.serviceMock.
 			EXPECT().
-			Update(mock.Anything, expectedPage.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedPage.ID, payloadStub, previousETagStub).
 			Once().
 			Return(expectedPage, nil)
 
 		// Request
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/pages/"+expectedPage.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -420,8 +426,8 @@ func TestHandler_Put(t *testing.T) {
 
 func TestHandler_Delete(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error deleting entity", func(t *testing.T) {
@@ -440,8 +446,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/pages/"+expectedPage.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -471,8 +478,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/pages/"+expectedPage.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -489,8 +497,8 @@ func TestHandler_Delete(t *testing.T) {
 
 func TestHandler_Activate(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error activating entity", func(t *testing.T) {
@@ -509,8 +517,9 @@ func TestHandler_Activate(t *testing.T) {
 			Return(expectedPage, arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/activations", nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s/activations", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodPost, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -540,8 +549,9 @@ func TestHandler_Activate(t *testing.T) {
 			Return(expectedPage, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/activations", nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s/activations", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodPost, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -558,8 +568,8 @@ func TestHandler_Activate(t *testing.T) {
 
 func TestHandler_Inactivate(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error inactivating entity", func(t *testing.T) {
@@ -578,8 +588,9 @@ func TestHandler_Inactivate(t *testing.T) {
 			Return(expectedPage, arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/inactivations", nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s/inactivations", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodPost, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -609,8 +620,9 @@ func TestHandler_Inactivate(t *testing.T) {
 			Return(expectedPage, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/pages/"+expectedPage.ID+"/inactivations", nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/pages/%s/inactivations", baseURLStub, expectedPage.ID)
+		req := httptest.NewRequest(fiber.MethodPost, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test

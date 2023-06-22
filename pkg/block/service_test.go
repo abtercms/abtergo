@@ -156,8 +156,8 @@ func TestService_Update(t *testing.T) {
 	ctxStub := context.Background()
 
 	const (
-		idStub   = "foo"
-		etagStub = "bar"
+		idStub   model.ID   = "foo"
+		eTagStub model.ETag = "bar"
 	)
 
 	t.Run("id mismatch error", func(t *testing.T) {
@@ -166,7 +166,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		s := block.NewService(repoMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
@@ -182,7 +182,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[block.Block])
 		s := block.NewService(repoMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
@@ -195,12 +195,12 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Update(ctxStub, mock.AnythingOfType("block.Block"), etagStub).
+			Update(ctxStub, mock.AnythingOfType("block.Block"), eTagStub).
 			Once().
 			Return(block.Block{}, assert.AnError)
 		s := block.NewService(repoMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -213,12 +213,12 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[block.Block])
 		repoMock.EXPECT().
-			Update(ctxStub, mock.AnythingOfType("block.Block"), etagStub).
+			Update(ctxStub, mock.AnythingOfType("block.Block"), eTagStub).
 			Once().
 			Return(entityStub, nil)
 		s := block.NewService(repoMock, loggerStub)
 
-		got, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		got, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)

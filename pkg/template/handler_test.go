@@ -1,6 +1,7 @@
 package template_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
 	mocks "github.com/abtergo/abtergo/mocks/pkg/template"
@@ -244,7 +246,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(template.Template{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -280,7 +283,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(expectedTemplate, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -301,8 +305,8 @@ func TestHandler_Get(t *testing.T) {
 
 func TestHandler_Put(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousETagStub model.ETag = "foo"
 	)
 
 	t.Run("error parsing payload", func(t *testing.T) {
@@ -316,9 +320,10 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 
 		// Request
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		reqBody := util.DataToReaderHelper(t, `"foo"`)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/templates/"+expectedTemplate.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -350,14 +355,15 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 		errStub := arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo")
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousETagStub).
 			Once().
 			Return(template.Template{}, errStub)
 
 		// Request
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/templates/"+expectedTemplate.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -388,14 +394,15 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousEtagStub).
+			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousETagStub).
 			Once().
 			Return(expectedTemplate, nil)
 
 		// Request
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/templates/"+expectedTemplate.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -416,8 +423,8 @@ func TestHandler_Put(t *testing.T) {
 
 func TestHandler_Delete(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error deleting entity", func(t *testing.T) {
@@ -435,8 +442,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -465,8 +473,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/templates/"+expectedTemplate.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test

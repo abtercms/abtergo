@@ -11,13 +11,14 @@ import (
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/decoder"
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/templ"
 	"github.com/abtergo/abtergo/pkg/page"
 	"github.com/abtergo/abtergo/res"
 )
 
 type ContentRetriever interface {
-	Retrieve(ctx context.Context, key string) (templ.CacheableContent, error)
+	Retrieve(ctx context.Context, key model.Key) (templ.CacheableContent, error)
 }
 
 type contentRetriever struct {
@@ -32,7 +33,7 @@ func NewContentRetriever(logger *zap.Logger, sources []ContentRetriever) Content
 	}
 }
 
-func (c *contentRetriever) Retrieve(ctx context.Context, key string) (templ.CacheableContent, error) {
+func (c *contentRetriever) Retrieve(ctx context.Context, key model.Key) (templ.CacheableContent, error) {
 	for _, s := range c.sources {
 		cc, err := s.Retrieve(ctx, key)
 		if err == nil {
@@ -68,7 +69,7 @@ func NewHTTPRetriever(agent *fiber.Agent, url string, decoder *decoder.Decoder) 
 	}
 }
 
-func (hr *HTTPRetriever) Retrieve(ctx context.Context, id string) (templ.CacheableContent, error) {
+func (hr *HTTPRetriever) Retrieve(ctx context.Context, id model.ID) (templ.CacheableContent, error) {
 	_ = ctx
 
 	req := hr.agent.Request()
@@ -105,7 +106,7 @@ func NewMonolithRetriever(pageRepo page.Repo) ContentRetriever {
 	}
 }
 
-func (mr *MonolithRetriever) Retrieve(ctx context.Context, key string) (templ.CacheableContent, error) {
+func (mr *MonolithRetriever) Retrieve(ctx context.Context, key model.Key) (templ.CacheableContent, error) {
 	result, err := mr.pageRepo.GetByKey(ctx, key)
 	if err != nil {
 		return nil, arr.Wrap(err, "failed to get content (monolith)")

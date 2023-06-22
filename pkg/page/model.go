@@ -63,11 +63,11 @@ func (p Page) GetContext() []any {
 }
 
 func (p Page) GetTags() []string {
-	return []string{"page-" + p.ID}
+	return []string{"page-" + string(p.ID)}
 }
 
-func (p Page) GetUniqueKey() string {
-	return util.Key(p.Website, p.Path)
+func (p Page) GetUniqueKey() model.Key {
+	return model.KeyFromStrings(p.Website, p.Path)
 }
 
 func (p Page) Validate() error {

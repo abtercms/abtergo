@@ -3,22 +3,22 @@ package templ_test
 import (
 	"fmt"
 
+	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/templ"
-	"github.com/abtergo/abtergo/libs/util"
 )
 
 type retrieverDouble struct {
-	results map[string]string
+	results map[model.ETag]string
 }
 
 func newRetrieverDouble() *retrieverDouble {
 	return &retrieverDouble{
-		results: make(map[string]string),
+		results: make(map[model.ETag]string),
 	}
 }
 
 func (fr *retrieverDouble) Retrieve(viewTag templ.ViewTag) (templ.CacheableContent, error) {
-	tag := util.ETagAny(viewTag)
+	tag := model.ETagFromAny(viewTag)
 	str, ok := fr.results[tag]
 	if !ok {
 		return nil, fmt.Errorf("no result found for %s", tag)
@@ -28,5 +28,5 @@ func (fr *retrieverDouble) Retrieve(viewTag templ.ViewTag) (templ.CacheableConte
 }
 
 func (fr *retrieverDouble) SetViewTag(viewTag templ.ViewTag, result string) {
-	fr.results[util.ETagAny(viewTag)] = result
+	fr.results[model.ETagFromAny(viewTag)] = result
 }

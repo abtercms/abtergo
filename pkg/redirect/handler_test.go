@@ -1,6 +1,7 @@
 package redirect_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -245,7 +246,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(redirect.Redirect{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -281,7 +283,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(expectedRedirect, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -303,8 +306,8 @@ func TestHandler_Get(t *testing.T) {
 
 func TestHandler_Put(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousETagStub model.ETag = "foo"
 	)
 
 	t.Run("error parsing payload", func(t *testing.T) {
@@ -318,9 +321,10 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 
 		// Request
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
 		reqBody := util.DataToReaderHelper(t, `"foo"`)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/redirects/"+expectedRedirect.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -350,14 +354,15 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousEtagStub).
+			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousETagStub).
 			Once().
 			Return(redirect.Redirect{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
 		reqBody := util.DataToReaderHelper(t, expectedRedirect)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/redirects/"+expectedRedirect.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -387,14 +392,15 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousEtagStub).
+			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousETagStub).
 			Once().
 			Return(expectedRedirect, nil)
 
 		// Request
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
 		reqBody := util.DataToReaderHelper(t, expectedRedirect)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/redirects/"+expectedRedirect.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -416,8 +422,8 @@ func TestHandler_Put(t *testing.T) {
 
 func TestHandler_Delete(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error deleting entity", func(t *testing.T) {
@@ -435,8 +441,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -465,8 +472,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/redirects/"+expectedRedirect.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test

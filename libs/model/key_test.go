@@ -1,9 +1,11 @@
-package util
+package model_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 func TestKey(t *testing.T) {
@@ -13,7 +15,7 @@ func TestKey(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want string
+		want model.Key
 	}{
 		{
 			name: "foo",
@@ -32,7 +34,7 @@ func TestKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, Key(tt.args.values...), "Key(%v)", tt.args.values)
+			assert.Equalf(t, tt.want, model.KeyFromStrings(tt.args.values...), "Key(%v)", tt.args.values)
 		})
 	}
 }

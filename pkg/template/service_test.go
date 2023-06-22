@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 	repoMocks "github.com/abtergo/abtergo/mocks/libs/repo"
 	"github.com/abtergo/abtergo/pkg/template"
 )
@@ -191,8 +192,8 @@ func TestService_Update(t *testing.T) {
 	ctxStub := context.Background()
 
 	const (
-		idStub   = "foo"
-		etagStub = "bar"
+		idStub   model.ID   = "foo"
+		eTagStub model.ETag = "bar"
 	)
 
 	t.Run("id mismatch error", func(t *testing.T) {
@@ -201,7 +202,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[template.Template])
 
 		s := template.NewService(repoMock, loggerStub)
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
@@ -216,7 +217,7 @@ func TestService_Update(t *testing.T) {
 		repoMock := new(repoMocks.Repository[template.Template])
 		s := template.NewService(repoMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
@@ -229,12 +230,12 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Update(ctxStub, mock.AnythingOfType("template.Template"), etagStub).
+			Update(ctxStub, mock.AnythingOfType("template.Template"), eTagStub).
 			Once().
 			Return(template.Template{}, assert.AnError)
 		s := template.NewService(repoMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -247,12 +248,12 @@ func TestService_Update(t *testing.T) {
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
-			Update(ctxStub, mock.AnythingOfType("template.Template"), etagStub).
+			Update(ctxStub, mock.AnythingOfType("template.Template"), eTagStub).
 			Once().
 			Return(entityStub, nil)
 		s := template.NewService(repoMock, loggerStub)
 
-		got, err := s.Update(ctxStub, idStub, entityStub, etagStub)
+		got, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
 
 		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)

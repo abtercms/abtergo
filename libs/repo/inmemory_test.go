@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	mocks "github.com/abtergo/abtergo/mocks/libs/repo"
+
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/repo"
-	"github.com/abtergo/abtergo/libs/util"
-	mocks "github.com/abtergo/abtergo/mocks/libs/repo"
 )
 
 type testEntity struct {
@@ -24,8 +24,8 @@ type testEntity struct {
 	Foo     string `json:"foo"`
 }
 
-func (e testEntity) GetUniqueKey() string {
-	return util.Key(e.Website, e.Path)
+func (e testEntity) GetUniqueKey() model.Key {
+	return model.KeyFromStrings(e.Website, e.Path)
 }
 
 func (e testEntity) Clone() model.EntityInterface {

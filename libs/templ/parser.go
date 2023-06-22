@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/html"
 
-	"github.com/abtergo/abtergo/libs/util"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 type ViewTag struct {
@@ -62,8 +62,8 @@ func (p *parser) findBlockTags(template, tagName string) [][]string {
 }
 
 func (p *parser) collectViewTags(tagName string, matches [][]string) ([]ViewTag, error) {
-	needleMap := make(map[string][]string)
-	viewTagMap := make(map[string]ViewTag)
+	needleMap := make(map[model.ETag][]string)
+	viewTagMap := make(map[model.ETag]ViewTag)
 	for _, match := range matches {
 		attributes, err := p.parseAttributes(match[1], tagName)
 		if err != nil {
@@ -75,7 +75,7 @@ func (p *parser) collectViewTags(tagName string, matches [][]string) ([]ViewTag,
 			Content:    match[2],
 			Attributes: attributes,
 		}
-		eTag := util.ETagAny(vt)
+		eTag := model.ETagFromAny(vt)
 
 		if _, ok := needleMap[eTag]; !ok {
 			needleMap[eTag] = make([]string, 0)

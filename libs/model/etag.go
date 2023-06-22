@@ -1,4 +1,4 @@
-package util
+package model
 
 import (
 	"crypto/sha1"
@@ -9,8 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ETag generates an etag derived from a string source.
-func ETag(input string) string {
+func ETagFromString(input string) ETag {
 	h := sha1.New()
 	_, err := io.WriteString(h, input)
 	if err != nil {
@@ -21,15 +20,15 @@ func ETag(input string) string {
 
 	encodedString := hex.EncodeToString(byteArray)
 
-	return encodedString[:5]
+	return ETag(encodedString[:5])
 }
 
-// ETagAny generates an etag derived from any JSON marshalable source.
-func ETagAny(input any) string {
+// ETagFromAny generates an etag derived from any JSON marshalable source.
+func ETagFromAny(input any) ETag {
 	data, err := json.Marshal(input)
 	if err != nil {
 		panic(errors.Wrapf(err, "failed to create new sha1 hash from input. input: '%v'", input))
 	}
 
-	return ETag(string(data))
+	return ETagFromString(string(data))
 }

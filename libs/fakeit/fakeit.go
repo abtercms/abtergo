@@ -8,8 +8,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/pkg/errors"
-
-	"github.com/abtergo/abtergo/libs/util"
 )
 
 func init() {
@@ -18,7 +16,6 @@ func init() {
 	AddJSURLFaker()
 	AddPathFaker()
 	AddWebsiteFaker()
-	AddEtagFaker()
 }
 
 func AddDateRangeFaker() {
@@ -140,21 +137,6 @@ func AddWebsiteFaker() {
 		Params:      []gofakeit.Param{},
 		Generate: func(r *rand.Rand, m *gofakeit.MapParams, info *gofakeit.Info) (interface{}, error) {
 			result := gofakeit.URL()
-
-			return result, nil
-		},
-	})
-}
-
-func AddEtagFaker() {
-	gofakeit.AddFuncLookup("etag", gofakeit.Info{
-		Category:    "abtergo",
-		Description: "E-tag",
-		Example:     "aiso2",
-		Output:      "string",
-		Params:      []gofakeit.Param{},
-		Generate: func(r *rand.Rand, m *gofakeit.MapParams, info *gofakeit.Info) (interface{}, error) {
-			result := util.ETag(gofakeit.Word())
 
 			return result, nil
 		},

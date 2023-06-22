@@ -12,25 +12,25 @@ import (
 )
 
 type index interface {
-	Find(key string) *string
-	Add(key, value string) error
-	Delete(key string) error
-	Replace(oldKey, newKey string) error
+	Find(key model.Key) *model.ID
+	Add(key model.Key, id model.ID) error
+	Delete(key model.Key) error
+	Replace(oldKey, newKey model.Key) error
 }
 
 type uniqueIndex struct {
-	data   map[string]string
+	data   map[model.Key]model.ID
 	rwLock *sync.RWMutex
 }
 
 func newUniqueIndex() index {
 	return &uniqueIndex{
-		data:   make(map[string]string),
+		data:   make(map[model.Key]model.ID),
 		rwLock: &sync.RWMutex{},
 	}
 }
 
-func (i *uniqueIndex) Find(key string) *string {
+func (i *uniqueIndex) Find(key model.Key) *model.ID {
 	i.rwLock.RLock()
 	defer i.rwLock.RUnlock()
 
@@ -41,7 +41,7 @@ func (i *uniqueIndex) Find(key string) *string {
 	return nil
 }
 
-func (i *uniqueIndex) Add(key, value string) error {
+func (i *uniqueIndex) Add(key model.Key, id model.ID) error {
 	i.rwLock.Lock()
 	defer i.rwLock.Unlock()
 
@@ -50,18 +50,18 @@ func (i *uniqueIndex) Add(key, value string) error {
 		return arr.New(arr.ApplicationError, "uniq index can not be overwritten")
 	}
 
-	i.data[key] = value
+	i.data[key] = id
 
 	return nil
 }
 
-func (i *uniqueIndex) Delete(key string) error {
+func (i *uniqueIndex) Delete(key model.Key) error {
 	i.rwLock.Lock()
 	defer i.rwLock.Unlock()
 
 	_, ok := i.data[key]
 	if !ok {
-		return arr.New(arr.ApplicationError, "index not found", zap.String("key", key))
+		return arr.New(arr.ApplicationError, "index not found", zap.Stringer("key", key))
 	}
 
 	delete(i.data, key)
@@ -69,18 +69,18 @@ func (i *uniqueIndex) Delete(key string) error {
 	return nil
 }
 
-func (i *uniqueIndex) Replace(oldKey, newKey string) error {
+func (i *uniqueIndex) Replace(oldKey, newKey model.Key) error {
 	i.rwLock.Lock()
 	defer i.rwLock.Unlock()
 
 	val, ok := i.data[oldKey]
 	if !ok {
-		return arr.New(arr.ApplicationError, "target index not found", zap.String("key", oldKey))
+		return arr.New(arr.ApplicationError, "target index not found", zap.String("key", string(oldKey)))
 	}
 
 	_, ok = i.data[newKey]
 	if ok {
-		return arr.New(arr.ApplicationError, "replacement key already exists", zap.String("key", newKey))
+		return arr.New(arr.ApplicationError, "replacement key already exists", zap.String("key", string(newKey)))
 	}
 
 	delete(i.data, oldKey)
@@ -91,14 +91,14 @@ func (i *uniqueIndex) Replace(oldKey, newKey string) error {
 
 func NewInMemoryRepo[T model.EntityInterface]() *InMemoryRepo[T] {
 	return &InMemoryRepo[T]{
-		entities: make(map[string]T),
+		entities: make(map[model.ID]T),
 		indexes:  newUniqueIndex(),
 		rwLock:   &sync.RWMutex{},
 	}
 }
 
 type InMemoryRepo[T model.EntityInterface] struct {
-	entities map[string]T
+	entities map[model.ID]T
 	indexes  index
 	rwLock   *sync.RWMutex
 }
@@ -114,8 +114,8 @@ func (r *InMemoryRepo[T]) Create(ctx context.Context, entity T) (T, error) {
 
 	if !entity.IsComplete() {
 		args := []zap.Field{
-			zap.String("id", id),
-			zap.String("etag", entity.GetETag()),
+			zap.Stringer("id", id),
+			zap.String("etag", string(entity.GetETag())),
 			zap.Time("created_at", entity.GetCreatedAt()),
 			zap.Time("updated_at", entity.GetUpdatedAt()),
 		}
@@ -133,7 +133,7 @@ func (r *InMemoryRepo[T]) Create(ctx context.Context, entity T) (T, error) {
 	return entity, nil
 }
 
-func (r *InMemoryRepo[T]) GetByID(ctx context.Context, id string) (T, error) {
+func (r *InMemoryRepo[T]) GetByID(ctx context.Context, id model.ID) (T, error) {
 	r.rwLock.RLock()
 	defer r.rwLock.RUnlock()
 
@@ -141,23 +141,23 @@ func (r *InMemoryRepo[T]) GetByID(ctx context.Context, id string) (T, error) {
 
 	t, ok := r.entities[id]
 	if !ok {
-		return t, arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", id))
+		return t, arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
 	}
 
 	return t, nil
 }
 
-func (r *InMemoryRepo[T]) GetByKey(ctx context.Context, key string) (T, error) {
+func (r *InMemoryRepo[T]) GetByKey(ctx context.Context, key model.Key) (T, error) {
 	id := r.indexes.Find(key)
 	if id == nil {
 		var t T
-		return t, arr.New(arr.ResourceNotFound, "index not found", zap.String("key", key))
+		return t, arr.New(arr.ResourceNotFound, "index not found", zap.Stringer("key", key))
 	}
 
 	return r.GetByID(ctx, *id)
 }
 
-func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag string) (T, error) {
+func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag model.ETag) (T, error) {
 	r.rwLock.Lock()
 	defer r.rwLock.Unlock()
 
@@ -166,16 +166,16 @@ func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag string) 
 
 	if !entity.IsComplete() {
 		var t T
-		return t, arr.New(arr.ApplicationError, "entity not complete", zap.String("id", id))
+		return t, arr.New(arr.ApplicationError, "entity not complete", zap.Stringer("id", id))
 	}
 
 	oldEntity, ok := r.entities[id]
 	if !ok {
-		return oldEntity, arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", id))
+		return oldEntity, arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
 	}
 
 	if oldEntity.GetETag() != oldETag {
-		return oldEntity, arr.New(arr.ETagMismatch, "e-tag mismatch", zap.String("id", id), zap.String("stored e-tag", oldEntity.GetETag()), zap.String("received e-tag", oldETag))
+		return oldEntity, arr.New(arr.ETagMismatch, "e-tag mismatch", zap.Stringer("id", id), zap.Stringer("stored e-tag", oldEntity.GetETag()), zap.Stringer("received e-tag", oldETag))
 	}
 
 	oldKey := oldEntity.GetUniqueKey()
@@ -193,7 +193,7 @@ func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag string) 
 	return entity, nil
 }
 
-func (r *InMemoryRepo[T]) Delete(ctx context.Context, id string, oldETag string) error {
+func (r *InMemoryRepo[T]) Delete(ctx context.Context, id model.ID, oldETag model.ETag) error {
 	_ = ctx
 
 	r.rwLock.Lock()
@@ -201,11 +201,11 @@ func (r *InMemoryRepo[T]) Delete(ctx context.Context, id string, oldETag string)
 
 	t, ok := r.entities[id]
 	if !ok {
-		return arr.New(arr.ResourceNotFound, "entity not found", zap.String("id", id))
+		return arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
 	}
 
 	if oldETag != t.GetETag() {
-		return arr.New(arr.ETagMismatch, "e-tag mismatch", zap.String("id", id), zap.String("stored e-tag", t.GetETag()), zap.String("received e-tag", oldETag))
+		return arr.New(arr.ETagMismatch, "e-tag mismatch", zap.Stringer("id", id), zap.Stringer("stored e-tag", t.GetETag()), zap.Stringer("received e-tag", oldETag))
 	}
 
 	err := r.indexes.Delete(t.GetUniqueKey())
@@ -230,7 +230,7 @@ func (r *InMemoryRepo[T]) List(ctx context.Context, filter Filter[T]) ([]T, erro
 
 		match, err := filter.Match(ctx, entity)
 		if err != nil {
-			return nil, arr.WrapWithType(arr.ApplicationError, err, "failed to match entity", zap.String("id", entity.GetID()))
+			return nil, arr.WrapWithType(arr.ApplicationError, err, "failed to match entity", zap.Stringer("id", entity.GetID()))
 		}
 
 		if match {

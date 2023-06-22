@@ -1,21 +1,21 @@
-package util_test
+package model_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/abtergo/abtergo/libs/util"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
-func TestEtag(t *testing.T) {
+func TestETagFromString(t *testing.T) {
 	type args struct {
 		input string
 	}
 	tests := []struct {
 		name string
 		args args
-		want string
+		want model.ETag
 	}{
 		{
 			name: "foo",
@@ -34,12 +34,12 @@ func TestEtag(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, util.ETag(tt.args.input), "ETag(%v)", tt.args.input)
+			assert.Equalf(t, tt.want, model.ETagFromString(tt.args.input), "ETagFromString(%v)", tt.args.input)
 		})
 	}
 }
 
-func TestEtagAny(t *testing.T) {
+func TestETagFromAny(t *testing.T) {
 	t.Run("marshaling failure", func(t *testing.T) {
 		type foo struct {
 			Foo *foo
@@ -48,7 +48,7 @@ func TestEtagAny(t *testing.T) {
 		input := foo{Bar: "bar"}
 		input.Foo = &input
 
-		assert.Panics(t, func() { util.ETagAny(input) })
+		assert.Panics(t, func() { model.ETagFromAny(input) })
 	})
 
 	t.Run("success", func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestEtagAny(t *testing.T) {
 		tests := []struct {
 			name string
 			args args
-			want string
+			want model.ETag
 		}{
 			{
 				name: "foo",
@@ -95,7 +95,7 @@ func TestEtagAny(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				assert.Equalf(t, tt.want, util.ETagAny(tt.args.input), "ETagAny(%v)", tt.args.input)
+				assert.Equalf(t, tt.want, model.ETagFromAny(tt.args.input), "ETagFromAny(%v)", tt.args.input)
 			})
 		}
 	})

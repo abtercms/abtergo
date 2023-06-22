@@ -187,8 +187,8 @@ func TestService_Update(t *testing.T) {
 	ctxStub := context.Background()
 
 	const (
-		idStub   = "foo"
-		eTagStub = "bar23"
+		idStub   model.ID   = "foo"
+		eTagStub model.ETag = "bar23"
 	)
 
 	t.Run("id mismatch error", func(t *testing.T) {
@@ -270,8 +270,8 @@ func Test_service_Transition(t *testing.T) {
 	ctxStub := context.Background()
 
 	const (
-		idStub   = "foo"
-		eTagStub = "bar23"
+		idStub   model.ID   = "foo"
+		eTagStub model.ETag = "bar23"
 	)
 
 	t.Run("error retrieving page", func(t *testing.T) {

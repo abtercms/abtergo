@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/model"
 )
 
 // Handler represents a set of HTTP handlers.
@@ -71,7 +72,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
 	checkWiring(id)
 
-	response, err := h.service.Get(c.Context(), id)
+	response, err := h.service.Get(c.Context(), model.ID(id))
 	if err != nil {
 		return errors.Wrap(err, "failed to get the page")
 	}
@@ -82,6 +83,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 // Put handles requests to update a single Page instance.
 func (h *Handler) Put(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
 	payload := Page{}
@@ -90,7 +92,7 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
-	response, err := h.service.Update(c.Context(), id, payload, c.Get(fiber.HeaderETag))
+	response, err := h.service.Update(c.Context(), model.ID(id), payload, model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity")
 	}
@@ -101,9 +103,10 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 // Delete handles requests to delete a single Page instance.
 func (h *Handler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
-	err := h.service.Delete(c.Context(), id, c.Get(fiber.HeaderETag))
+	err := h.service.Delete(c.Context(), model.ID(id), model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to delete entity")
 	}
@@ -114,11 +117,10 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 // Activate handles requests to activate a single Page instance.
 func (h *Handler) Activate(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
-	etag := c.Get(fiber.HeaderETag)
-
-	response, err := h.service.Transition(c.Context(), id, Activate, etag)
+	response, err := h.service.Transition(c.Context(), model.ID(id), Activate, model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to activate entity")
 	}
@@ -129,11 +131,10 @@ func (h *Handler) Activate(c *fiber.Ctx) error {
 // Inactivate handles requests to inactivate a single Page instance.
 func (h *Handler) Inactivate(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
 
-	etag := c.Get(fiber.HeaderETag)
-
-	response, err := h.service.Transition(c.Context(), id, Inactivate, etag)
+	response, err := h.service.Transition(c.Context(), model.ID(id), Inactivate, model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to inactivate entity")
 	}

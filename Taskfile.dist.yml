@@ -37,6 +37,7 @@ tasks:
     sources:
     - libs/**/*.go
     - pkg/**/*.go
+    - mocks/**/*.go
     cmds:
     - go test {{.PACKAGES}} -race -count=1 -mod=readonly -cover -coverprofile coverprofile.txt
 
@@ -84,4 +85,4 @@ tasks:
     - libs/**/*.go
     - pkg/**/*.go
     cmds:
-      - go install app/cmd/*
+    - go install app/cmd/*

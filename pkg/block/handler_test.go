@@ -1,6 +1,7 @@
 package block_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -247,7 +248,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(block.Block{}, arr.WrapWithType(arr.ResourceIsOutdated, assert.AnError, ""))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -283,7 +285,8 @@ func TestHandler_Get(t *testing.T) {
 			Return(expectedBlock, nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodGet, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
+		req := httptest.NewRequest(fiber.MethodGet, target, nil)
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -307,7 +310,7 @@ func TestHandler_Put(t *testing.T) {
 		baseURLStub = "https://example.com"
 
 		// Stubs
-		previousEtagStub = "foo"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error parsing payload", func(t *testing.T) {
@@ -321,9 +324,10 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 
 		// Request
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
 		reqBody := util.DataToReaderHelper(t, `"foo"`)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/blocks/"+expectedBlock.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -359,9 +363,10 @@ func TestHandler_Put(t *testing.T) {
 			Return(block.Block{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
 		// Request
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/blocks/"+expectedBlock.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -397,9 +402,10 @@ func TestHandler_Put(t *testing.T) {
 			Return(expectedBlock, nil)
 
 		// Request
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
 		reqBody := util.DataToReaderHelper(t, payloadStub)
-		req := httptest.NewRequest(fiber.MethodPut, baseURLStub+"/blocks/"+expectedBlock.ID, reqBody)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -420,8 +426,8 @@ func TestHandler_Put(t *testing.T) {
 
 func TestHandler_Delete(t *testing.T) {
 	const (
-		baseURLStub      = "https://example.com"
-		previousEtagStub = "foo"
+		baseURLStub                 = "https://example.com"
+		previousEtagStub model.ETag = "foo"
 	)
 
 	t.Run("error deleting entity", func(t *testing.T) {
@@ -439,8 +445,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(arr.WrapWithType(arr.UpstreamServiceBusy, assert.AnError, "foo"))
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
@@ -469,8 +476,9 @@ func TestHandler_Delete(t *testing.T) {
 			Return(nil)
 
 		// Request
-		req := httptest.NewRequest(fiber.MethodDelete, baseURLStub+"/blocks/"+expectedBlock.ID, nil)
-		req.Header.Set(fiber.HeaderETag, previousEtagStub)
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
+		req := httptest.NewRequest(fiber.MethodDelete, target, nil)
+		req.Header.Set(fiber.HeaderETag, previousEtagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		// Execute Test
