@@ -22,6 +22,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 
+	"github.com/abtergo/abtergo/app/config"
 	"github.com/abtergo/abtergo/libs/fib"
 	"github.com/abtergo/abtergo/pkg/block"
 	"github.com/abtergo/abtergo/pkg/page"
@@ -36,6 +37,7 @@ type cleaner interface {
 
 // Server represents an HTTP server and contains all dependencies necessary.
 type Server struct {
+	config  config.Config
 	logger  *zap.Logger
 	cleaner cleaner
 	cache   onecache.Store
@@ -43,7 +45,7 @@ type Server struct {
 }
 
 // NewServer creates a new Server instance.
-func NewServer(logger *zap.Logger, cleaner cleaner, cache onecache.Store) *Server {
+func NewServer(cfg config.Config, logger *zap.Logger, cleaner cleaner, cache onecache.Store) *Server {
 	errorHandler := fib.NewErrorHandler(logger)
 
 	f := fiber.New(fiber.Config{
@@ -57,6 +59,7 @@ func NewServer(logger *zap.Logger, cleaner cleaner, cache onecache.Store) *Serve
 	})
 
 	return &Server{
+		config:  cfg,
 		logger:  logger,
 		cleaner: cleaner,
 		cache:   cache,
@@ -82,16 +85,18 @@ func (s *Server) SetupHandlers() *Server {
 	// Add API handlers
 	api := s.fiber.Group("/api")
 
+	pageHandler, pageRepo := page.CreateHandler(s.logger)
+
 	redirect.CreateHandler(s.logger).AddAPIRoutes(api)
 	template.CreateHandler(s.logger).AddAPIRoutes(api)
-	page.CreateHandler(s.logger).AddAPIRoutes(api)
+	pageHandler.AddAPIRoutes(api)
 	block.CreateHandler(s.logger).AddAPIRoutes(api)
 
 	api.Get("/healthz", func(cCtx *fiber.Ctx) error { panic(errors.New("hello")) })
 
 	// Add Web handlers
 	web := s.fiber.Group("")
-	website.CreateHandler(s.logger, s.cache).AddRoutes(web)
+	website.CreateHandler(s.config.Website, s.logger, s.cache, pageRepo).AddRoutes(web)
 
 	return s
 }

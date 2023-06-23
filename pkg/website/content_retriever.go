@@ -69,12 +69,12 @@ func NewHTTPRetriever(agent *fiber.Agent, url string, decoder *decoder.Decoder) 
 	}
 }
 
-func (hr *HTTPRetriever) Retrieve(ctx context.Context, id model.ID) (templ.CacheableContent, error) {
+func (hr *HTTPRetriever) Retrieve(ctx context.Context, key model.Key) (templ.CacheableContent, error) {
 	_ = ctx
 
 	req := hr.agent.Request()
 	req.Header.SetMethod(fiber.MethodGet)
-	req.SetRequestURI(fmt.Sprintf(hr.urlTemplate, id))
+	req.SetRequestURI(fmt.Sprintf(hr.urlTemplate, key))
 
 	if err := hr.agent.Parse(); err != nil {
 		panic(err)

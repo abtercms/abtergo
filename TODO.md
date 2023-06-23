@@ -1,8 +1,9 @@
 v0.1
-* [ ] Jwt 
-* [ ] Tracing
-* [ ] E2e testing
-* [ ] Caching
+* [X] Configuration system added
+* [ ] Jwt system added
+* [ ] Tracing system added
+* [ ] E2e testing system added
+* [ ] Caching system added
 * [ ] Monolith support
 * [ ] HTTP support
 

@@ -6,10 +6,10 @@ import (
 	"github.com/abtergo/abtergo/libs/repo"
 )
 
-func CreateHandler(logger *zap.Logger) *Handler {
+func CreateHandler(logger *zap.Logger) (*Handler, Repo) {
 	r := repo.NewInMemoryRepo[Page]()
 	u := NewUpdater()
 	srv := NewService(r, u, logger)
 
-	return NewHandler(srv, logger)
+	return NewHandler(srv, logger), r
 }
