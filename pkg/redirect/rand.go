@@ -20,6 +20,8 @@ func init() {
 var lock sync.Mutex
 
 // RandomRedirect generates a random Redirect instance.
+// TODO: No arguments
+// Deprecated: Use RandomRedirectWithArgs instead.
 func RandomRedirect(asNew bool) Redirect {
 	lock.Lock()
 	defer lock.Unlock()

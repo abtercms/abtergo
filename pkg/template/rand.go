@@ -21,6 +21,8 @@ func init() {
 var lock sync.Mutex
 
 // RandomTemplate generates a random Template instance.
+// TODO: No arguments
+// Deprecated: Use RandomTemplateWithArgs instead.
 func RandomTemplate(asNew bool) Template {
 	lock.Lock()
 	defer lock.Unlock()

@@ -17,7 +17,7 @@ type Service interface {
 	Get(ctx context.Context, id model.ID) (Template, error)
 	List(ctx context.Context, filter Filter) ([]Template, error)
 	Create(ctx context.Context, template Template) (Template, error)
-	Update(ctx context.Context, id model.ID, template Template, oldETag model.ETag) (Template, error)
+	Update(ctx context.Context, template Template, oldETag model.ETag) (Template, error)
 	Delete(ctx context.Context, id model.ID, oldETag model.ETag) error
 }
 
@@ -74,16 +74,11 @@ func (s *service) List(ctx context.Context, filter Filter) ([]Template, error) {
 }
 
 // Update updates an existing entity.
-func (s *service) Update(ctx context.Context, id model.ID, entity Template, oldETag model.ETag) (Template, error) {
-	if entity.ID != "" && entity.ID != id {
-		return Template{}, arr.New(arr.InvalidUserInput, "path and payload ids do not match", zap.Stringer("id in path", id), zap.Stringer("id in payload", entity.ID))
-	}
-
+func (s *service) Update(ctx context.Context, entity Template, oldETag model.ETag) (Template, error) {
 	if err := entity.Validate(); err != nil {
 		return Template{}, arr.WrapWithType(arr.InvalidUserInput, err, "payload validation failed")
 	}
 
-	entity.ID = id
 	entity.UpdatedAt = time.Now()
 	entity.ETag = model.ETagFromAny(entity)
 

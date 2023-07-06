@@ -14,6 +14,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// TODO: check multi-error support
+
 type ErrorType string
 
 const (

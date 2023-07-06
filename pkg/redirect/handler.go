@@ -42,6 +42,10 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
+	if payload.ID != "" {
+		return arr.New(arr.InvalidUserInput, "id provided", zap.String("id in payload", payload.ID.String()))
+	}
+
 	response, err := h.service.Create(c.Context(), payload)
 	if err != nil {
 		return errors.Wrap(err, "failed to create entity")
@@ -81,7 +85,12 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 // Put handles requests to update a single Redirect instance.
 func (h *Handler) Put(c *fiber.Ctx) error {
 	id := c.Params("id")
+	eTag := c.Get(fiber.HeaderETag)
 	checkWiring(id)
+
+	if eTag == "" {
+		return arr.New(arr.InvalidUserInput, "missing e-tag")
+	}
 
 	payload := Redirect{}
 
@@ -89,9 +98,11 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 		return arr.WrapWithType(arr.InvalidUserInput, err, "failed to parse the request payload")
 	}
 
-	eTag := c.Get(fiber.HeaderETag)
+	if payload.ID.String() != id {
+		return arr.New(arr.InvalidUserInput, "id mismatch", zap.String("id in path", id), zap.String("id in payload", payload.ID.String()))
+	}
 
-	response, err := h.service.Update(c.Context(), model.ID(id), payload, model.ETag(eTag))
+	response, err := h.service.Update(c.Context(), payload, model.ETag(eTag))
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity")
 	}

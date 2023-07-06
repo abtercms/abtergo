@@ -73,13 +73,51 @@ func TestHandler_Post(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
 
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.AssertExpectations(t)
+	})
+
+	t.Run("error id provided", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedTemplate := template.RandomTemplate(false)
+		require.NotEmpty(t, expectedTemplate.ID)
+
+		// Stubs
+		payloadStub := expectedTemplate.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Mocks
+
+		// Request
+		reqBody := util.DataToReaderHelper(t, payloadStub)
+		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/templates", reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
 		deps.AssertExpectations(t)
 	})
 
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate(true)
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -107,13 +145,17 @@ func TestHandler_Post(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
 
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
 		deps.AssertExpectations(t)
 	})
 
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate(true)
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -309,6 +351,40 @@ func TestHandler_Put(t *testing.T) {
 		previousETagStub model.ETag = "foo"
 	)
 
+	t.Run("missing e-tag", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedTemplate := template.RandomTemplate(false)
+
+		// Stubs
+		payloadStub := expectedTemplate.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Mocks
+
+		// Request
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
+		reqBody := util.DataToReaderHelper(t, payloadStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
@@ -322,6 +398,41 @@ func TestHandler_Put(t *testing.T) {
 		// Request
 		target := fmt.Sprintf("%s/templates/%s", baseURLStub, expectedTemplate.ID)
 		reqBody := util.DataToReaderHelper(t, `"foo"`)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
+	t.Run("id mismatch in path and payload", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedTemplate := template.RandomTemplate(false)
+
+		// Stubs
+		payloadStub := expectedTemplate.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Mocks
+
+		// Request
+		target := fmt.Sprintf("%s/templates/%s", baseURLStub, "foo")
+		reqBody := util.DataToReaderHelper(t, payloadStub)
 		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
 		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
@@ -355,7 +466,7 @@ func TestHandler_Put(t *testing.T) {
 		// Mocks
 		errStub := arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo")
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousETagStub).
+			Update(mock.Anything, payloadStub, previousETagStub).
 			Once().
 			Return(template.Template{}, errStub)
 
@@ -394,7 +505,7 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedTemplate.ID, payloadStub, previousETagStub).
+			Update(mock.Anything, payloadStub, previousETagStub).
 			Once().
 			Return(expectedTemplate, nil)
 

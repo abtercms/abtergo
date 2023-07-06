@@ -73,6 +73,42 @@ func TestHandler_Post(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
 
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.AssertExpectations(t)
+	})
+
+	t.Run("error id provided", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedBlock := block.RandomBlock()
+		require.NotEmpty(t, expectedBlock.ID)
+
+		// Stubs
+		payloadStub := expectedBlock.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Request
+		reqBody := util.DataToReaderHelper(t, payloadStub)
+		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/blocks", reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
 		deps.AssertExpectations(t)
 	})
 
@@ -107,6 +143,10 @@ func TestHandler_Post(t *testing.T) {
 		// Asserts
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
 
 		deps.AssertExpectations(t)
 	})
@@ -313,6 +353,38 @@ func TestHandler_Put(t *testing.T) {
 		previousETagStub model.ETag = "foo"
 	)
 
+	t.Run("error missing e-tag", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedBlock := block.RandomBlock()
+
+		// Stubs
+		payloadStub := expectedBlock.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Request
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, expectedBlock.ID)
+		reqBody := util.DataToReaderHelper(t, payloadStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
@@ -345,6 +417,39 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.AssertExpectations(t)
 	})
 
+	t.Run("error id mismatch in path and payload", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedBlock := block.RandomBlock()
+
+		// Stubs
+		payloadStub := expectedBlock.Clone()
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Request
+		target := fmt.Sprintf("%s/blocks/%s", baseURLStub, "foo")
+		reqBody := util.DataToReaderHelper(t, payloadStub)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
@@ -358,7 +463,7 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedBlock.ID, payloadStub, previousETagStub).
+			Update(mock.Anything, payloadStub, previousETagStub).
 			Once().
 			Return(block.Block{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
@@ -397,7 +502,7 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedBlock.ID, payloadStub, previousETagStub).
+			Update(mock.Anything, payloadStub, previousETagStub).
 			Once().
 			Return(expectedBlock, nil)
 

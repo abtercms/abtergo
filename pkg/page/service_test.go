@@ -191,21 +191,6 @@ func TestService_Update(t *testing.T) {
 		eTagStub model.ETag = "bar23"
 	)
 
-	t.Run("id mismatch error", func(t *testing.T) {
-		entityStub := page.RandomPage()
-
-		repoMock := new(repoMocks.Repository[page.Page])
-		updaterMock := new(mocks.Updater)
-		s := page.NewService(repoMock, updaterMock, loggerStub)
-
-		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
-
-		assert.Error(t, err)
-		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
-		repoMock.AssertExpectations(t)
-		updaterMock.AssertExpectations(t)
-	})
-
 	t.Run("validation error", func(t *testing.T) {
 		entityStub := page.RandomPage()
 		entityStub.Entity = model.Entity{}
@@ -216,7 +201,7 @@ func TestService_Update(t *testing.T) {
 		updaterMock := new(mocks.Updater)
 		s := page.NewService(repoMock, updaterMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
+		_, err := s.Update(ctxStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, arr.HTTPStatusFromError(err))
@@ -236,7 +221,7 @@ func TestService_Update(t *testing.T) {
 		updaterMock := new(mocks.Updater)
 		s := page.NewService(repoMock, updaterMock, loggerStub)
 
-		_, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
+		_, err := s.Update(ctxStub, entityStub, eTagStub)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -256,7 +241,7 @@ func TestService_Update(t *testing.T) {
 		updaterMock := new(mocks.Updater)
 		s := page.NewService(repoMock, updaterMock, loggerStub)
 
-		got, err := s.Update(ctxStub, idStub, entityStub, eTagStub)
+		got, err := s.Update(ctxStub, entityStub, eTagStub)
 
 		assert.NoError(t, err)
 		assert.Equal(t, entityStub, got)

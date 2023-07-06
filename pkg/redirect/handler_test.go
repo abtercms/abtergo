@@ -73,13 +73,48 @@ func TestHandler_Post(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
 
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.AssertExpectations(t)
+	})
+
+	t.Run("error id provided", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedRedirect := redirect.RandomRedirect(false)
+		require.NotEmpty(t, expectedRedirect.ID)
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Mocks
+
+		// Request
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
+		req := httptest.NewRequest(fiber.MethodPost, baseURLStub+"/redirects", reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
 		deps.AssertExpectations(t)
 	})
 
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect(true)
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -104,13 +139,17 @@ func TestHandler_Post(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedStatusCode, resp.StatusCode)
 
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
 		deps.AssertExpectations(t)
 	})
 
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect(true)
 
 		// Stubs
 
@@ -310,6 +349,37 @@ func TestHandler_Put(t *testing.T) {
 		previousETagStub model.ETag = "foo"
 	)
 
+	t.Run("missing e-tag", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedRedirect := redirect.RandomRedirect(false)
+
+		// Stubs
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Request
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, expectedRedirect.ID)
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
@@ -342,6 +412,40 @@ func TestHandler_Put(t *testing.T) {
 		deps.serviceMock.AssertExpectations(t)
 	})
 
+	t.Run("id mismatch in path and payload", func(t *testing.T) {
+		// Expectations
+		expectedStatusCode := fiber.StatusBadRequest
+		expectedRedirect := redirect.RandomRedirect(false)
+
+		// Stubs
+
+		// Prepare Test
+		app, deps := setupHandlerMocks(t)
+
+		// Mocks
+
+		// Request
+		target := fmt.Sprintf("%s/redirects/%s", baseURLStub, "foo")
+		reqBody := util.DataToReaderHelper(t, expectedRedirect)
+		req := httptest.NewRequest(fiber.MethodPut, target, reqBody)
+		req.Header.Set(fiber.HeaderETag, previousETagStub.String())
+		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+		// Execute Test
+		resp, err := app.Test(req)
+		defer resp.Body.Close()
+
+		// Asserts
+		require.NoError(t, err)
+		require.Equal(t, expectedStatusCode, resp.StatusCode)
+
+		var actual problem.Problem
+		util.ParseResponseHelper(t, resp, &actual)
+		assert.Equal(t, expectedStatusCode, actual.Status)
+
+		deps.serviceMock.AssertExpectations(t)
+	})
+
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
@@ -354,7 +458,7 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousETagStub).
+			Update(mock.Anything, expectedRedirect, previousETagStub).
 			Once().
 			Return(redirect.Redirect{}, arr.WrapWithType(arr.UpstreamServiceUnavailable, assert.AnError, "foo"))
 
@@ -392,7 +496,7 @@ func TestHandler_Put(t *testing.T) {
 
 		// Mocks
 		deps.serviceMock.EXPECT().
-			Update(mock.Anything, expectedRedirect.ID, expectedRedirect, previousETagStub).
+			Update(mock.Anything, expectedRedirect, previousETagStub).
 			Once().
 			Return(expectedRedirect, nil)
 
