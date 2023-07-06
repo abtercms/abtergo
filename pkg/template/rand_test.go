@@ -10,7 +10,7 @@ import (
 
 func TestRandomTemplate(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		tt := template.RandomTemplate(false)
+		tt := template.RandomTemplate()
 
 		err := tt.Validate()
 		assert.NoError(t, err)

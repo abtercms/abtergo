@@ -21,9 +21,7 @@ func init() {
 var lock sync.Mutex
 
 // RandomTemplate generates a random Template instance.
-// TODO: No arguments
-// Deprecated: Use RandomTemplateWithArgs instead.
-func RandomTemplate(asNew bool) Template {
+func RandomTemplate() Template {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -38,12 +36,6 @@ func RandomTemplate(asNew bool) Template {
 		t.HTTPHeader = nil
 	}
 
-	if asNew {
-		t.Entity = model.Entity{}
-
-		return t
-	}
-
 	return t
 }
 
@@ -52,7 +44,7 @@ func RandomTemplateList(min, max int) []Template {
 	templates := []Template{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		templates = append(templates, RandomTemplate(false))
+		templates = append(templates, RandomTemplate())
 	}
 
 	return templates

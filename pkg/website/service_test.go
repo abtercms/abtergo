@@ -72,7 +72,7 @@ func TestService_Get(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
 		randomPage := page.RandomPage()
-		randomTemplate := templatePkg.RandomTemplate(false)
+		randomTemplate := templatePkg.RandomTemplate()
 		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		contentMock := new(templMocks.CacheableContent)
@@ -115,7 +115,7 @@ func TestService_Get(t *testing.T) {
 		s, deps := setupServiceMocks(t)
 
 		randomPage := page.RandomPage()
-		randomTemplate := templatePkg.RandomTemplate(false)
+		randomTemplate := templatePkg.RandomTemplate()
 		key := model.KeyFromStrings(randomPage.Website, randomPage.Path)
 
 		contentMock := new(templMocks.CacheableContent)

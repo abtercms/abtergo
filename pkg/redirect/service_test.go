@@ -20,8 +20,8 @@ func TestService_Create(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(true)
-		entityStub.ID = ""
+		entityStub := redirect.RandomRedirect()
+		entityStub.Entity = model.Entity{}
 		entityStub.Website = ""
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
@@ -35,7 +35,8 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(true)
+		entityStub := redirect.RandomRedirect()
+		entityStub.Entity = model.Entity{}
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -52,7 +53,8 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(true)
+		entityStub := redirect.RandomRedirect()
+		entityStub.Entity = model.Entity{}
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -75,7 +77,7 @@ func TestService_Delete(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -92,7 +94,7 @@ func TestService_Delete(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -113,7 +115,7 @@ func TestService_Get(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -130,7 +132,7 @@ func TestService_Get(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		repoMock.EXPECT().
@@ -197,9 +199,9 @@ func TestService_Update(t *testing.T) {
 	)
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(true)
+		entityStub := redirect.RandomRedirect()
+		entityStub.Entity = model.Entity{}
 		entityStub.Website = ""
-		entityStub.ID = ""
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
 		s := redirect.NewService(repoMock, loggerStub)
@@ -212,7 +214,7 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 		entityStub.ID = idStub
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])
@@ -230,7 +232,7 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := redirect.RandomRedirect(false)
+		entityStub := redirect.RandomRedirect()
 		entityStub.ID = idStub
 
 		repoMock := new(repoMocks.Repository[redirect.Redirect])

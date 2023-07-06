@@ -83,7 +83,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error id provided", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 		require.NotEmpty(t, expectedRedirect.ID)
 
 		// Prepare Test
@@ -114,7 +114,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedRedirect := redirect.RandomRedirect(true)
+		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect.Entity = model.Entity{}
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -149,7 +150,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedRedirect := redirect.RandomRedirect(true)
+		expectedRedirect := redirect.RandomRedirect()
+		expectedRedirect.Entity = model.Entity{}
 
 		// Stubs
 
@@ -270,7 +272,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -307,7 +309,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -352,7 +354,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("missing e-tag", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -383,7 +385,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -415,7 +417,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("id mismatch in path and payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -449,7 +451,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -487,7 +489,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Stubs
 
@@ -533,7 +535,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -564,7 +566,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedRedirect := redirect.RandomRedirect(false)
+		expectedRedirect := redirect.RandomRedirect()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

@@ -10,7 +10,7 @@ import (
 
 func TestRandomRedirect(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		r := redirect.RandomRedirect(false)
+		r := redirect.RandomRedirect()
 
 		err := r.Validate()
 		assert.NoError(t, err)

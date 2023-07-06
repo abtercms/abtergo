@@ -11,7 +11,7 @@ import (
 
 func TestRedirect_Clone(t *testing.T) {
 	t.Run("random page can be cloned", func(t *testing.T) {
-		r := redirect.RandomRedirect(false)
+		r := redirect.RandomRedirect()
 
 		c := r.Clone()
 
@@ -29,13 +29,13 @@ func TestRedirect_Validate(t *testing.T) {
 	}{
 		{
 			name:          "valid redirect",
-			redirect:      redirect.RandomRedirect(false),
+			redirect:      redirect.RandomRedirect(),
 			modifier:      func(c *redirect.Redirect) {},
 			invalidFields: []string{},
 		},
 		{
 			name:     "many missing fields",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.ID = ""
 				c.Website = ""
@@ -46,7 +46,7 @@ func TestRedirect_Validate(t *testing.T) {
 		},
 		{
 			name:     "missing id field",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.ID = ""
 			},
@@ -54,7 +54,7 @@ func TestRedirect_Validate(t *testing.T) {
 		},
 		{
 			name:     "missing website field",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.Website = ""
 			},
@@ -62,7 +62,7 @@ func TestRedirect_Validate(t *testing.T) {
 		},
 		{
 			name:     "missing target field",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.Target = ""
 			},
@@ -70,7 +70,7 @@ func TestRedirect_Validate(t *testing.T) {
 		},
 		{
 			name:     "invalid website field",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.Website = "foo"
 			},
@@ -78,7 +78,7 @@ func TestRedirect_Validate(t *testing.T) {
 		},
 		{
 			name:     "invalid target field",
-			redirect: redirect.RandomRedirect(false),
+			redirect: redirect.RandomRedirect(),
 			modifier: func(c *redirect.Redirect) {
 				c.Target = "foo"
 			},

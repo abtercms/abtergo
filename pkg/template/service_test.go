@@ -20,7 +20,7 @@ func TestService_Create(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(true)
+		entityStub := template.RandomTemplate()
 		entityStub.ID = ""
 		entityStub.Website = ""
 
@@ -35,7 +35,7 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(true)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -52,7 +52,7 @@ func TestService_Create(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := template.RandomTemplate(true)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -75,7 +75,7 @@ func TestService_Delete(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -92,7 +92,7 @@ func TestService_Delete(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -113,7 +113,7 @@ func TestService_Get(t *testing.T) {
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -130,7 +130,7 @@ func TestService_Get(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 
 		repoMock := new(repoMocks.Repository[template.Template])
 		repoMock.EXPECT().
@@ -197,7 +197,7 @@ func TestService_Update(t *testing.T) {
 	)
 
 	t.Run("validation error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(true)
+		entityStub := template.RandomTemplate()
 		entityStub.Website = ""
 		entityStub.ID = ""
 
@@ -212,7 +212,7 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 		entityStub.ID = idStub
 
 		repoMock := new(repoMocks.Repository[template.Template])
@@ -230,7 +230,7 @@ func TestService_Update(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		entityStub := template.RandomTemplate(false)
+		entityStub := template.RandomTemplate()
 		entityStub.ID = idStub
 
 		repoMock := new(repoMocks.Repository[template.Template])

@@ -83,7 +83,7 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error id provided", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 		require.NotEmpty(t, expectedTemplate.ID)
 
 		// Stubs
@@ -117,7 +117,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("error persisting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedTemplate := template.RandomTemplate(true)
+		expectedTemplate := template.RandomTemplate()
+		expectedTemplate.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -155,7 +156,8 @@ func TestHandler_Post(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusCreated
-		expectedTemplate := template.RandomTemplate(true)
+		expectedTemplate := template.RandomTemplate()
+		expectedTemplate.Entity = model.Entity{}
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -273,7 +275,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("error retrieving entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusConflict
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 
@@ -310,7 +312,7 @@ func TestHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 
@@ -354,7 +356,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("missing e-tag", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -388,7 +390,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error parsing payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -420,7 +422,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("id mismatch in path and payload", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadRequest
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -455,7 +457,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("error updating entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusBadGateway
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -495,7 +497,7 @@ func TestHandler_Put(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusOK
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Stubs
 		payloadStub := expectedTemplate.Clone()
@@ -541,7 +543,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("error deleting entity", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusTooManyRequests
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)
@@ -572,7 +574,7 @@ func TestHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Expectations
 		expectedStatusCode := fiber.StatusNoContent
-		expectedTemplate := template.RandomTemplate(false)
+		expectedTemplate := template.RandomTemplate()
 
 		// Prepare Test
 		app, deps := setupHandlerMocks(t)

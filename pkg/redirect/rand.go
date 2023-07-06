@@ -20,9 +20,7 @@ func init() {
 var lock sync.Mutex
 
 // RandomRedirect generates a random Redirect instance.
-// TODO: No arguments
-// Deprecated: Use RandomRedirectWithArgs instead.
-func RandomRedirect(asNew bool) Redirect {
+func RandomRedirect() Redirect {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -33,10 +31,6 @@ func RandomRedirect(asNew bool) Redirect {
 		panic(errors.Wrap(err, "failed to generate random redirect"))
 	}
 
-	if asNew {
-		r.Entity = model.Entity{}
-	}
-
 	return r
 }
 
@@ -45,7 +39,7 @@ func RandomRedirectList(min, max int) []Redirect {
 	redirects := []Redirect{}
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		redirects = append(redirects, RandomRedirect(false))
+		redirects = append(redirects, RandomRedirect())
 	}
 
 	return redirects

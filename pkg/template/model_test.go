@@ -13,7 +13,7 @@ import (
 
 func TestTemplate_Clone(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		tt := template.RandomTemplate(false)
+		tt := template.RandomTemplate()
 
 		c := tt.Clone()
 
@@ -31,13 +31,13 @@ func TestTemplate_Validate(t *testing.T) {
 	}{
 		{
 			name:          "id is required if e-tag is present, updated at or created at are present",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.ID = "" },
 			invalidFields: []string{"id"},
 		},
 		{
 			name:     "id, e-tag, created at and updated at are not required if all are empty",
-			template: template.RandomTemplate(false),
+			template: template.RandomTemplate(),
 			modifier: func(c *template.Template) {
 				c.ID = ""
 				c.ETag = ""
@@ -48,67 +48,67 @@ func TestTemplate_Validate(t *testing.T) {
 		},
 		{
 			name:          "website is required",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Website = "" },
 			invalidFields: []string{"website"},
 		},
 		{
 			name:          "name is required",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Name = "" },
 			invalidFields: []string{"name"},
 		},
 		{
 			name:          "body is required",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Body = "" },
 			invalidFields: []string{"body"},
 		},
 		{
 			name:          "assets with invalid header js",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.HeaderJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid footer js",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.FooterJS = []html.Script{{}} },
 			invalidFields: []string{"src"},
 		},
 		{
 			name:          "assets with invalid header css",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.HeaderCSS = []html.Link{{}} },
 			invalidFields: []string{"rel", "href"},
 		},
 		{
 			name:          "assets with invalid meta",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.Assets.HeaderMeta = []html.Meta{{}} },
 			invalidFields: []string{"name", "content"},
 		},
 		{
 			name:          "e-tag is required if id, updated at or created at are present",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.ETag = "" },
 			invalidFields: []string{"etag"},
 		},
 		{
 			name:          "created at is required if id, e-tag, or updated at are present",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.CreatedAt = time.Time{} },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "created at must be after 2023-01-01",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.CreatedAt = time.Date(2022, 10, 10, 10, 10, 10, 10, time.UTC) },
 			invalidFields: []string{"created_at"},
 		},
 		{
 			name:          "update at must not be before created at",
-			template:      template.RandomTemplate(false),
+			template:      template.RandomTemplate(),
 			modifier:      func(c *template.Template) { c.UpdatedAt = c.CreatedAt.Add(-1) },
 			invalidFields: []string{"updated_at"},
 		},
