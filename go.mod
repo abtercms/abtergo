@@ -1,10 +1,11 @@
 module github.com/abtergo/abtergo
 
-go 1.20
+go 1.21
 
 require (
 	github.com/adelowo/onecache v0.0.0-20200525154227-4af24e41db10
 	github.com/brianvoe/gofakeit/v6 v6.22.0
+	github.com/caarlos0/env/v8 v8.0.0
 	github.com/cbroglie/mustache v1.4.0
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/goccy/go-json v0.10.2
@@ -23,7 +24,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
-	github.com/caarlos0/env/v8 v8.0.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
