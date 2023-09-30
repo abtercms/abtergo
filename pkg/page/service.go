@@ -2,10 +2,10 @@ package page
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -25,13 +25,13 @@ type Service interface {
 type Repo = repo.Repository[Page]
 
 type service struct {
-	logger  *zap.Logger
+	logger  *slog.Logger
 	repo    Repo
 	updater Updater
 }
 
 // NewService creates a new Service instance.
-func NewService(repo Repo, updater Updater, logger *zap.Logger) Service {
+func NewService(repo Repo, updater Updater, logger *slog.Logger) Service {
 	return &service{
 		logger:  logger,
 		repo:    repo,
@@ -42,7 +42,7 @@ func NewService(repo Repo, updater Updater, logger *zap.Logger) Service {
 // Create persists a new entity.
 func (s *service) Create(ctx context.Context, entity Page) (Page, error) {
 	if entity.ID != "" {
-		return Page{}, arr.New(arr.InvalidUserInput, "payload must not include an id", zap.Stringer("id", entity.ID))
+		return Page{}, arr.New(arr.InvalidUserInput, "payload must not include an id", slog.String("id", entity.ID.String()))
 	}
 
 	if err := entity.Validate(); err != nil {
@@ -115,7 +115,7 @@ func (s *service) Transition(ctx context.Context, id model.ID, trigger Trigger, 
 	}
 
 	if page.ETag != oldETag {
-		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", zap.Stringer("id", id), zap.Stringer("request e-tag", oldETag), zap.Stringer("found e-tag", page.ETag))
+		return Page{}, arr.New(arr.ETagMismatch, "invalid e-tag found", slog.String("id", id.String()), slog.String("request e-tag", oldETag.String()), slog.String("found e-tag", page.ETag.String()))
 	}
 
 	newStatus, err := s.updater.Transition(page.Status, trigger)

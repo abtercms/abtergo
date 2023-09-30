@@ -1,8 +1,9 @@
 package page
 
 import (
+	"log/slog"
+
 	"github.com/qmuntal/stateless"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 )
@@ -30,7 +31,7 @@ func (u *updater) Transition(status Status, trigger Trigger) (Status, error) {
 
 	err := sm.Fire(trigger)
 	if err != nil {
-		return status, arr.WrapWithType(arr.ResourceNotModified, err, "invalid status transition", zap.String("old status", string(status)), zap.String("trigger", string(trigger)))
+		return status, arr.WrapWithType(arr.ResourceNotModified, err, "invalid status transition", slog.String("old status", string(status)), slog.String("trigger", string(trigger)))
 	}
 
 	return sm.MustState().(Status), nil

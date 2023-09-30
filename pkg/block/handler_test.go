@@ -2,6 +2,7 @@ package block_test
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -10,11 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fib"
+	"github.com/abtergo/abtergo/libs/logtest"
 	"github.com/abtergo/abtergo/libs/model"
 	"github.com/abtergo/abtergo/libs/problem"
 	"github.com/abtergo/abtergo/libs/util"
@@ -599,7 +599,7 @@ func TestHandler_Delete(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerStub  *zap.Logger
+	loggerStub  *slog.Logger
 	serviceMock *mocks.Service
 }
 
@@ -612,7 +612,7 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	t.Helper()
 
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	serviceMock := &mocks.Service{}
 	handler := block.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)

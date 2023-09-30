@@ -1,13 +1,13 @@
 package model
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/fakeit"
@@ -175,7 +175,7 @@ func (e Entity) GetETag() ETag {
 }
 
 func (e Entity) GetUniqueKey() Key {
-	panic(arr.New(arr.ApplicationError, "invalid unique key request", zap.String("entity", string(e.ID))))
+	panic(arr.New(arr.ApplicationError, "invalid unique key request", slog.Attr{Key: "entity", Value: slog.StringValue(string(e.ID))}))
 }
 
 func (e Entity) Validate() error {

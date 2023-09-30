@@ -1,12 +1,12 @@
 package templ
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/adelowo/onecache"
 	"github.com/cbroglie/mustache"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 )
@@ -80,7 +80,7 @@ func (r *renderer) resolveViewTags(parsedTemplate string, viewTags []ViewTag) (s
 	for _, viewTag := range viewTags {
 		cc, err := r.retrievers[viewTag.TagName].Retrieve(viewTag)
 		if err != nil {
-			return "", nil, arr.Wrap(err, "failed to retrieve template", zap.String("tag", viewTag.TagName), zap.String("needle example", viewTag.Needles[0]))
+			return "", nil, arr.Wrap(err, "failed to retrieve template", slog.String("tag", viewTag.TagName), slog.String("needle example", viewTag.Needles[0]))
 		}
 
 		ccList = append(ccList, cc)

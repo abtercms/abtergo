@@ -4,10 +4,10 @@ import (
 	"context"
 	stdErrors "errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/decoder"
@@ -22,11 +22,11 @@ type ContentRetriever interface {
 }
 
 type contentRetriever struct {
-	logger  *zap.Logger
+	logger  *slog.Logger
 	sources []ContentRetriever
 }
 
-func NewContentRetriever(logger *zap.Logger, sources []ContentRetriever) ContentRetriever {
+func NewContentRetriever(logger *slog.Logger, sources []ContentRetriever) ContentRetriever {
 	return &contentRetriever{
 		logger:  logger,
 		sources: sources,
@@ -84,13 +84,13 @@ func (hr *HTTPRetriever) Retrieve(ctx context.Context, key model.Key) (templ.Cac
 	if len(errs) > 0 {
 		err := stdErrors.Join(errs...)
 
-		return nil, arr.Wrap(err, "failed to get content (http)", zap.Int("code", code))
+		return nil, arr.Wrap(err, "failed to get content (http)", slog.Int("code", code))
 	}
 
 	p := &page.Page{}
 	err := hr.decoder.Decode(body, p)
 	if err != nil {
-		return nil, arr.Wrap(err, "failed to parse content (http)", zap.ByteString("body", body))
+		return nil, arr.Wrap(err, "failed to parse content (http)", slog.String("body", string(body)))
 	}
 
 	return p, nil

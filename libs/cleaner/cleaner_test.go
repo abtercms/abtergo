@@ -1,11 +1,11 @@
 package cleaner_test
 
 import (
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/cleaner"
 )
@@ -90,7 +90,7 @@ func TestCleaner_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerStub := zaptest.NewLogger(t)
+			loggerStub := slog.Default()
 
 			c := cleaner.New(loggerStub)
 
@@ -105,7 +105,7 @@ func TestCleaner_Run(t *testing.T) {
 
 func TestCleaner_Unregister(t *testing.T) {
 	t.Run("can remove a registered function", func(t *testing.T) {
-		loggerStub := zaptest.NewLogger(t)
+		loggerStub := slog.Default()
 
 		c := cleaner.New(loggerStub)
 

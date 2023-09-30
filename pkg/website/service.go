@@ -2,8 +2,7 @@ package website
 
 import (
 	"context"
-
-	"go.uber.org/zap"
+	"log/slog"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -34,18 +33,18 @@ func NewService(contentRetriever ContentRetriever, templateRetriever TemplateRet
 func (s *service) Get(ctx context.Context, website, path string) (string, error) {
 	page, err := s.contentRetriever.Retrieve(ctx, model.KeyFromStrings(website, path))
 	if err != nil {
-		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve page", zap.String("website", website), zap.String("path", path))
+		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve page", slog.String("website", website), slog.String("path", path))
 	}
 
 	template, err := s.templateRetriever.Retrieve(ctx, website, path)
 	if err != nil {
-		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve template", zap.String("website", website), zap.String("path", path))
+		return "", arr.WrapWithFallback(arr.ResourceNotFound, err, "failed to retrieve template", slog.String("website", website), slog.String("path", path))
 	}
 
 	allContext := s.mergeContexts(page.GetContext(), template.GetContext())
 	raw, err := s.renderer.RenderInLayout(page.Render(), template.Render(), allContext...)
 	if err != nil {
-		return "", arr.WrapWithFallback(arr.TemplateError, err, "failed to render content", zap.String("website", website), zap.String("path", path))
+		return "", arr.WrapWithFallback(arr.TemplateError, err, "failed to render content", slog.String("website", website), slog.String("path", path))
 	}
 
 	return raw, nil

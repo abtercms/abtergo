@@ -1,13 +1,14 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/adelowo/onecache"
 	"github.com/adelowo/onecache/memory"
-	"go.uber.org/zap"
 )
 
-func createLogger() *zap.Logger {
-	return zap.Must(zap.NewProduction())
+func createLogger() *slog.Logger {
+	return slog.Default()
 }
 
 func createCache() onecache.Store {

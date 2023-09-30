@@ -1,6 +1,7 @@
 package website_test
 
 import (
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,8 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/fib"
 	mocks "github.com/abtergo/abtergo/mocks/pkg/website"
@@ -49,7 +48,7 @@ func TestHandler_AddRoutes(t *testing.T) {
 }
 
 type handlerDeps struct {
-	loggerStub  *zap.Logger
+	loggerStub  *slog.Logger
 	serviceMock *mocks.Service
 }
 
@@ -62,7 +61,7 @@ func (hd handlerDeps) AssertExpectations(t *testing.T) {
 func setupHandlerMocks(t *testing.T) (*fiber.App, handlerDeps) {
 	t.Helper()
 
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub := slog.Default()
 	serviceMock := &mocks.Service{}
 	handler := website.NewHandler(serviceMock, loggerStub)
 	errorHandler := fib.NewErrorHandler(loggerStub)

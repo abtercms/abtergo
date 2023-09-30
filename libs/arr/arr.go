@@ -1,17 +1,13 @@
 package arr
 
 import (
-	"fmt"
-	"math"
+	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // TODO: check multi-error support
@@ -74,14 +70,14 @@ type Arr interface {
 	HTTPStatus() int
 	GetSlug() string
 	DetailedError() string
-	AsZapFields() []zap.Field
+	Attrs() []slog.Attr
 	Unwrap() error
 }
 
 type arr struct {
-	t    ErrorType
-	e    error
-	args []zap.Field
+	t          ErrorType
+	e          error
+	attributes []slog.Attr
 }
 
 func (a *arr) HTTPStatus() int {
@@ -99,16 +95,16 @@ func (a *arr) Error() string {
 func (a *arr) DetailedError() string {
 	res := a.e.Error() + "."
 
-	if len(a.args) == 0 {
+	if len(a.attributes) == 0 {
 		return res
 	}
 
 	b := strings.Builder{}
-	for _, arg := range a.args {
+	for _, attr := range a.attributes {
 		b.WriteString(" ")
-		b.WriteString(arg.Key)
+		b.WriteString(attr.Key)
 		b.WriteString(": ")
-		b.WriteString(a.argToString(arg))
+		b.WriteString(attr.Value.String())
 		b.WriteString(",")
 	}
 
@@ -117,93 +113,53 @@ func (a *arr) DetailedError() string {
 	return res + str[0:len(str)-1]
 }
 
-func (a *arr) AsZapFields() []zap.Field {
-	result := make([]zap.Field, 0, len(a.args)+5)
-	result = append(result, zap.Error(a))
-	result = append(result, zap.String("type", string(a.t)))
-	result = append(result, zap.Int("status", a.t.HTTPStatus()))
-	result = append(result, a.args...)
+func (a *arr) Attrs() []slog.Attr {
+	result := make([]slog.Attr, 0, len(a.attributes)+5)
+	result = append(result, slog.Attr{Key: "err", Value: slog.StringValue(a.Error())})
+	result = append(result, slog.Attr{Key: "type", Value: slog.StringValue(string(a.t))})
+	result = append(result, slog.Attr{Key: "status", Value: slog.IntValue(a.HTTPStatus())})
+	result = append(result, a.attributes...)
 
 	return result
-}
-
-func (a *arr) boolArgToString(arg zap.Field) string {
-	if arg.Integer == 1 {
-		return "true"
-	}
-
-	return "false"
-}
-
-func (a *arr) timeArgToString(arg zap.Field) string {
-	loc := arg.Interface.(*time.Location)
-	sec := arg.Integer / int64(time.Second)
-	nsec := arg.Integer % int64(time.Second)
-	t := time.Unix(sec, nsec).In(loc)
-
-	if nsec > 0 {
-		return t.Format(time.RFC3339Nano)
-	}
-
-	return t.Format(time.RFC3339)
-}
-
-func (a *arr) argToString(arg zap.Field) string {
-	switch arg.Type {
-	case zapcore.StringType:
-		return arg.String
-	case zapcore.Int64Type, zapcore.Int32Type, zapcore.Int16Type, zapcore.Int8Type, zapcore.Uint64Type, zapcore.Uint32Type, zapcore.Uint16Type, zapcore.Uint8Type:
-		return fmt.Sprintf("%d", arg.Integer)
-	case zapcore.Float32Type:
-		return fmt.Sprintf("%g", math.Float32frombits(uint32(arg.Integer)))
-	case zapcore.Float64Type:
-		return fmt.Sprintf("%g", math.Float64frombits(uint64(arg.Integer)))
-	case zapcore.BoolType:
-		return a.boolArgToString(arg)
-	case zapcore.TimeType:
-		return a.timeArgToString(arg)
-	}
-
-	return fmt.Sprintf("%v", arg.Interface)
 }
 
 func (a *arr) Unwrap() error {
 	return a.e
 }
 
-func Wrap(e error, msg string, args ...zap.Field) Arr {
+func Wrap(e error, msg string, attrs ...slog.Attr) Arr {
 	t2 := TypeFromError(e)
 
-	return WrapWithType(t2, e, msg, args...)
+	return WrapWithType(t2, e, msg, attrs...)
 }
 
-func WrapWithFallback(t ErrorType, e error, msg string, args ...zap.Field) Arr {
+func WrapWithFallback(t ErrorType, e error, msg string, attrs ...slog.Attr) Arr {
 	t2 := TypeFromError(e)
 
 	if t2 != UnknownError {
-		return WrapWithType(t2, e, msg, args...)
+		return WrapWithType(t2, e, msg, attrs...)
 	}
 
-	return WrapWithType(t, e, msg, args...)
+	return WrapWithType(t, e, msg, attrs...)
 }
 
-func WrapWithType(t ErrorType, e error, msg string, args ...zap.Field) Arr {
+func WrapWithType(t ErrorType, e error, msg string, attrs ...slog.Attr) Arr {
 	if msg != "" {
 		e = errors.Wrap(e, msg)
 	}
 
-	return newArr(t, e, args...)
+	return newArr(t, e, attrs...)
 }
 
-func New(t ErrorType, msg string, args ...zap.Field) Arr {
+func New(t ErrorType, msg string, args ...slog.Attr) Arr {
 	return newArr(t, errors.New(msg), args...)
 }
 
-func newArr(t ErrorType, e error, args ...zap.Field) Arr {
+func newArr(t ErrorType, e error, args ...slog.Attr) Arr {
 	return &arr{
-		t:    t,
-		e:    e,
-		args: args,
+		t:          t,
+		e:          e,
+		attributes: args,
 	}
 }
 

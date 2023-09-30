@@ -1,12 +1,12 @@
 package block
 
 import (
-	"go.uber.org/zap"
+	"log/slog"
 
 	"github.com/abtergo/abtergo/libs/repo"
 )
 
-func CreateHandler(logger *zap.Logger) *Handler {
+func CreateHandler(logger *slog.Logger) *Handler {
 	r := repo.NewInMemoryRepo[Block]()
 	srv := NewService(r, logger)
 

@@ -1,11 +1,11 @@
 package template
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -13,12 +13,12 @@ import (
 
 // Handler represents a set of HTTP handlers.
 type Handler struct {
-	logger  *zap.Logger
+	logger  *slog.Logger
 	service Service
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(service Service, logger *zap.Logger) *Handler {
+func NewHandler(service Service, logger *slog.Logger) *Handler {
 	return &Handler{
 		logger:  logger,
 		service: service,
@@ -43,7 +43,7 @@ func (h *Handler) Post(c *fiber.Ctx) error {
 	}
 
 	if payload.ID != "" {
-		return arr.New(arr.InvalidUserInput, "id provided", zap.String("id in payload", payload.ID.String()))
+		return arr.New(arr.InvalidUserInput, "id provided", slog.String("id in payload", payload.ID.String()))
 	}
 
 	response, err := h.service.Create(c.Context(), payload)
@@ -99,7 +99,7 @@ func (h *Handler) Put(c *fiber.Ctx) error {
 	}
 
 	if payload.ID.String() != id {
-		return arr.New(arr.InvalidUserInput, "id mismatch", zap.String("id in path", id), zap.String("id in payload", payload.ID.String()))
+		return arr.New(arr.InvalidUserInput, "id mismatch", slog.String("id in path", id), slog.String("id in payload", payload.ID.String()))
 	}
 
 	response, err := h.service.Update(c.Context(), payload, model.ETag(eTag))

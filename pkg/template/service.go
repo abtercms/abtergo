@@ -2,10 +2,10 @@ package template
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -24,12 +24,12 @@ type Service interface {
 type Repo = repo.Repository[Template]
 
 type service struct {
-	logger *zap.Logger
+	logger *slog.Logger
 	repo   Repo
 }
 
 // NewService creates a new Service instance.
-func NewService(repository Repo, logger *zap.Logger) Service {
+func NewService(repository Repo, logger *slog.Logger) Service {
 	return &service{
 		logger: logger,
 		repo:   repository,

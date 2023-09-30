@@ -7,16 +7,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/abtergo/abtergo/libs/arr"
+	"github.com/abtergo/abtergo/libs/logtest"
 	"github.com/abtergo/abtergo/libs/model"
 	repoMocks "github.com/abtergo/abtergo/mocks/libs/repo"
 	"github.com/abtergo/abtergo/pkg/redirect"
 )
 
 func TestService_Create(t *testing.T) {
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	ctxStub := context.Background()
 
 	t.Run("validation error", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestService_Create(t *testing.T) {
 }
 
 func TestService_Delete(t *testing.T) {
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestService_Delete(t *testing.T) {
 }
 
 func TestService_Get(t *testing.T) {
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestService_Get(t *testing.T) {
 }
 
 func TestService_List(t *testing.T) {
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	ctxStub := context.Background()
 
 	t.Run("repo error", func(t *testing.T) {
@@ -190,7 +190,7 @@ func TestService_List(t *testing.T) {
 }
 
 func TestService_Update(t *testing.T) {
-	loggerStub := zaptest.NewLogger(t)
+	loggerStub, _ := logtest.NewDefaultLogger(t)
 	ctxStub := context.Background()
 
 	const (

@@ -1,9 +1,8 @@
 package cleaner
 
 import (
+	"log/slog"
 	"sync"
-
-	"go.uber.org/zap"
 )
 
 // Fn represents a callback function which can be used for cleaning up resources on server shutdown.
@@ -13,11 +12,11 @@ type Fn func() error
 type Cleaner struct {
 	lock     sync.Mutex
 	registry map[string]Fn
-	logger   *zap.Logger
+	logger   *slog.Logger
 }
 
 // New creates a new Cleaner instance.
-func New(logger *zap.Logger) *Cleaner {
+func New(logger *slog.Logger) *Cleaner {
 	return &Cleaner{
 		registry: make(map[string]Fn),
 		logger:   logger,
@@ -56,7 +55,7 @@ func (c *Cleaner) Run() {
 			defer wg.Done()
 			err := fn()
 			if err != nil {
-				c.logger.Error("clean up failed", zap.Error(err), zap.String("id", id))
+				c.logger.Error("clean up failed", slog.Attr{Key: "err", Value: slog.StringValue(err.Error())}, slog.Attr{Key: "id", Value: slog.StringValue(id)})
 			}
 		}()
 	}

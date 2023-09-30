@@ -1,12 +1,12 @@
 package page
 
 import (
-	"go.uber.org/zap"
+	"log/slog"
 
 	"github.com/abtergo/abtergo/libs/repo"
 )
 
-func CreateHandler(logger *zap.Logger) (*Handler, Repo) {
+func CreateHandler(logger *slog.Logger) (*Handler, Repo) {
 	r := repo.NewInMemoryRepo[Page]()
 	u := NewUpdater()
 	srv := NewService(r, u, logger)

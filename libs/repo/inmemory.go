@@ -2,10 +2,10 @@ package repo
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -61,7 +61,7 @@ func (i *uniqueIndex) Delete(key model.Key) error {
 
 	_, ok := i.data[key]
 	if !ok {
-		return arr.New(arr.ApplicationError, "index not found", zap.Stringer("key", key))
+		return arr.New(arr.ApplicationError, "index not found", slog.String("key", key.String()))
 	}
 
 	delete(i.data, key)
@@ -75,12 +75,12 @@ func (i *uniqueIndex) Replace(oldKey, newKey model.Key) error {
 
 	val, ok := i.data[oldKey]
 	if !ok {
-		return arr.New(arr.ApplicationError, "target index not found", zap.String("key", string(oldKey)))
+		return arr.New(arr.ApplicationError, "target index not found", slog.String("key", string(oldKey)))
 	}
 
 	_, ok = i.data[newKey]
 	if ok {
-		return arr.New(arr.ApplicationError, "replacement key already exists", zap.String("key", string(newKey)))
+		return arr.New(arr.ApplicationError, "replacement key already exists", slog.String("key", string(newKey)))
 	}
 
 	delete(i.data, oldKey)
@@ -113,14 +113,14 @@ func (r *InMemoryRepo[T]) Create(ctx context.Context, entity T) (T, error) {
 	id := entity.GetID()
 
 	if !entity.IsComplete() {
-		args := []zap.Field{
-			zap.Stringer("id", id),
-			zap.String("etag", string(entity.GetETag())),
-			zap.Time("created_at", entity.GetCreatedAt()),
-			zap.Time("updated_at", entity.GetUpdatedAt()),
+		attrs := []slog.Attr{
+			slog.String("id", id.String()),
+			slog.String("etag", string(entity.GetETag())),
+			slog.Time("created_at", entity.GetCreatedAt()),
+			slog.Time("updated_at", entity.GetUpdatedAt()),
 		}
 
-		return t, arr.New(arr.ApplicationError, "entity not complete", args...)
+		return t, arr.New(arr.ApplicationError, "entity not complete", attrs...)
 	}
 
 	err := r.indexes.Add(entity.GetUniqueKey(), id)
@@ -141,7 +141,7 @@ func (r *InMemoryRepo[T]) GetByID(ctx context.Context, id model.ID) (T, error) {
 
 	t, ok := r.entities[id]
 	if !ok {
-		return t, arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
+		return t, arr.New(arr.ResourceNotFound, "entity not found", slog.String("id", id.String()))
 	}
 
 	return t, nil
@@ -151,7 +151,7 @@ func (r *InMemoryRepo[T]) GetByKey(ctx context.Context, key model.Key) (T, error
 	id := r.indexes.Find(key)
 	if id == nil {
 		var t T
-		return t, arr.New(arr.ResourceNotFound, "index not found", zap.Stringer("key", key))
+		return t, arr.New(arr.ResourceNotFound, "index not found", slog.String("key", key.String()))
 	}
 
 	return r.GetByID(ctx, *id)
@@ -166,16 +166,16 @@ func (r *InMemoryRepo[T]) Update(ctx context.Context, entity T, oldETag model.ET
 
 	if !entity.IsComplete() {
 		var t T
-		return t, arr.New(arr.ApplicationError, "entity not complete", zap.Stringer("id", id))
+		return t, arr.New(arr.ApplicationError, "entity not complete", slog.String("id", id.String()))
 	}
 
 	oldEntity, ok := r.entities[id]
 	if !ok {
-		return oldEntity, arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
+		return oldEntity, arr.New(arr.ResourceNotFound, "entity not found", slog.String("id", id.String()))
 	}
 
 	if oldEntity.GetETag() != oldETag {
-		return oldEntity, arr.New(arr.ETagMismatch, "e-tag mismatch", zap.Stringer("id", id), zap.Stringer("stored e-tag", oldEntity.GetETag()), zap.Stringer("received e-tag", oldETag))
+		return oldEntity, arr.New(arr.ETagMismatch, "e-tag mismatch", slog.String("id", id.String()), slog.String("stored e-tag", oldEntity.GetETag().String()), slog.String("received e-tag", oldETag.String()))
 	}
 
 	oldKey := oldEntity.GetUniqueKey()
@@ -201,11 +201,11 @@ func (r *InMemoryRepo[T]) Delete(ctx context.Context, id model.ID, oldETag model
 
 	t, ok := r.entities[id]
 	if !ok {
-		return arr.New(arr.ResourceNotFound, "entity not found", zap.Stringer("id", id))
+		return arr.New(arr.ResourceNotFound, "entity not found", slog.String("id", id.String()))
 	}
 
 	if oldETag != t.GetETag() {
-		return arr.New(arr.ETagMismatch, "e-tag mismatch", zap.Stringer("id", id), zap.Stringer("stored e-tag", t.GetETag()), zap.Stringer("received e-tag", oldETag))
+		return arr.New(arr.ETagMismatch, "e-tag mismatch", slog.String("id", id.String()), slog.String("stored e-tag", t.GetETag().String()), slog.String("received e-tag", oldETag.String()))
 	}
 
 	err := r.indexes.Delete(t.GetUniqueKey())
@@ -230,7 +230,7 @@ func (r *InMemoryRepo[T]) List(ctx context.Context, filter Filter[T]) ([]T, erro
 
 		match, err := filter.Match(ctx, entity)
 		if err != nil {
-			return nil, arr.WrapWithType(arr.ApplicationError, err, "failed to match entity", zap.Stringer("id", entity.GetID()))
+			return nil, arr.WrapWithType(arr.ApplicationError, err, "failed to match entity", slog.String("id", entity.GetID().String()))
 		}
 
 		if match {

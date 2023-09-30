@@ -3,19 +3,19 @@ package fib
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/problem"
 )
 
 type ErrorHandler struct {
-	logger *zap.Logger
+	logger *slog.Logger
 }
 
-func NewErrorHandler(logger *zap.Logger) *ErrorHandler {
+func NewErrorHandler(logger *slog.Logger) *ErrorHandler {
 	return &ErrorHandler{logger: logger}
 }
 
@@ -24,9 +24,9 @@ func (eh *ErrorHandler) Handle(ctx *fiber.Ctx, err error) error {
 
 	var a arr.Arr
 	if errors.As(err, &a) {
-		eh.logger.Error(a.Unwrap().Error(), a.AsZapFields()...)
+		eh.logger.LogAttrs(ctx.UserContext(), slog.LevelError, a.Unwrap().Error(), a.Attrs()...)
 	} else {
-		eh.logger.Error(err.Error(), zap.Error(err))
+		eh.logger.Error(err.Error(), err)
 	}
 
 	if p.Status == fiber.StatusInternalServerError {

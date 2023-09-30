@@ -2,10 +2,10 @@ package block
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/abtergo/abtergo/libs/arr"
 	"github.com/abtergo/abtergo/libs/model"
@@ -23,11 +23,11 @@ type Service interface {
 type Repo = repo.Repository[Block]
 
 type service struct {
-	logger *zap.Logger
+	logger *slog.Logger
 	repo   Repo
 }
 
-func NewService(repo Repo, logger *zap.Logger) Service {
+func NewService(repo Repo, logger *slog.Logger) Service {
 	return &service{
 		logger: logger,
 		repo:   repo,
